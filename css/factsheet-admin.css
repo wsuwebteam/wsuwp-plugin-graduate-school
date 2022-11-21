@@ -1,0 +1,283 @@
+.factsheet-group,
+.factsheet-primary-inputs {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: flex-start;
+	align-items: flex-start;
+}
+
+.factsheet-group {
+	background: #f5f5f5;
+	padding: 0 10px;
+	margin-top: 20px;
+	width: 100%;
+}
+
+.factsheet-primary-input {
+	flex-basis: 50%;
+	padding-bottom: 10px;
+}
+
+.factsheet-deadlines,
+.factsheet-requirements,
+.factsheet-string {
+	flex-basis: 100%;
+}
+
+.factsheet-textarea {
+	padding-top: 20px;
+	flex-basis: 100%;
+	padding-bottom: 20px;
+}
+
+.factsheet-float,
+.factsheet-int,
+.factsheet-bool,
+.factsheet-string {
+	font-size: 1.2em;
+	line-height: 1.3;
+	margin-top: 1em;
+}
+
+.factsheet-label,
+.factsheet-primary-input label {
+	font-size: 1.1em;
+	font-weight: 400;
+	color: #333;
+	padding-right: 1em;
+}
+
+.factsheet-label {
+	font-size: 1.3em;
+	display: block;
+	width: 100%;
+	padding: 0 0 .5em;
+	line-height: 1;
+}
+
+.factsheet-textarea label {
+	font-size: 1.1rem;
+	font-weight: 600;
+}
+
+.factsheet-float input,
+.factsheet-int input,
+.factsheet-bool select {
+	float: right;
+	line-height: 1.3;
+	margin-right: 4rem;
+	width: 55px;
+}
+
+.factsheet-string input {
+	line-height: 1.3;
+	margin-top: .75em;
+	margin-bottom: .75em;
+	width: 100%;
+}
+
+input[name="gsdp_degree_shortname"],
+input[name="gsdp_degree_url"] {
+	width: 60%;
+	max-width: 500px;
+	min-width: 200px;
+}
+
+.factsheet-locations-wrapper,
+.factsheet-deadlines-wrapper,
+.factsheet-requirements-wrapper {
+	padding-top: 1em;
+}
+
+.factsheet-locations-field,
+.factsheet-requirements-field,
+.factsheet-deadlines-field {
+	display: block;
+	margin-bottom: .5em;
+}
+
+.factsheet-requirements-field input,
+.factsheet-deadlines-field input {
+	height: 28px;
+	margin: 0 10px .5em 0;
+	width: calc(100% - 100px);
+}
+
+.factsheet-locations-field select,
+.factsheet-deadlines-field select {
+	margin: 0 5px .3em 0;
+	width: 115px;
+	max-width: 115px;
+}
+
+.factsheet-locations-field label {
+	width: 35%;
+	display: inline-block;
+}
+
+.factsheet-deadlines-field input {
+	max-width: calc((100% - 210px) / 2);
+}
+
+.factsheet-requirements-field input:first-of-type {
+	width: 75px;
+	max-width: 75px;
+}
+
+.factsheet-requirements-field input {
+	max-width: calc((100% - 175px) / 2);
+}
+
+.add-factsheet-deadlines-field {
+	width: calc(38% / 2);
+	max-width: 50px;
+}
+
+.add-factsheet-requirements-field {
+	width: calc(38% / 2);
+	max-width: 50px;
+}
+
+.remove-factsheet-requirements-field,
+.remove-factsheet-deadlines-field {
+	color: #0073aa;
+	cursor: pointer;
+}
+
+.remove-factsheet-requirements-field:hover,
+.remove-factsheet-deadlines-field:hover {
+	color: #00a0d2;
+}
+
+.factsheet-contact-wrapper {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: flex-start;
+	align-items: flex-start;
+}
+
+.factsheet-contact {
+	margin: 0 .5em 3em;
+	flex-basis: calc((100% / 3) - 1em);
+}
+
+.factsheet-contact address {
+	font-size: 1em;
+	font-style: normal;
+}
+
+.add-faculty-wrapper,
+.add-contact-wrapper {
+	padding-top: 1em;
+	padding-left: .5em;
+	width: 100%;
+	border-top: 1px solid #efefef;
+}
+
+.add-faculty-wrapper label,
+.add-contact-wrapper label {
+	display: inline-block;
+	padding-right: .5em;
+	font-weight: 300;
+}
+
+.add-faculty-wrapper input,
+.add-faculty-wrapper label,
+.add-contact-wrapper input,
+.add-contact-wrapper label {
+	font-size: 1.3em;
+	line-height: 1.5;
+	height: 1.7em;
+}
+
+.edit-factsheet-faculty,
+.remove-factsheet-faculty,
+.remove-factsheet-contact {
+	display: inline-block;
+	margin-top: .5em;
+	color: #0073aa;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.edit-factsheet-faculty,
+.remove-factsheet-faculty {
+	margin-top: 0;
+}
+
+.edit-factsheet-faculty:hover,
+.remove-factsheet-faculty:hover,
+.remove-factsheet-contact:hover {
+	color: #00a0d2;
+}
+
+.factsheet-faculty-wrapper {
+	display: table;
+}
+
+.factsheet-faculty {
+	display: table-row;
+}
+
+.facsheet-name,
+.select-chair,
+.select-cochair,
+.select-sit,
+.edit-factsheet-faculty,
+.remove-factsheet-faculty {
+	display: table-cell;
+	padding-bottom: 1em;
+}
+
+.edit-factsheet-faculty,
+.remove-factsheet-faculty,
+.select-sit,
+.select-cochair,
+.select-chair {
+	padding-left: 1.5em;
+}
+
+@media screen and (max-width: 1200px) {
+
+	.factsheet-float input,
+	.factsheet-int input,
+	.factsheet-bool select {
+		float: right;
+		line-height: 1.3;
+		margin-right: 1em;
+		width: auto;
+		max-width: 55px;
+	}
+
+	.factsheet-label,
+	.factsheet-primary-input label {
+		font-size: 1em;
+		font-weight: 400;
+		color: #333;
+		padding-right: .4em;
+	}
+}
+
+@media screen and (max-width: 1050px) {
+
+	.factsheet-float,
+	.factsheet-int,
+	.factsheet-bool,
+	.factsheet-string {
+		max-width: 400px;
+	}
+
+	.factsheet-primary-input {
+		flex-basis: 100%;
+		padding-bottom: 10px;
+	}
+
+	input[name="gsdp_degree_shortname"],
+	input[name="gsdp_degree_url"] {
+		width: 100%;
+		max-width: none;
+		min-width: 200px;
+	}
+}

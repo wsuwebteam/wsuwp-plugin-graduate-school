@@ -116,7 +116,7 @@ class WSUWP_Graduate_School_Theme {
 	 * @since 1.3.0
 	 */
 	public function enqueue_print_styles() {
-		wp_enqueue_style( 'gradschool-print', get_stylesheet_directory_uri() . '/css/print.css', array(), WSUWP_Graduate_School_Theme()->theme_version(), 'print' );
+		wp_enqueue_style( 'gradschool-print', WSUWP\Plugin\Graduate\Plugin::get('url'). '/css/print.css', array(), WSUWP_Graduate_School_Theme()->theme_version(), 'print' );
 	}
 
 	/**
@@ -125,6 +125,6 @@ class WSUWP_Graduate_School_Theme {
 	 * @since 1.0.0
 	 */
 	public function wp_enqueue_scripts() {
-		wp_enqueue_script( 'gradschool-primary', get_stylesheet_directory_uri() . '/js/script.min.js', array( 'jquery' ), WSUWP_Graduate_School_Theme()->theme_version() );
+		wp_enqueue_script( 'gradschool-primary', WSUWP\Plugin\Graduate\Plugin::get('url'). '/js/script.min.js', array( 'jquery' ), WSUWP_Graduate_School_Theme()->theme_version() );
 	}
 }

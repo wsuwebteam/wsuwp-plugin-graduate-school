@@ -243,8 +243,8 @@ class WSUWP_Graduate_Degree_Programs {
 			wp_deregister_script( 'yoast-seo-term-scraper' );
 			wp_deregister_script( 'yoast-seo-featured-image' );
 
-			wp_enqueue_style( 'gsdp-admin', get_stylesheet_directory_uri() . '/css/factsheet-admin.css', array(), WSUWP_Graduate_School_Theme()->theme_version() );
-			wp_register_script( 'gsdp-factsheet-admin', get_stylesheet_directory_uri() . '/js/factsheet-admin.min.js', array( 'jquery', 'underscore', 'jquery-ui-autocomplete' ), WSUWP_Graduate_School_Theme()->theme_version(), true );
+			wp_enqueue_style( 'gsdp-admin', WSUWP\Plugin\Graduate\Plugin::get('url'). '/css/factsheet-admin.css', array(), WSUWP_Graduate_School_Theme()->theme_version() );
+			wp_register_script( 'gsdp-factsheet-admin', WSUWP\Plugin\Graduate\Plugin::get('url'). '/js/factsheet-admin.min.js', array( 'jquery', 'underscore', 'jquery-ui-autocomplete' ), WSUWP_Graduate_School_Theme()->theme_version(), true );
 
 			$rest_api_data = array(
 				'contact_rest_url' => rest_url( 'wp/v2/gs-contact/' ),
@@ -256,7 +256,7 @@ class WSUWP_Graduate_Degree_Programs {
 		}
 
 		if ( in_array( $hook_suffix, array( 'edit-tags.php', 'term.php', 'term-new.php' ), true ) && in_array( get_current_screen()->taxonomy, array( 'gs-contact', 'gs-faculty', 'gs-degree-type' ), true ) ) {
-			wp_enqueue_style( 'gsdp-faculty-admin', get_stylesheet_directory_uri() . '/css/faculty-admin.css', array(), WSUWP_Graduate_School_Theme()->theme_version() );
+			wp_enqueue_style( 'gsdp-faculty-admin', WSUWP\Plugin\Graduate\Plugin::get('url'). '/css/faculty-admin.css', array(), WSUWP_Graduate_School_Theme()->theme_version() );
 		}
 	}
 
@@ -267,7 +267,7 @@ class WSUWP_Graduate_Degree_Programs {
 	 */
 	public function wp_enqueue_scripts() {
 		if ( is_post_type_archive( $this->post_type_slug ) ) {
-			wp_enqueue_script( 'factsheet-archive', get_stylesheet_directory_uri() . '/js/factsheet-archive.js', array( 'jquery' ), WSUWP_Graduate_School_Theme()->theme_version() );
+			wp_enqueue_script( 'factsheet-archive', WSUWP\Plugin\Graduate\Plugin::get('url'). '/js/factsheet-archive.js', array( 'jquery' ), WSUWP_Graduate_School_Theme()->theme_version() );
 		}
 	}
 
