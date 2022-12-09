@@ -202,7 +202,6 @@ class WSUWP_Graduate_Degree_Programs {
 		add_action( 'init', 'WSUWP_Graduate_Degree_Degree_Type_Taxonomy', 15 );
 		add_action( 'init', 'WSUWP_Graduate_Degree_Contact_Taxonomy', 15 );
 
-		add_action( 'init', array( $this, 'add_mirror_grad_fair_rewrites' ) );
 		add_filter( 'query_vars', array( $this, 'add_gradfair_query_var' ) );
 		add_action( 'init', array( $this, 'register_mirror_menu' ) );
 
@@ -289,25 +288,15 @@ class WSUWP_Graduate_Degree_Programs {
 				'title',
 				'revisions',
 			),
-			'has_archive' => $this->archive_slug,
+			'has_archive' => false,
 			'rewrite' => array(
-				'slug' => $this->archive_slug . '/factsheet',
+				'slug' => 'factsheet',
 				'with_front' => false,
 			),
 		);
 		register_post_type( $this->post_type_slug, $args );
 	}
 
-	/**
-	 * Add custom rewrite rules to duplicate degree programs without navigation
-	 * for the graduate fair.
-	 *
-	 * @since 1.4.0
-	 */
-	public function add_mirror_grad_fair_rewrites() {
-		add_rewrite_rule( '^wsugradfair/degrees/?$', 'index.php?post_type=gs-factsheet&gradfair=1', 'top' );
-		add_rewrite_rule( '^wsugradfair/degrees/factsheet/([^/]+)(?:/([0-9]+))?/?$', 'index.php?gs-factsheet=$matches[1]&page=$matches[2]&gradfair=1', 'top' );
-	}
 
 	/**
 	 * Add our custom query variable to the set of default query variables.
