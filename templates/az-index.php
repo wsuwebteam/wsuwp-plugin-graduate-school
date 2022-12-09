@@ -6,7 +6,7 @@
     </div>
 </section>
 
-<dib class="wsu-row">
+<div class="wsu-row">
     <div class="column">
         <form class="degree-search-wrapper">
             <label for="degree-search-input" class="visuallyhidden">Search Degrees</label>
