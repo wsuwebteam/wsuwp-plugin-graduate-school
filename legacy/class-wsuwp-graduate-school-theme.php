@@ -41,7 +41,7 @@ class WSUWP_Graduate_School_Theme {
 		add_action( 'init', array( $this, 'rewrite_rules' ) );
 		add_filter( 'query_vars', array( $this, 'query_vars' ) );
 		add_action( 'template_redirect', array( $this, 'redirect_certificate_urls' ) );
-
+	}
 	/**
 	 * Provide a theme version for use in cache busting.
 	 *
