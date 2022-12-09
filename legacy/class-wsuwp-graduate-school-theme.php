@@ -41,9 +41,6 @@ class WSUWP_Graduate_School_Theme {
 		add_action( 'init', array( $this, 'rewrite_rules' ) );
 		add_filter( 'query_vars', array( $this, 'query_vars' ) );
 		add_action( 'template_redirect', array( $this, 'redirect_certificate_urls' ) );
-		add_action( 'spine_enqueue_styles', array( $this, 'enqueue_print_styles' ) );
-		add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
-	}
 
 	/**
 	 * Provide a theme version for use in cache busting.
@@ -110,21 +107,5 @@ class WSUWP_Graduate_School_Theme {
 		}
 	}
 
-	/**
-	 * Enqueue a print stylesheet for degree programs.
-	 *
-	 * @since 1.3.0
-	 */
-	public function enqueue_print_styles() {
-		wp_enqueue_style( 'gradschool-print', WSUWP\Plugin\Graduate\Plugin::get('url'). '/css/print.css', array(), WSUWP_Graduate_School_Theme()->theme_version(), 'print' );
-	}
 
-	/**
-	 * Enqueue JavaScript used throughout the theme front-end.
-	 *
-	 * @since 1.0.0
-	 */
-	public function wp_enqueue_scripts() {
-		wp_enqueue_script( 'gradschool-primary', WSUWP\Plugin\Graduate\Plugin::get('url'). '/js/script.min.js', array( 'jquery' ), WSUWP_Graduate_School_Theme()->theme_version() );
-	}
 }

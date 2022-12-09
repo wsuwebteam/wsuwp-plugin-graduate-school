@@ -195,7 +195,6 @@ class WSUWP_Graduate_Degree_Programs {
 		require_once dirname( __FILE__ ) . '/class-graduate-degree-contact-taxonomy.php';
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
-		add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
 
 		add_action( 'init', array( $this, 'register_post_type' ), 15 );
 		add_action( 'init', 'WSUWP_Graduate_Degree_Faculty_Taxonomy', 15 );
@@ -260,16 +259,6 @@ class WSUWP_Graduate_Degree_Programs {
 		}
 	}
 
-	/**
-	 * Enqueue JavaScript used for factsheets on the front end.
-	 *
-	 * @since 0.9.0
-	 */
-	public function wp_enqueue_scripts() {
-		if ( is_post_type_archive( $this->post_type_slug ) ) {
-			wp_enqueue_script( 'factsheet-archive', WSUWP\Plugin\Graduate\Plugin::get('url'). '/js/factsheet-archive.js', array( 'jquery' ), WSUWP_Graduate_School_Theme()->theme_version() );
-		}
-	}
 
 	/**
 	 * Register the degree program factsheet post type.

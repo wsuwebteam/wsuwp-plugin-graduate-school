@@ -27,18 +27,10 @@ class Plugin {
 
 	public static function init() {
 
-		//self::setup_classes();
+		require_once __DIR__ . '/shortcode.php';
 
-		// Do plugin stuff here
+		require_once __DIR__ . '/single.php';
 
-		//require_once __DIR__ . '/scripts.php';
-		//require_once __DIR__ . '/blocks.php';
-		//require_once __DIR__ . '/block-categories.php';
-		//require_once __DIR__ . '/rest-api.php';
-		//require_once __DIR__ . '/make-to-gutenberg.php';
-		///require_once __DIR__ . '/query.php';
-
-		//require_once __DIR__ . '/disable-drop-cap.php'; // 5.6 method
 	}
 
 
