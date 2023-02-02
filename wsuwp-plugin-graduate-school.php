@@ -3,7 +3,7 @@
  * Plugin Name: WSUWP Graduate School Plugin
  * Plugin URI: https://github.com/wsuwebteam/wsuwp-plugin-graduate-school
  * Description: Describe the plugin
- * Version: 1.0.0.4
+ * Version: 1.0.1
  * Requires PHP: 7.3
  * Author: Washington State University, Danial Bleile
  * Author URI: https://web.wsu.edu/

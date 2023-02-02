@@ -290,8 +290,8 @@ class WSUWP_Graduate_Degree_Programs {
 			),
 			'has_archive' => false,
 			'rewrite' => array(
-				'slug' => 'factsheet',
-				'with_front' => false,
+				'slug' => 'degrees',
+				//'with_front' => false,
 			),
 		);
 		register_post_type( $this->post_type_slug, $args );

@@ -1,11 +1,3 @@
-<section class="single gutter pad-top degree-programs-header hero-med">
-    <div class="column one centervertically">
-        <div class="flexwrap left">
-            <h1>Graduate Degree Programs</h1>
-        </div>
-    </div>
-</section>
-
 <div class="wsu-row">
     <div class="column">
         <form class="degree-search-wrapper">
