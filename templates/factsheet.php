@@ -1,25 +1,44 @@
 
 
-        <div class="factsheet-apply"><a class="wsu-button" href="https://gradschool.wsu.edu/apply/">Apply Now</a></div>
+        <div class="factsheet-apply">    
+            <?php if ( ! empty( $factsheet_data['application_url'] ) ) : ?>
+                <a class="wsu-button" href="<?php echo esc_url( $factsheet_data['application_url'] ); ?>">Apply Now</a>
+            <?php endif; ?>
+
+            <?php if (empty( $factsheet_data['application_url'] ) ) : ?>
+                <a class="wsu-button" href="https://gradschool.wsu.edu/apply/">Apply Now</a>
+            <?php endif; ?>   
+        </div>
 
         <div class="factsheet-statistics-wrapper">
             <div class="factsheet-stat">
-                <span class="factsheet-label">Program URL:</span>
+                <span class="factsheet-label">Program Link:</span>
                 <span class="factsheet-value"><a href="<?php echo esc_url( $factsheet_data['degree_url'] ); ?>"><?php echo esc_html( $factsheet_data['degree_url'] ); ?></a></span>
             </div>
             <div class="factsheet-stat">
-                <span class="factsheet-label">Faculty working with Students:</span>
-                <span class="factsheet-value"><?php echo count( $factsheet_data['faculty'] ); ?></span>
+                <span class="factsheet-label">Program Handbook:</span>
+                <span class="factsheet-value"><a href="<?php echo esc_url( $factsheet_data['handbook_url'] ); ?>"><?php echo esc_html( $factsheet_data['handbook_url'] ); ?></a></span>
+            </div>
+            <div class="factsheet-stat">
+                <span class="factsheet-label">Total Graduate Faculty in Program: </span>
+                <span class="factsheet-value"><?php echo absint( $factsheet_data['totalfac'] ); ?></span>
             </div>
 
+            <?php if ( ! empty( $factsheet_data['totalcorefac'] ) ) : ?>
+                <div class="factsheet-stat">
+                <span class="factsheet-label">Total Core Graduate Faculty in Program: </span>
+                <span class="factsheet-value"><?php echo absint( $factsheet_data['totalcorefac'] ); ?></span>
+            </div>
+            <?php endif; ?>
+
             <div class="factsheet-stat">
-                <span class="factsheet-label">Students:</span>
+                <span class="factsheet-label">Graduate Students in Program:</span>
                 <span class="factsheet-value"><?php echo absint( $factsheet_data['students'] ); ?></span>
             </div>
 
             <div class="factsheet-stat">
-                <span class="factsheet-label">Students receiving assistantships or scholarships:</span>
-                <span class="factsheet-value"><?php echo esc_html( $factsheet_data['aided'] ); ?>%</span>
+                <span class="factsheet-label">Students receiving assistantships:</span>
+                <span class="factsheet-value"><?php echo esc_html( $factsheet_data['aided'] ); ?></span>
             </div>
 
             <div class="factsheet-stat">
@@ -60,7 +79,7 @@
                             if ( 'No' === $fs_location_status || 'By Exception' === $fs_location_status ) {
                                 continue;
                             }
-                            echo '<li>' . esc_html( $fs_location ) . ': ' . esc_html( $fs_location_status ) . '</li>';
+                            echo '<li>' . esc_html( $fs_location )  . '</li>';
                         }
                         ?>
                     </ul>
@@ -68,7 +87,7 @@
             </div>
 
             <div class="factsheet-stat">
-                <span class="factsheet-label">Tests required:</span>
+                <span class="factsheet-label">International Student English Proficiency Exams</span>
                 <div class="factsheet-set">
                     <ul>
                         <?php
@@ -125,38 +144,7 @@
                 <?php echo wp_kses_post( apply_filters( 'the_content', $factsheet_data['career_placements'] ) ); ?>
             </div>
         <?php endif; ?>
-
-            <div class="factsheet-faculty-wrapper">
-                <h2>Faculty Members:</h2>
-        <?php
-        foreach ( $factsheet_data['faculty'] as $faculty ) {
-            ?>
-            <div class="factsheet-faculty">
-                <h3><?php echo esc_html( $faculty['display_name'] ); ?><?php if ( ! empty( $faculty['degree_abbreviation'] ) ) : ?>, <?php echo esc_html( $faculty['degree_abbreviation'] ); ?><?php endif; ?></h3>
-                <?php if ( ! empty( $faculty['email'] ) ) : ?>
-                <div><a href="mailto:<?php echo esc_attr( $faculty['email'] ); ?>"><?php echo esc_html( $faculty['email'] ); ?></a></div>
-                <?php endif; ?>
-                <?php if ( ! empty( $faculty['faculty_location'] ) ) : ?>
-                <div class="faculty-location"><strong>Location:</strong> <?php echo esc_html( $faculty['faculty_location'] ); ?></div>
-                <?php endif; ?>
-                <?php if ( ! empty( $faculty['url'] ) ) : ?>
-                <div><strong>URL:</strong> <a href="<?php echo esc_url( $faculty['url'] ); ?>"><?php echo esc_html( $faculty['url'] ); ?></a></div>
-                <?php endif; ?>
-                <?php if ( ! empty( $faculty['relationship'] ) ) : ?>
-                <div class="factsheet-faculty-relationship"><p><?php echo esc_html( $faculty['relationship'] ); ?></p></div>
-                <?php endif; ?>
-                <?php if ( ! empty( $faculty['research_interests'] ) ) : ?>
-                <div>
-                    <h4>Research Interests</h4>
-                    <?php echo wp_kses_post( apply_filters( 'the_content', $faculty['research_interests'] ) ); ?>
-                </div>
-                <?php endif; ?>
-            </div>
-            <?php
-        }
-        ?>
-            </div>
-    </div>
+        </div>
     <div class="wsu-column">
         <h2>Contact Information:</h2>
         <?php
@@ -201,15 +189,6 @@
     <div class="wsu-column">
         <div class="progressbar"></div>
         <div class="footer">
-            <ul>
-                <li><strong><a href="https://gradschool.wsu.edu">Graduate School</a></strong></li>
-                <li>Washington State University</li>
-                <li>Stadium Way, 324 French Administration Building</li>
-                <li>P.O. Box 641030</li>
-                <li>Pullman, WA 99164-1030</li>
-                <li><a href="mailto:gradschool@wsu.edu">gradschool@wsu.edu</a></li>
-                <li><a href="tel:15093356424">P: 509-335-6424</a>, F: 509-335-1949</li>
-            </ul>
         </div>
     </div>
     </div>

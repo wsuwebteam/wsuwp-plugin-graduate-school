@@ -78,7 +78,9 @@
 }
 
 input[name="gsdp_degree_shortname"],
-input[name="gsdp_degree_url"] {
+input[name="gsdp_degree_url"],
+input[name="gsdp_application_url"],
+input[name="gsdp_program_handbook_url"] {
 	width: 60%;
 	max-width: 500px;
 	min-width: 200px;
@@ -275,7 +277,9 @@ input[name="gsdp_degree_url"] {
 	}
 
 	input[name="gsdp_degree_shortname"],
-	input[name="gsdp_degree_url"] {
+	input[name="gsdp_degree_url"], 
+	input[name="gsdp_application_url"],
+	input[name="gsdp_program_handbook_url"]{
 		width: 100%;
 		max-width: none;
 		min-width: 200px;
