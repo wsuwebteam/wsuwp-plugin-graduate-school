@@ -72,6 +72,21 @@ class WSUWP_Graduate_Degree_Programs {
 			'meta_field_callback' => array( __CLASS__, 'display_int_meta_field' ),
 			'location' => 'primary',
 		),
+		'gsdp_grad_faculty_total' => array(
+			'description' => 'Total Graduate Faculty',
+			'type' => 'int',
+			'sanitize_callback' => 'absint',
+			'meta_field_callback' => array( __CLASS__, 'display_int_meta_field' ),
+			'location' => 'primary',
+		),
+
+		'gsdp_grad_core_faculty_total' => array(
+			'description' => 'Total Core Graduate Faculty',
+			'type' => 'int',
+			'sanitize_callback' => 'absint',
+			'meta_field_callback' => array( __CLASS__, 'display_int_meta_field' ),
+			'location' => 'primary',
+		),
 		'gsdp_grad_students_aided' => array(
 			'description' => 'Aided grad students',
 			'type' => 'int',
@@ -86,6 +101,21 @@ class WSUWP_Graduate_Degree_Programs {
 			'meta_field_callback' => array( __CLASS__, 'display_string_meta_field' ),
 			'location' => 'primary',
 		),
+		'gsdp_program_handbook_url' => array(
+			'description' => 'Program Handbook URL',
+			'type' => 'string',
+			'sanitize_callback' => 'esc_url_raw',
+			'meta_field_callback' => array( __CLASS__, 'display_string_meta_field' ),
+			'location' => 'primary',
+		),
+		'gsdp_application_url' => array(
+			'description' => 'Application URL',
+			'type' => 'string',
+			'sanitize_callback' => 'esc_url_raw',
+			'meta_field_callback' => array( __CLASS__, 'display_string_meta_field' ),
+			'location' => 'primary',
+		),
+		
 		'gsdp_degree_url' => array(
 			'description' => 'Degree home page',
 			'type' => 'string',
@@ -357,7 +387,7 @@ class WSUWP_Graduate_Degree_Programs {
 		}
 
 		add_meta_box( 'factsheet-primary', 'Factsheet Data', array( $this, 'display_factsheet_primary_meta_box' ), null, 'normal', 'high' );
-		add_meta_box( 'factsheet-faculty', 'Faculty Members', array( $this, 'display_faculty_meta_box' ), null, 'normal', 'default' );
+		// add_meta_box( 'factsheet-faculty', 'Faculty Members', array( $this, 'display_faculty_meta_box' ), null, 'normal', 'default' );
 		add_meta_box( 'factsheet-contact', 'Contact Information', array( $this, 'display_contact_meta_box' ), null, 'normal', 'default' );
 		add_meta_box( 'factsheet-secondary', 'Factsheet Text Blocks', array( $this, 'display_factsheet_secondary_meta_box' ), null, 'normal', 'default' );
 	}
@@ -1467,7 +1497,11 @@ class WSUWP_Graduate_Degree_Programs {
 			'faculty' => array(),
 			'students' => 0,
 			'aided' => 0,
+			'totalfac' => 0,
+			'totalcorefac' => 0,
 			'degree_url' => 'Not available',
+			'application_url' => 'Not available',
+			'handbook_url' => 'Not available',
 			'deadlines' => array(),
 			'requirements' => array(),
 			'locations' => array(
@@ -1505,9 +1539,16 @@ class WSUWP_Graduate_Degree_Programs {
 			$data['accepting_applications'] = 'Yes';
 		}
 
-		$faculty = wp_get_object_terms( $post_id, 'gs-faculty' );
-		if ( ! is_wp_error( $faculty ) ) {
-			$data['faculty'] = $faculty;
+		if ( isset( $factsheet_data['gsdp_grad_students_total'][0] ) ) {
+			$data['students'] = $factsheet_data['gsdp_grad_students_total'][0];
+		}
+
+		if ( isset( $factsheet_data['gsdp_grad_faculty_total'][0] ) ) {
+			$data['totalfac'] = $factsheet_data['gsdp_grad_faculty_total'][0];
+		}
+
+		if ( isset( $factsheet_data['gsdp_grad_core_faculty_total'][0] ) ) {
+			$data['totalcorefac'] = $factsheet_data['gsdp_grad_core_faculty_total'][0];
 		}
 
 		if ( isset( $factsheet_data['gsdp_grad_students_total'][0] ) ) {
@@ -1518,12 +1559,20 @@ class WSUWP_Graduate_Degree_Programs {
 			if ( 0 === absint( $data['students'] ) ) {
 				$data['aided'] = '0.00';
 			} else {
-				$data['aided'] = round( ( $factsheet_data['gsdp_grad_students_aided'][0] / $data['students'] ) * 100, 2 );
+				$data['aided'] = $factsheet_data['gsdp_grad_students_aided'][0];
 			}
 		}
 
 		if ( isset( $factsheet_data['gsdp_degree_url'][0] ) ) {
 			$data['degree_url'] = $factsheet_data['gsdp_degree_url'][0];
+		}
+
+		if ( isset( $factsheet_data['gsdp_application_url'][0] ) ) {
+			$data['application_url'] = $factsheet_data['gsdp_application_url'][0];
+		}
+
+		if ( isset( $factsheet_data['gsdp_program_handbook_url'][0] ) ) {
+			$data['handbook_url'] = $factsheet_data['gsdp_program_handbook_url'][0];
 		}
 
 		if ( isset( $factsheet_data['gsdp_deadlines'][0] ) ) {
