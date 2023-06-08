@@ -15,10 +15,14 @@
                 <span class="factsheet-label">Program Link:</span>
                 <span class="factsheet-value"><a href="<?php echo esc_url( $factsheet_data['degree_url'] ); ?>"><?php echo esc_html( $factsheet_data['degree_url'] ); ?></a></span>
             </div>
-            <div class="factsheet-stat">
-                <span class="factsheet-label">Program Handbook:</span>
-                <span class="factsheet-value"><a href="<?php echo esc_url( $factsheet_data['handbook_url'] ); ?>"><?php echo esc_html( $factsheet_data['handbook_url'] ); ?></a></span>
-            </div>
+            
+            <?php if ( ! empty( $factsheet_data['handbook_url'] ) ) : ?>
+                <div class="factsheet-stat">
+                    <span class="factsheet-label">Program Handbook:</span>
+                    <span class="factsheet-value"><a href="<?php echo esc_url( $factsheet_data['handbook_url'] ); ?>"><?php echo esc_html( $factsheet_data['handbook_url'] ); ?></a></span>
+                </div>
+            <?php endif; ?>
+
             <div class="factsheet-stat">
                 <span class="factsheet-label">Total Graduate Faculty in Program: </span>
                 <span class="factsheet-value"><?php echo absint( $factsheet_data['totalfac'] ); ?></span>
