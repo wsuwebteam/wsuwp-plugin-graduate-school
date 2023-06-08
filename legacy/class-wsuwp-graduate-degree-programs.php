@@ -1500,8 +1500,8 @@ class WSUWP_Graduate_Degree_Programs {
 			'totalfac' => 0,
 			'totalcorefac' => 0,
 			'degree_url' => 'Not available',
-			'application_url' => 'Not available',
-			'handbook_url' => 'Not available',
+			'application_url' => 'https://gradschool.wsu.edu/apply/',
+			'handbook_url' => '',
 			'deadlines' => array(),
 			'requirements' => array(),
 			'locations' => array(
