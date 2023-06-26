@@ -144,10 +144,19 @@ class WSUWP_Graduate_Degree_Programs {
 			'location' => 'primary',
 		),
 		'gsdp_requirements' => array(
-			'description' => 'Requirements',
+			'description' => 'Language Test Requirements',
 			'type' => 'requirements',
 			'sanitize_callback' => 'WSUWP_Graduate_Degree_Programs::sanitize_requirements',
 			'meta_field_callback' => array( __CLASS__, 'display_requirements_meta_field' ),
+			'pre_html' => '<div class="factsheet-group">',
+			'post_html' => '</div>',
+			'location' => 'primary',
+		),
+		'gsdp_requirements_gre' => array(
+			'description' => 'GRE Requirements',
+			'type' => 'requirements-gre',
+			'sanitize_callback' => 'WSUWP_Graduate_Degree_Programs::sanitize_requirements_gre',
+			'meta_field_callback' => array( __CLASS__, 'display_requirements_gre_meta_field' ),
 			'pre_html' => '<div class="factsheet-group">',
 			'post_html' => '</div>',
 			'location' => 'primary',
@@ -902,6 +911,11 @@ class WSUWP_Graduate_Degree_Programs {
 		// @codingStandardsIgnoreEnd
 	}
 
+	
+
+
+	
+
 	/**
 	 * Outputs the meta field HTML used to capture meta data stored as strings.
 	 *
@@ -927,7 +941,7 @@ class WSUWP_Graduate_Degree_Programs {
 
 		?>
 		<div class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-wrapper">
-			<span class="factsheet-label">Requirements:</span>
+			<span class="factsheet-label">Language Test Requirements:</span>
 			<?php
 
 			foreach ( $field_data as $field_datum ) {
@@ -967,6 +981,79 @@ class WSUWP_Graduate_Degree_Programs {
 			</script>
 			<input type="button" class="add-factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field button" value="Add" />
 			<input type="hidden" name="factsheet_requirement_form_count" id="factsheet_requirement_form_count" value="<?php echo esc_attr( $field_count ); ?>" />
+		</div>
+		<?php
+		// @codingStandardsIgnoreEnd
+	}
+
+
+
+	
+	/**
+	 * Outputs the meta field HTML used to capture meta data stored as strings.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @param array  $meta
+	 * @param string $key
+	 * @param array  $data
+	 */
+	public function display_requirements_gre_meta_field( $meta, $key, $data ) {
+		$field_data = maybe_unserialize( $data[ $key ][0] );
+
+		if ( empty( $field_data ) ) {
+			$field_data = array();
+		}
+
+		$default_field_data = array(
+			'score' => '',
+			'test' => '',
+			'description' => '',
+		);
+		$field_count = 0;
+
+		?>
+		<div class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-wrapper">
+			<span class="factsheet-label">Additional Program Requirements:</span>
+			<?php
+
+			foreach ( $field_data as $field_datum ) {
+				$field_datum = wp_parse_args( $field_datum, $default_field_data );
+
+				?>
+				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][score]" value="<?php echo esc_attr( $field_datum['score'] ); ?>" />
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][test]" value="<?php echo esc_attr( $field_datum['test'] ); ?>" />
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][description]" value="<?php echo esc_attr( $field_datum['description'] ); ?>" />
+					<span class="remove-factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">Remove</span>
+				</span>
+				<?php
+				$field_count++;
+			}
+
+			// If no fields have been added, provide an empty field by default.
+			if ( 0 === count( $field_data ) ) {
+				?>
+				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][score]" value="" />
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][test]" value="" />
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][description]" value="" />
+				</span>
+				<?php
+			}
+
+			// @codingStandardsIgnoreStart
+			?>
+			<script type="text/template" id="factsheet-requirement-gre-template">
+				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[<%= form_count %>][score]" value="" />
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[<%= form_count %>][test]" value="" />
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[<%= form_count %>][description]" value="" />
+					<span class="remove-factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">Remove</span>
+				</span>
+			</script>
+			<input type="button" class="add-factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field button" value="Add" />
+			<input type="hidden" name="factsheet_requirement_form_gre_count" id="factsheet_requirement_form_gre_count" value="<?php echo esc_attr( $field_count ); ?>" />
 		</div>
 		<?php
 		// @codingStandardsIgnoreEnd
@@ -1244,6 +1331,53 @@ class WSUWP_Graduate_Degree_Programs {
 	}
 
 	/**
+	 * Sanitizes a set of requirements stored in a string.
+	 *
+	 * @since 0.4.0
+	 *
+	 * @param array $requirements
+	 *
+	 * @return string
+	 */
+	public static function sanitize_requirements_gre( $requirements_gre ) {
+		if ( ! is_array( $requirements_gre ) || 0 === count( $requirements_gre ) ) {
+			return '';
+		}
+
+		$clean_requirements = array();
+
+		foreach ( $requirements_gre as $requirement ) {
+			$clean_requirement = array();
+
+			if ( isset( $requirement['score'] ) ) {
+				$clean_requirement['score'] = sanitize_text_field( $requirement['score'] );
+			} else {
+				$clean_requirement['score'] = '';
+			}
+
+			if ( isset( $requirement['test'] ) ) {
+				$clean_requirement['test'] = sanitize_text_field( $requirement['test'] );
+			} else {
+				$clean_requirement['test'] = '';
+			}
+
+			if ( isset( $requirement['description'] ) ) {
+				$clean_requirement['description'] = sanitize_text_field( $requirement['description'] );
+			} else {
+				$clean_requirement['description'] = '';
+			}
+
+			$clean_requirements[] = $clean_requirement;
+		}
+
+		return $clean_requirements;
+	}
+
+
+
+
+
+	/**
 	 * Save additional data associated with a factsheet.
 	 *
 	 * @since 0.4.0
@@ -1504,6 +1638,7 @@ class WSUWP_Graduate_Degree_Programs {
 			'handbook_url' => '',
 			'deadlines' => array(),
 			'requirements' => array(),
+			'requirements_gre' => array(),
 			'locations' => array(
 				'Pullman' => 'No',
 				'Spokane' => 'No',
@@ -1582,7 +1717,13 @@ class WSUWP_Graduate_Degree_Programs {
 				$data['deadlines'] = array();
 			}
 		}
+		if ( isset( $factsheet_data['gsdp_requirements_gre'][0] ) ) {
+			$data['requirements_gre'] = maybe_unserialize( $factsheet_data['gsdp_requirements_gre'][0] );
 
+			if ( ! is_array( $data['requirements_gre'] ) ) {
+				$data['requirements_gre'] = array();
+			}
+		}
 		if ( isset( $factsheet_data['gsdp_requirements'][0] ) ) {
 			$data['requirements'] = maybe_unserialize( $factsheet_data['gsdp_requirements'][0] );
 

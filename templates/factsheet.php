@@ -1,5 +1,4 @@
 
-
         <div class="factsheet-apply">    
             <?php if ( ! empty( $factsheet_data['application_url'] ) ) : ?>
                 <a class="wsu-button" href="<?php echo esc_url( $factsheet_data['application_url'] ); ?>">Apply Now</a>
@@ -89,19 +88,41 @@
                     </ul>
                 </div>
             </div>
+            <?php if(!empty((($factsheet_data['requirements'])[0])["score"])):?>
 
-            <div class="factsheet-stat">
-                <span class="factsheet-label">International Student English Proficiency Exams</span>
-                <div class="factsheet-set">
-                    <ul>
-                        <?php
-                        foreach ( $factsheet_data['requirements'] as $fs_requirement ) {
-                            echo '<li>' . esc_html( $fs_requirement['score'] ) . ' ' . esc_html( $fs_requirement['test'] ) . ' ' . esc_html( $fs_requirement['description'] ) . '</li>';
-                        }
-                        ?>
-                    </ul>
+                <div class="factsheet-stat">
+                    <span class="factsheet-label">International Student English Proficiency Exams</span>
+                    <div class="factsheet-set">
+                   <p class="font-factsheet-label"> International students may need to surpass the 
+                    Graduate School's minimum English language proficiency 
+                    exam scores for this program. If the graduate program 
+                    has unique score requirements, they will be detailed below. 
+                    Otherwise, please refer to <a href="https://gradschool.wsu.edu/international-requirements/">the Graduate School's minimum score guidelines. </a></p>
+                        <ul>
+                            <?php
+                            foreach ( $factsheet_data['requirements'] as $fs_requirement ) {
+                                echo '<li>' . esc_html( $fs_requirement['score'] ) . ' ' . esc_html( $fs_requirement['test'] ) . ' ' . esc_html( $fs_requirement['description'] ) . '</li>';
+                            }
+                            ?>
+                        </ul>
+                    </div>
                 </div>
-            </div>
+            <?php endif; ?>
+            <?php if(!empty((($factsheet_data['requirements_gre'])[0])["score"])):?>
+                <div class="factsheet-stat">
+                    <span class="factsheet-label">Additional Degree Program Admission Requirements</span>
+                    <div class="factsheet-set">
+                        
+                        <ul>
+                            <?php
+                            foreach ( $factsheet_data['requirements_gre'] as $fs_requirement_gre ) {
+                                echo '<li>' . esc_html( $fs_requirement_gre['score'] ) . ' ' . esc_html( $fs_requirement_gre['test'] ) . ' ' . esc_html( $fs_requirement_gre['description'] ) . '</li>';
+                            }
+                            ?>
+                        </ul>
+                    </div>
+                </div>
+            <?php endif; ?>           
         </div>
 
 <div class="wsu-row wsu-row--sidebar-right ">
