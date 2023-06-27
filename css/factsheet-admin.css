@@ -93,20 +93,20 @@ input[name="gsdp_program_handbook_url"] {
 }
 
 .factsheet-locations-field,
-.factsheet-requirements-field,
+.factsheet-requirements-field,.factsheet-requirements-gre-field,
 .factsheet-deadlines-field {
 	display: block;
 	margin-bottom: .5em;
 }
 
-.factsheet-requirements-field input,
+.factsheet-requirements-field input,.factsheet-requirements-gre-field input,
 .factsheet-deadlines-field input {
 	height: 28px;
 	margin: 0 10px .5em 0;
 	width: calc(100% - 100px);
 }
 
-.factsheet-locations-field select,
+.factsheet-locations-field select,.factsheet-requirements-gre-field select, 
 .factsheet-deadlines-field select {
 	margin: 0 5px .3em 0;
 	width: 115px;
@@ -122,13 +122,13 @@ input[name="gsdp_program_handbook_url"] {
 	max-width: calc((100% - 210px) / 2);
 }
 
-.factsheet-requirements-field input:first-of-type {
+.factsheet-requirements-field input:first-of-type, .factsheet-requirements-gre-field input:first-of-type {
 	width: 75px;
 	max-width: 75px;
 }
 
-.factsheet-requirements-field input {
-	max-width: calc((100% - 175px) / 2);
+.factsheet-requirements-field input , .factsheet-requirements-gre-field input{
+	max-width: calc((50% - 175px) / 2);
 }
 
 .add-factsheet-deadlines-field {
@@ -149,6 +149,20 @@ input[name="gsdp_program_handbook_url"] {
 
 .remove-factsheet-requirements-field:hover,
 .remove-factsheet-deadlines-field:hover {
+	color: #00a0d2;
+}
+
+.add-factsheet-requirements-gre-field {
+	width: calc(38% / 2);
+	max-width: 50px;
+}
+
+.remove-factsheet-requirements-gre-field{
+	color: #0073aa;
+	cursor: pointer;
+}
+
+.remove-factsheet-requirements-gre-field:hover{
 	color: #00a0d2;
 }
 
