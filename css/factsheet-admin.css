@@ -94,13 +94,13 @@ input[name="gsdp_program_handbook_url"] {
 
 .factsheet-locations-field,
 .factsheet-requirements-field,.factsheet-requirements-gre-field,
-.factsheet-deadlines-field {
+.factsheet-deadlines-field, .factsheet-gscontacts-field{
 	display: block;
 	margin-bottom: .5em;
 }
 
 .factsheet-requirements-field input,.factsheet-requirements-gre-field input,
-.factsheet-deadlines-field input {
+.factsheet-deadlines-field input , .factsheet-gscontacts-field input{
 	height: 28px;
 	margin: 0 10px .5em 0;
 	width: calc(100% - 100px);
@@ -122,16 +122,21 @@ input[name="gsdp_program_handbook_url"] {
 	max-width: calc((100% - 210px) / 2);
 }
 
-.factsheet-requirements-field input:first-of-type, .factsheet-requirements-gre-field input:first-of-type {
+.factsheet-requirements-field input:first-of-type, .factsheet-requirements-gre-field input:first-of-type , .factsheet-gscontacts-field input:first-of-type{
 	width: 75px;
 	max-width: 75px;
 }
 
-.factsheet-requirements-field input , .factsheet-requirements-gre-field input{
+.factsheet-requirements-field input , .factsheet-requirements-gre-field input, .factsheet-gscontacts-field input{
 	max-width: calc((50% - 175px) / 2);
 }
 
 .add-factsheet-deadlines-field {
+	width: calc(38% / 2);
+	max-width: 50px;
+}
+
+.add-factsheet-gscontacts-field{
 	width: calc(38% / 2);
 	max-width: 50px;
 }
@@ -164,6 +169,17 @@ input[name="gsdp_program_handbook_url"] {
 
 .remove-factsheet-requirements-gre-field:hover{
 	color: #00a0d2;
+}
+
+.remove-factsheet-gscontacts-field{
+
+	color: #0073aa;
+	cursor: pointer;
+
+}
+
+.remove-factsheet-gscontacts-field:hover{
+	color: #0073aa;
 }
 
 .factsheet-contact-wrapper {

@@ -40,7 +40,7 @@
             </div>
 
             <div class="factsheet-stat">
-                <span class="factsheet-label">Students receiving assistantships:</span>
+                <span class="factsheet-label">Students receiving assistantships: </span>
                 <span class="factsheet-value"><?php echo esc_html( $factsheet_data['aided'] ); ?></span>
             </div>
 
@@ -88,7 +88,6 @@
                     </ul>
                 </div>
             </div>
-            <?php if(!empty((($factsheet_data['requirements'])[0])["score"])):?>
 
                 <div class="factsheet-stat">
                     <span class="factsheet-label">International Student English Proficiency Exams</span>
@@ -98,6 +97,8 @@
                     exam scores for this program. If the graduate program 
                     has unique score requirements, they will be detailed below. 
                     Otherwise, please refer to <a href="https://gradschool.wsu.edu/international-requirements/">the Graduate School's minimum score guidelines. </a></p>
+                    <?php if(!empty((($factsheet_data['requirements'])[0])["score"])):?>
+    
                         <ul>
                             <?php
                             foreach ( $factsheet_data['requirements'] as $fs_requirement ) {
@@ -105,10 +106,15 @@
                             }
                             ?>
                         </ul>
+
+                    <?php endif; ?>
+
                     </div>
                 </div>
-            <?php endif; ?>
-            <?php if(!empty((($factsheet_data['requirements_gre'])[0])["score"])):?>
+
+
+
+            <?php if(!empty((($factsheet_data['requirements_gre'])[0])["test"])):?>
                 <div class="factsheet-stat">
                     <span class="factsheet-label">Additional Degree Program Admission Requirements</span>
                     <div class="factsheet-set">
@@ -116,13 +122,16 @@
                         <ul>
                             <?php
                             foreach ( $factsheet_data['requirements_gre'] as $fs_requirement_gre ) {
-                                echo '<li>' . esc_html( $fs_requirement_gre['score'] ) . ' ' . esc_html( $fs_requirement_gre['test'] ) . ' ' . esc_html( $fs_requirement_gre['description'] ) . '</li>';
+                                echo '<li>' . esc_html( $fs_requirement_gre['test'] ) . ' ' . esc_html( $fs_requirement_gre['required'] ) . '</li>';
                             }
                             ?>
                         </ul>
                     </div>
                 </div>
             <?php endif; ?>           
+
+
+       
         </div>
 
 <div class="wsu-row wsu-row--sidebar-right ">
@@ -171,43 +180,15 @@
         <?php endif; ?>
         </div>
     <div class="wsu-column">
-        <h2>Contact Information:</h2>
-        <?php
-        foreach ( $factsheet_data['contacts'] as $contact ) {
-            ?>
-            <address class="factsheet-contact" itemscope itemtype="http://schema.org/Organization">
-                <?php if ( ! empty( $contact['gs_contact_name'][0] ) ) : ?>
-                <div itemprop="contactPoint" itemscope itemtype="http://schema.org/Person"><?php echo esc_html( $contact['gs_contact_name'][0] ); ?></div>
-                <?php endif; ?>
-                <div class="address">
-                    <?php if ( ! empty( $contact['gs_contact_address_one'][0] ) ) : ?>
-                    <div itemprop="streetAddress"><?php echo esc_html( $contact['gs_contact_address_one'][0] ); ?></div>
-                    <?php endif; ?>
-                    <?php if ( ! empty( $contact['gs_contact_address_two'][0] ) ) : ?>
-                    <div itemprop="streetAddress"><?php echo esc_html( $contact['gs_contact_address_two'][0] ); ?></div>
-                    <?php endif; ?>
-                    <div>
-                        <?php if ( ! empty( $contact['gs_contact_city'][0] ) && ! empty( $contact['gs_contact_state'][0] ) ) : ?>
-                        <span itemprop="addressLocality"><?php echo esc_html( $contact['gs_contact_city'][0] ); ?>, <?php echo esc_html( $contact['gs_contact_state'][0] ); ?></span>
-                        <?php endif; ?>
-                        <?php if ( ! empty( $contact['gs_contact_postal'][0] ) ) : ?>
-                        <span itemprop="postalcode"><?php echo esc_html( $contact['gs_contact_postal'][0] ); ?></span>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                <?php if ( ! empty( $contact['gs_contact_phone'][0] ) ) : ?>
-                <div itemprop="telephone"><?php echo esc_html( $contact['gs_contact_phone'][0] ); ?></div>
-                <?php endif; ?>
-                <?php if ( ! empty( $contact['gs_contact_fax'][0] ) ) : ?>
-                <div itemprop="faxNumber"><?php echo esc_html( $contact['gs_contact_fax'][0] ); ?></div>
-                <?php endif; ?>
-                <?php if ( ! empty( $contact['gs_contact_email'][0] ) ) : ?>
-                <div itemprop="email"><a href="mailto:<?php echo esc_attr( $contact['gs_contact_email'][0] ); ?>"><?php echo esc_html( $contact['gs_contact_email'][0] ); ?></a></div>
-                <?php endif; ?>
-            </address>
+        <h2>Contact Information:</h2>      
+        <ul>
             <?php
-        }
-        ?>
+                    foreach ( $factsheet_data['gscontacts'] as $fs_contact ) {
+                                echo '<li>' . esc_html( $fs_contact['name'] ) . ' ' . esc_html( $fs_contact['email'] ) . '</li>';
+                    }
+            ?>
+        </ul>
+
     </div>
 </div>
 <div class="wsu-row">
