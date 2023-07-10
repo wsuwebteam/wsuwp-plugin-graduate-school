@@ -22,6 +22,13 @@
                 </div>
             <?php endif; ?>
 
+            <?php if ( ! empty( $factsheet_data['student_learning_outcome_url'] ) ) : ?>
+                <div class="factsheet-stat">
+                    <span class="factsheet-label">Student Learning Outcomes:</span>
+                    <span class="factsheet-value"><a href="<?php echo esc_url( $factsheet_data['student_learning_outcome_url'] ); ?>"><?php echo esc_html( $factsheet_data['student_learning_outcome_url'] ); ?></a></span>
+                </div>
+            <?php endif; ?>
+
             <div class="factsheet-stat">
                 <span class="factsheet-label">Total Graduate Faculty in Program: </span>
                 <span class="factsheet-value"><?php echo absint( $factsheet_data['totalfac'] ); ?></span>
@@ -148,13 +155,6 @@
             <div class="factsheet-admission-requirements">
                 <h2>Admission Requirements:</h2>
                 <?php echo wp_kses_post( apply_filters( 'the_content', $factsheet_data['admission_requirements'] ) ); ?>
-            </div>
-        <?php endif; ?>
-
-        <?php if ( ! empty( $factsheet_data['student_learning_outcome'] ) ) : ?>
-            <div class="factsheet-student-learning-outcome">
-                <h2>Student Learning Outcomes:</h2>
-                <?php echo wp_kses_post( apply_filters( 'the_content', $factsheet_data['student_learning_outcome'] ) ); ?>
             </div>
         <?php endif; ?>
 
