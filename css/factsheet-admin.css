@@ -80,7 +80,7 @@
 input[name="gsdp_degree_shortname"],
 input[name="gsdp_degree_url"],
 input[name="gsdp_application_url"],
-input[name="gsdp_program_handbook_url"] {
+input[name="gsdp_program_handbook_url"], input[name="gsdp_student_learning_outcome_url"]{
 	width: 60%;
 	max-width: 500px;
 	min-width: 200px;
@@ -94,13 +94,13 @@ input[name="gsdp_program_handbook_url"] {
 
 .factsheet-locations-field,
 .factsheet-requirements-field,.factsheet-requirements-gre-field,
-.factsheet-deadlines-field, .factsheet-gscontacts-field{
+.factsheet-deadlines-field{
 	display: block;
 	margin-bottom: .5em;
 }
 
 .factsheet-requirements-field input,.factsheet-requirements-gre-field input,
-.factsheet-deadlines-field input , .factsheet-gscontacts-field input{
+.factsheet-deadlines-field input{
 	height: 28px;
 	margin: 0 10px .5em 0;
 	width: calc(100% - 100px);
@@ -118,16 +118,30 @@ input[name="gsdp_program_handbook_url"] {
 	display: inline-block;
 }
 
+.factsheet-gscontacts-field input{
+	width: 100%;
+	display: inline-block;
+
+
+}
+
+.factsheet-gscontacts-field label{
+	width: 100%;
+	display: inline-block;
+
+
+}
+
 .factsheet-deadlines-field input {
 	max-width: calc((100% - 210px) / 2);
 }
 
-.factsheet-requirements-field input:first-of-type, .factsheet-requirements-gre-field input:first-of-type , .factsheet-gscontacts-field input:first-of-type{
+.factsheet-requirements-field input:first-of-type, .factsheet-requirements-gre-field input:first-of-type {
 	width: 75px;
 	max-width: 75px;
 }
 
-.factsheet-requirements-field input , .factsheet-requirements-gre-field input, .factsheet-gscontacts-field input{
+.factsheet-requirements-field input , .factsheet-requirements-gre-field input{
 	max-width: calc((50% - 175px) / 2);
 }
 
@@ -309,7 +323,7 @@ input[name="gsdp_program_handbook_url"] {
 	input[name="gsdp_degree_shortname"],
 	input[name="gsdp_degree_url"], 
 	input[name="gsdp_application_url"],
-	input[name="gsdp_program_handbook_url"]{
+	input[name="gsdp_program_handbook_url"],input[name="gsdp_student_learning_outcome_url"]{
 		width: 100%;
 		max-width: none;
 		min-width: 200px;

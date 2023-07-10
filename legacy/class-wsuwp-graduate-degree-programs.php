@@ -101,6 +101,13 @@ class WSUWP_Graduate_Degree_Programs {
 			'meta_field_callback' => array( __CLASS__, 'display_string_meta_field' ),
 			'location' => 'primary',
 		),
+		'gsdp_student_learning_outcome_url' => array(
+			'description' => 'Student Learning Outcomes URL',
+			'type' => 'string',
+			'sanitize_callback' => 'esc_url_raw',
+			'meta_field_callback' => array( __CLASS__, 'display_string_meta_field' ),
+			'location' => 'primary',
+		),
 		'gsdp_application_url' => array(
 			'description' => 'Application URL',
 			'type' => 'string',
@@ -195,14 +202,6 @@ class WSUWP_Graduate_Degree_Programs {
 			'type' => 'textarea',
 			'sanitize_callback' => 'wp_kses_post',
 			'meta_field_callback' => array( __CLASS__, 'display_textarea_meta_field' ),
-			'location' => 'secondary',
-		),
-		'gsdp_student_learning_outcome' => array(
-			'description' => 'Student learning outcomes',
-			'type' => 'textarea',
-			'sanitize_callback' => 'wp_kses_post',
-			'meta_field_callback' => array( __CLASS__, 'display_textarea_meta_field' ),
-			'restricted' => true,
 			'location' => 'secondary',
 		),
 	);
@@ -1731,6 +1730,7 @@ class WSUWP_Graduate_Degree_Programs {
 			'totalfac' => 0,
 			'totalcorefac' => 0,
 			'degree_url' => 'Not available',
+			'student_learning_outcome_url' =>'', 
 			'application_url' => 'https://gradschool.wsu.edu/apply/',
 			'handbook_url' => '',
 			'deadlines' => array(),
@@ -1803,6 +1803,12 @@ class WSUWP_Graduate_Degree_Programs {
 		if ( isset( $factsheet_data['gsdp_application_url'][0] ) ) {
 			$data['application_url'] = $factsheet_data['gsdp_application_url'][0];
 		}
+		
+
+		if ( isset( $factsheet_data['gsdp_student_learning_outcome_url'][0] ) ) {
+			$data['student_learning_outcome_url'] = $factsheet_data['gsdp_student_learning_outcome_url'][0];
+		}
+
 
 		if ( isset( $factsheet_data['gsdp_program_handbook_url'][0] ) ) {
 			$data['handbook_url'] = $factsheet_data['gsdp_program_handbook_url'][0];
@@ -1860,9 +1866,6 @@ class WSUWP_Graduate_Degree_Programs {
 			$data['career_placements'] = $factsheet_data['gsdp_career_placements'][0];
 		}
 
-		if ( isset( $factsheet_data['gsdp_student_learning_outcome'][0] ) ) {
-			$data['student_learning_outcome'] = $factsheet_data['gsdp_student_learning_outcome'][0];
-		}
 
 		$contacts = wp_get_object_terms( $post_id, 'gs-contact' );
 		$data['contacts'] = array();
