@@ -184,7 +184,7 @@
         <ul>
             <?php
                     foreach ( $factsheet_data['gscontacts'] as $fs_contact ) {
-                                echo '<li>' . esc_html( $fs_contact['name'] ) . ' ' . esc_html( $fs_contact['email'] ) . '</li>';
+                                echo '<li>' . esc_html( $fs_contact['name'] ) . ' <a href="mailto:' . esc_html( $fs_contact['email'] ) .'">'. esc_html( $fs_contact['email'] ). '</a></li>';
                     }
             ?>
         </ul>
