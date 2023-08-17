@@ -112,7 +112,7 @@ class WSUWP_Graduate_Degree_Contact_Taxonomy {
 			'public'            => false,
 			'hierarchical'      => false,
 			'show_ui'           => true,
-			'show_in_menu'      => true,
+			'show_in_menu'      => false,
 			'rewrite'           => false,
 			'show_in_rest'      => true,
 		);
