@@ -99,7 +99,7 @@
                 <div class="factsheet-stat">
                     <span class="factsheet-label">International Student English Proficiency Exams</span>
                     <div class="factsheet-set">
-                   <p class="font-factsheet-label"> International students may need to surpass the Graduate School's minimum English language proficiency exam scores for this program. If the graduate program has unique score requirements, they will be detailed below. Otherwise, please refer to <a href="https://gradschool.wsu.edu/international-requirements/">the Graduate School's minimum score guidelines. </a></p>
+                   <p class="font-factsheet-label" style="padding-left:25px;">International students may need to surpass the Graduate School's minimum English language proficiency exam scores for this program. If the graduate program has unique score requirements, they will be detailed below. Otherwise, please refer to <a href="https://gradschool.wsu.edu/international-requirements/">the Graduate School's minimum score guidelines. </a></p>
                     <?php if(!empty((($factsheet_data['requirements'])[0])["score"])):?>
     
                         <ul>
