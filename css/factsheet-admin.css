@@ -21,7 +21,7 @@
 
 .factsheet-deadlines,
 .factsheet-requirements,
-.factsheet-string {
+.factsheet-string, .factsheet-deadlines_prog {
 	flex-basis: 100%;
 }
 
@@ -88,19 +88,20 @@ input[name="gsdp_program_handbook_url"], input[name="gsdp_student_learning_outco
 
 .factsheet-locations-wrapper,
 .factsheet-deadlines-wrapper,
+.factsheet-deadlines_prog-wrapper,
 .factsheet-requirements-wrapper {
 	padding-top: 1em;
 }
 
 .factsheet-locations-field,
-.factsheet-requirements-field,.factsheet-requirements-gre-field,
+.factsheet-requirements-field,.factsheet-requirements-gre-field, .add-factsheet-deadlines_prog-field,
 .factsheet-deadlines-field{
 	display: block;
 	margin-bottom: .5em;
 }
 
 .factsheet-requirements-field input,.factsheet-requirements-gre-field input,
-.factsheet-deadlines-field input{
+.factsheet-deadlines-field input, .factsheet-deadlines_prog-field input{
 	height: 28px;
 	margin: 0 10px .5em 0;
 	width: calc(100% - 100px);
@@ -136,6 +137,11 @@ input[name="gsdp_program_handbook_url"], input[name="gsdp_student_learning_outco
 	max-width: calc((100% - 210px) / 2);
 }
 
+.factsheet-deadlines_prog-field input{
+	max-width: calc((100% - 210px) / 2);
+
+}
+
 .factsheet-requirements-field input:first-of-type, .factsheet-requirements-gre-field input:first-of-type {
 	width: 75px;
 	max-width: 75px;
@@ -161,7 +167,7 @@ input[name="gsdp_program_handbook_url"], input[name="gsdp_student_learning_outco
 }
 
 .remove-factsheet-requirements-field,
-.remove-factsheet-deadlines-field {
+.remove-factsheet-deadlines-field, .remove-factsheet-deadlines_prog-field {
 	color: #0073aa;
 	cursor: pointer;
 }

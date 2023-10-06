@@ -142,6 +142,15 @@ class WSUWP_Graduate_Degree_Programs {
 			'post_html' => '</div>',
 			'location' => 'primary',
 		),
+		'gsdp_deadlines_prog' => array(
+			'description' => 'Program Deadlines',
+			'type' => 'deadlines_prog',
+			'sanitize_callback' => 'WSUWP_Graduate_Degree_Programs::sanitize_deadlines_prog',
+			'meta_field_callback' => array( __CLASS__, 'display_deadlines_prog_meta_field' ),
+			'pre_html' => '<div class="factsheet-group">',
+			'post_html' => '</div>',
+			'location' => 'primary',
+		),
 		'gsdp_requirements' => array(
 			'description' => 'Language Test Requirements',
 			'type' => 'requirements',
@@ -778,6 +787,91 @@ class WSUWP_Graduate_Degree_Programs {
 		wp_editor( $data[ $key ][0], esc_attr( $key ), $wp_editor_settings );
 	}
 
+		/**
+	 * Outputs the meta field HTML used to capture meta data stored as strings.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @param array  $meta
+	 * @param string $key
+	 * @param array  $data
+	 */
+	public function display_deadlines_prog_meta_field( $meta, $key, $data ) {
+		$field_data = maybe_unserialize( $data[ $key ][0] );
+
+		if ( empty( $field_data ) ) {
+			$field_data = array();
+		}
+
+		$default_field_data = array(
+			'semester' => 'None',
+			'deadline' => '',
+			'international' => '',
+		);
+		$field_count = 0;
+
+		?>
+		<div class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-wrapper">
+			<span class="factsheet-label"><strong>Program Deadlines:</strong></span>
+			<?php
+
+			foreach ( $field_data as $field_datum ) {
+				$field_datum = wp_parse_args( $field_datum, $default_field_data );
+
+				?>
+				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+					<select name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][semester]">
+						<option value="None" <?php selected( 'None', $field_datum['semester'] ); ?>>Not selected</option>
+						<option value="Fall" <?php selected( 'Fall', $field_datum['semester'] ); ?>>Fall</option>
+						<option value="Spring" <?php selected( 'Spring', $field_datum['semester'] ); ?>>Spring</option>
+						<option value="Summer" <?php selected( 'Summer', $field_datum['semester'] ); ?>>Summer</option>
+					</select>
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][deadline]" value="<?php echo esc_attr( $field_datum['deadline'] ); ?>" />
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][international]" value="<?php echo esc_attr( $field_datum['international'] ); ?>" />
+					<span class="remove-factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">Remove</span>
+				</span>
+				<?php
+				$field_count++;
+			}
+
+			// If no fields have been added, provide an empty field by default.
+			if ( 0 === count( $field_data ) ) {
+				?>
+				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+					<select name="<?php echo esc_attr( $key ); ?>[0][semester]">
+						<option value="None">Not selected</option>
+						<option value="Fall">Fall</option>
+						<option value="Spring">Spring</option>
+						<option value="Summer">Summer</option>
+					</select>
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][deadline]" value="" />
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][international]" value="" />
+				</span>
+				<?php
+			}
+
+			// @codingStandardsIgnoreStart
+			?>
+			<script type="text/template" id="factsheet-deadlines_prog-template">
+				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+					<select name="<?php echo esc_attr( $key ); ?>[<%= form_count %>][semester]">
+						<option value="None">Not selected</option>
+						<option value="Fall">Fall</option>
+						<option value="Spring">Spring</option>
+						<option value="Summer">Summer</option>
+					</select>
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[<%= form_count %>][deadline]" value="" />
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[<%= form_count %>][international]" value="" />
+					<span class="remove-factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">Remove</span>
+				</span>
+			</script>
+			<input type="button" class="add-factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field button" value="Add" />
+			<input type="hidden" name="factsheet_deadlines_prog_form_count" id="factsheet_deadlines_prog_form_count" value="<?php echo esc_attr( $field_count ); ?>" />
+		</div>
+		<?php
+		// @codingStandardsIgnoreEnd
+	}
+
 	/**
 	 * Outputs the meta field HTML used to capture meta data stored as strings.
 	 *
@@ -803,7 +897,7 @@ class WSUWP_Graduate_Degree_Programs {
 
 		?>
 		<div class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-wrapper">
-			<span class="factsheet-label"><strong>Deadlines:</strong></span>
+			<span class="factsheet-label"><strong>Priority Deadlines:</strong></span>
 			<?php
 
 			foreach ( $field_data as $field_datum ) {
@@ -1333,6 +1427,50 @@ class WSUWP_Graduate_Degree_Programs {
 		return $deadlines;
 	}
 
+
+	/**
+	 * Sanitizes a set of deadlines stored in a string.
+	 *
+	 * @since 0.4.0
+	 *
+	 * @param array $deadlines
+	 *
+	 * @return string
+	 */
+	public static function sanitize_deadlines_prog( $deadlines_prog ) {
+		if ( ! is_array( $deadlines_prog ) || 0 === count( $deadlines_prog ) ) {
+			return '';
+		}
+
+		$clean_deadlines_prog = array();
+
+		foreach ( $deadlines_prog as $deadline_prog ) {
+			$clean_deadline_prog = array();
+
+			if ( isset( $deadline_prog['semester'] ) && in_array( $deadline_prog['semester'], array( 'None', 'Fall', 'Spring', 'Summer' ), true ) ) {
+				$clean_deadline_prog['semester'] = $deadline_prog['semester'];
+			} else {
+				$clean_deadline_prog['semester'] = 'None';
+			}
+
+			if ( isset( $deadline_prog['deadline_prog'] ) ) {
+				$clean_deadline_prog['deadline_prog'] = sanitize_text_field( $deadline_prog['deadline_prog'] );
+			} else {
+				$clean_deadline_prog['deadline_prog'] = '';
+			}
+
+			if ( isset( $deadline_prog['international'] ) ) {
+				$clean_deadline_prog['international'] = sanitize_text_field( $deadline_prog['international'] );
+			} else {
+				$clean_deadline_prog['international'] = '';
+			}
+
+			$clean_deadlines_prog[] = $clean_deadline_prog;
+		}
+
+		return $deadlines_prog;
+	}
+
 		/**
 	 * Sanitizes a set of requirements stored in a string.
 	 *
@@ -1734,6 +1872,7 @@ class WSUWP_Graduate_Degree_Programs {
 			'application_url' => 'https://gradschool.wsu.edu/apply/',
 			'handbook_url' => '',
 			'deadlines' => array(),
+			'deadlines_prog' => array(),
 			'requirements' => array(),
 			'requirements_gre' => array(),
 			'contacts' => array(),
@@ -1821,6 +1960,15 @@ class WSUWP_Graduate_Degree_Programs {
 				$data['deadlines'] = array();
 			}
 		}
+
+		if ( isset( $factsheet_data['gsdp_deadlines_prog'][0] ) ) {
+			$data['deadlines_prog'] = maybe_unserialize( $factsheet_data['gsdp_deadlines_prog'][0] );
+
+			if ( ! is_array( $data['deadlines_prog'] ) ) {
+				$data['deadlines_prog'] = array();
+			}
+		}
+
 		if ( isset( $factsheet_data['gsdp_requirements_gre'][0] ) ) {
 			$data['requirements_gre'] = maybe_unserialize( $factsheet_data['gsdp_requirements_gre'][0] );
 
