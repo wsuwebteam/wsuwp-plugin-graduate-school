@@ -29,6 +29,7 @@
                 </div>
             <?php endif; ?>
 
+            
             <div class="factsheet-stat">
                 <span class="factsheet-label">Total Graduate Faculty in Program: </span>
                 <span class="factsheet-value"><?php echo absint( $factsheet_data['totalfac'] ); ?></span>
@@ -46,13 +47,18 @@
                 <span class="factsheet-value"><?php echo absint( $factsheet_data['students'] ); ?></span>
             </div>
 
-            <div class="factsheet-stat">
-                <span class="factsheet-label">Students receiving assistantships: </span>
-                <span class="factsheet-value"><?php echo esc_html( $factsheet_data['aided'] ); ?></span>
-            </div>
+            <?php if ( ! empty( $factsheet_data['aided'] ) ) : ?>
+
+                <div class="factsheet-stat">
+                    <span class="factsheet-label">Students receiving assistantships: </span>
+                    <span class="factsheet-value"><?php echo esc_html( $factsheet_data['aided'] ); ?></span>
+                </div>
+
+            <?php endif; ?>
+
 
             <div class="factsheet-stat">
-                <span class="factsheet-label">Priority deadline:</span>
+                <span class="factsheet-label">Priority Deadlines:</span>
                 <div class="factsheet-set">
                     <ul class="wsu-list--style-lined">
                         <?php
@@ -79,6 +85,40 @@
                     </ul>
                 </div>
             </div>
+    
+            <?php if(!empty((($factsheet_data['deadlines_prog'])[0])["deadline"])):?>
+
+            <div class="factsheet-stat">
+                <span class="factsheet-label">Program Deadlines:</span>
+                <div class="factsheet-set">
+                    <ul class="wsu-list--style-lined">
+                        <?php
+                        foreach ( $factsheet_data['deadlines_prog'] as $fs_deadline_prog ) {
+                            if ( 'NULL' === $fs_deadline_prog['semester'] || 'None' === $fs_deadline_prog['semester'] ) {
+                                continue;
+                            }
+
+                            if ( in_array( strtolower( $fs_deadline_prog['semester'] ), array( 'summer', 'fall' ), true ) && 'default' === strtolower( $fs_deadline_prog['deadline'] ) ) {
+                                $fs_deadline_prog['deadline'] = 'January 10';
+                            } elseif ( 'spring' === strtolower( $fs_deadline_prog['semester'] ) && 'default' === strtolower( $fs_deadline_prog['deadline'] ) ) {
+                                $fs_deadline_prog['deadline'] = 'July 1';
+                            }
+
+                            $is_date_deadline = explode( '/', $fs_deadline_prog['deadline'] );
+                            if ( 3 === count( $is_date_deadline ) ) {
+                                $date_deadline = strtotime( $fs_deadline_prog['deadline'] );
+                                $fs_deadline_prog['deadline'] = date( 'F j', $date_deadline );
+                            }
+
+                            echo '<li>' . esc_html( $fs_deadline_prog['semester'] ) . ' ' . esc_html( $fs_deadline_prog['deadline'] ) . ' ' . esc_html( $fs_deadline_prog['international'] ) . '</li>';
+                        }
+                        ?>
+                    </ul>
+                </div>
+            </div>
+
+            <?php endif; ?>
+
 
             <div class="factsheet-stat">
                 <span class="factsheet-label">Campus:</span>
@@ -187,10 +227,5 @@
 
     </div>
 </div>
-<div class="wsu-row">
-    <div class="wsu-column">
-        <div class="progressbar"></div>
-        <div class="footer">
-        </div>
-    </div>
-    </div>
+
+
