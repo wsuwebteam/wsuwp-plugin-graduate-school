@@ -1,9 +1,10 @@
 
-<form class="degree-search-wrapper">
+<!-- <form class="degree-search-wrapper">
     <label for="degree-search-input" class="visuallyhidden">Search Degrees</label>
     <input type="text" name="search-degrees" id="degree-search-input" placeholder="Search Degrees A-Z" />
     <button type="submit">Search</button>
-</form>
+</form> -->
+
 <div class="degree-list">
     <div class="toparea">
         <div class="pagination">
