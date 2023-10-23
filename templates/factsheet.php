@@ -29,11 +29,15 @@
                 </div>
             <?php endif; ?>
 
-            
-            <div class="factsheet-stat">
-                <span class="factsheet-label">Total Graduate Faculty in Program: </span>
-                <span class="factsheet-value"><?php echo absint( $factsheet_data['totalfac'] ); ?></span>
-            </div>
+            <?php if ( ! empty( $factsheet_data['totalfac'] ) ) : ?>
+
+                <div class="factsheet-stat">
+                    <span class="factsheet-label">Total Graduate Faculty in Program: </span>
+                    <span class="factsheet-value"><?php echo absint( $factsheet_data['totalfac'] ); ?></span>
+                </div>
+
+            <?php endif; ?>
+
 
             <?php if ( ! empty( $factsheet_data['totalcorefac'] ) ) : ?>
                 <div class="factsheet-stat">
@@ -42,15 +46,18 @@
             </div>
             <?php endif; ?>
 
-            <div class="factsheet-stat">
-                <span class="factsheet-label">Graduate Students in Program:</span>
-                <span class="factsheet-value"><?php echo absint( $factsheet_data['students'] ); ?></span>
-            </div>
+            <?php if ( ! empty( $factsheet_data['students'] ) ) : ?>
+
+                <div class="factsheet-stat">
+                    <span class="factsheet-label">Graduate Students in Program:</span>
+                    <span class="factsheet-value"><?php echo absint( $factsheet_data['students'] ); ?></span>
+                </div>
+           <?php endif; ?>
 
             <?php if ( ! empty( $factsheet_data['aided'] ) ) : ?>
 
                 <div class="factsheet-stat">
-                    <span class="factsheet-label">Students receiving assistantships: </span>
+                    <span class="factsheet-label">Students Receiving Assistantships: </span>
                     <span class="factsheet-value"><?php echo esc_html( $factsheet_data['aided'] ); ?></span>
                 </div>
 

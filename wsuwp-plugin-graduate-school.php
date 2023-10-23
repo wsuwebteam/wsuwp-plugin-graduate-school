@@ -17,7 +17,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( 'WSUWPPLUGINGRADUATEVERSION', '1.1.11' );
+define( 'WSUWPPLUGINGRADUATEVERSION', '1.1.13' );
 
 add_action( 'after_setup_theme', 'wsuwp_plugin_graduate_init' );
 
