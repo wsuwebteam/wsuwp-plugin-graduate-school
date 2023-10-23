@@ -54,7 +54,7 @@
                 </div>
            <?php endif; ?>
 
-            <?php if ( ! empty( $factsheet_data['aided'] ) ) : ?>
+            <?php if ( !empty( $factsheet_data['aided']) && !empty( $factsheet_data['students']))   : ?>
 
                 <div class="factsheet-stat">
                     <span class="factsheet-label">Students Receiving Assistantships: </span>
