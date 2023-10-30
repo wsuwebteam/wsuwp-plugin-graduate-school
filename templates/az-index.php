@@ -123,7 +123,12 @@
                             if ( 'graduate-certificate' === $item['degree_classification'] ) {
                                 echo 'GC';
                             } else {
-                                echo esc_html( $item['degree_classification'][0] );
+                                if('administrator-credentials' === $item['degree_classification']) 
+                                {
+                                    echo 'C';
+                                }else{
+                                    echo esc_html( $item['degree_classification'][0] );
+                                }
                             }
                             ?>
                         </div>
