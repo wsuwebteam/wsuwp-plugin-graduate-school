@@ -12,6 +12,10 @@
         </div>
         <div class="key-group">
             <div class="key-classification">
+                <span>Credentials</span>
+                <div class="degree-classification administrator-credentials">C</div>
+            </div>
+            <div class="key-classification">
                 <span>Graduate Certificate</span>
                 <div class="degree-classification graduate-certificate">GC</div>
             </div>
@@ -23,6 +27,7 @@
                 <span>Master</span>
                 <div class="degree-classification masters">M</div>
             </div>
+            
         </div>
     </div>
 
@@ -81,7 +86,12 @@
                             if ( 'graduate-certificate' === $item['degree_classification'] ) {
                                 echo 'GC';
                             } else {
-                                echo esc_html( $item['degree_classification'][0] );
+                                if('administrator-credentials' === $item['degree_classification']) 
+                                {
+                                    echo 'C';
+                                }else{
+                                    echo esc_html( $item['degree_classification'][0] );
+                                }
                             }
                             ?>
                         </div>
