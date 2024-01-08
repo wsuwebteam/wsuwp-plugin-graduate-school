@@ -1221,6 +1221,7 @@ class WSUWP_Graduate_Degree_Programs {
 			'Tri-Cities' => 'No',
 			'Vancouver' => 'No',
 			'Global Campus' => 'No',
+			'Everett' => 'No',
 		);
 		$field_data = wp_parse_args( $field_data, $default_field_data );
 
@@ -1370,7 +1371,7 @@ class WSUWP_Graduate_Degree_Programs {
 			$locations = array();
 		}
 
-		$location_names = array( 'Pullman', 'Spokane', 'Tri-Cities', 'Vancouver', 'Global Campus' );
+		$location_names = array( 'Pullman', 'Spokane', 'Tri-Cities', 'Vancouver', 'Global Campus', 'Everett' );
 		$clean_locations = array();
 
 		foreach ( $location_names as $location_name ) {
@@ -1882,6 +1883,7 @@ class WSUWP_Graduate_Degree_Programs {
 				'Tri-Cities' => 'No',
 				'Vancouver' => 'No',
 				'Global Campus' => 'No',
+				'Everett' => 'No',
 			),
 			'admission_requirements',
 			'student_opportunities',
