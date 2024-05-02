@@ -139,7 +139,7 @@
                             }
                             if($fs_location == "Global Campus (online)" and !empty($factsheet_data['global_URL'] ))
                             {
-                                echo '<li><a href="' . esc_html($factsheet_data['global_URL']) . '">Global Campus (online)</a></li>';
+                                echo '<li><a target="_blank" href="' . esc_html($factsheet_data['global_URL']) . '">Global Campus (online)</a></li>';
                             }
                             else
                             {
