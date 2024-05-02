@@ -133,10 +133,18 @@
                     <ul>
                         <?php
                         foreach ( $factsheet_data['locations'] as $fs_location => $fs_location_status ) {
-                            if ( 'No' === $fs_location_status || 'By Exception' === $fs_location_status ) {
+                            if ( 'No' === $fs_location_status || 'By Exception' === $fs_location_status ) 
+                            {
                                 continue;
                             }
-                            echo '<li>' . esc_html( $fs_location )  . '</li>';
+                            if($fs_location == "Global Campus (online)" and !empty($factsheet_data['global_URL'] ))
+                            {
+                                echo '<li><a href="' . esc_html($factsheet_data['global_URL']) . '">Global Campus (online)</a></li>';
+                            }
+                            else
+                            {
+                                echo '<li>' . esc_html( $fs_location )  . '</li>';
+                            }
                         }
                         ?>
                     </ul>
