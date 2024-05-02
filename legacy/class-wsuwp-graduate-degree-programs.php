@@ -130,8 +130,17 @@ class WSUWP_Graduate_Degree_Programs {
 			'meta_field_callback' => array( __CLASS__, 'display_locations_meta_field' ),
 			'restricted' => true,
 			'pre_html' => '<div class="factsheet-group">',
-			'post_html' => '</div>',
+			
 			'location' => 'primary',
+		),
+		'gsdp_global_URL' => array(
+			'description' => 'Global Campus URL (if different from physical campus)',
+			'type' => 'string',
+			'sanitize_callback' => 'sanitize_text_field',
+			'meta_field_callback' => array( __CLASS__, 'display_string_meta_field' ),
+			'restricted' => true,
+			'location' => 'primary',
+			'post_html' => '</div>',
 		),
 		'gsdp_deadlines' => array(
 			'description' => 'Deadlines',
@@ -213,6 +222,7 @@ class WSUWP_Graduate_Degree_Programs {
 			'meta_field_callback' => array( __CLASS__, 'display_textarea_meta_field' ),
 			'location' => 'secondary',
 		),
+
 	);
 
 	/**
@@ -1220,8 +1230,9 @@ class WSUWP_Graduate_Degree_Programs {
 			'Spokane' => 'No',
 			'Tri-Cities' => 'No',
 			'Vancouver' => 'No',
-			'Global Campus (online)' => 'No',
 			'Everett' => 'No',
+			'Global Campus (online)' => 'No',
+
 		);
 		$field_data = wp_parse_args( $field_data, $default_field_data );
 
@@ -1254,6 +1265,8 @@ class WSUWP_Graduate_Degree_Programs {
 						<?php
 					}
 					?>
+
+
 				</span>
 				<?php
 			}
@@ -1371,7 +1384,7 @@ class WSUWP_Graduate_Degree_Programs {
 			$locations = array();
 		}
 
-		$location_names = array( 'Pullman', 'Spokane', 'Tri-Cities', 'Vancouver', 'Global Campus (online)', 'Everett' );
+		$location_names = array( 'Pullman', 'Spokane', 'Tri-Cities', 'Vancouver',  'Everett','Global Campus (online)', );
 		$clean_locations = array();
 
 		foreach ( $location_names as $location_name ) {
@@ -1882,9 +1895,10 @@ class WSUWP_Graduate_Degree_Programs {
 				'Spokane' => 'No',
 				'Tri-Cities' => 'No',
 				'Vancouver' => 'No',
-				'Global Campus (online)' => 'No',
 				'Everett' => 'No',
+				'Global Campus (online)' => 'No',
 			),
+			'global_URL' => '',
 			'admission_requirements',
 			'student_opportunities',
 			'career_opportunities',
@@ -2015,6 +2029,11 @@ class WSUWP_Graduate_Degree_Programs {
 		if ( isset( $factsheet_data['gsdp_career_placements'][0] ) ) {
 			$data['career_placements'] = $factsheet_data['gsdp_career_placements'][0];
 		}
+
+		if ( isset( $factsheet_data['gsdp_global_URL'][0] ) ) {
+			$data['global_URL'] = $factsheet_data['gsdp_global_URL'][0];
+		}
+
 
 
 		$contacts = wp_get_object_terms( $post_id, 'gs-contact' );
