@@ -43,14 +43,14 @@ class WSUWP_Graduate_Degree_Programs {
 			'pre_html' => '<div class="factsheet-group">',
 			'location' => 'primary',
 		),
-		'gsdp_degree_id' => array(
-			'description' => 'Factsheet degree ID',
-			'type' => 'int',
-			'sanitize_callback' => 'absint',
-			'meta_field_callback' => array( __CLASS__, 'display_int_meta_field' ),
-			'restricted' => true,
-			'location' => 'primary',
-		),
+		// 'gsdp_degree_id' => array(
+		// 	'description' => 'Factsheet degree ID',
+		// 	'type' => 'int',
+		// 	'sanitize_callback' => 'absint',
+		// 	'meta_field_callback' => array( __CLASS__, 'display_int_meta_field' ),
+		// 	'restricted' => true,
+		// 	'location' => 'primary',
+		// ),
 		'gsdp_accepting_applications' => array(
 			'description' => 'Accepting applications',
 			'type' => 'bool',
@@ -273,7 +273,7 @@ class WSUWP_Graduate_Degree_Programs {
 		add_filter( 'user_has_cap', array( $this, 'allow_edit_faculty_member' ), 20, 4 );
 
 		// Several fields are restricted to full editors or admins.
-		add_filter( "auth_post_{$this->post_type_slug}_meta_gsdp_degree_id", array( $this, 'can_edit_restricted_field' ), 100, 4 );
+		// add_filter( "auth_post_{$this->post_type_slug}_meta_gsdp_degree_id", array( $this, 'can_edit_restricted_field' ), 100, 4 );
 		add_filter( "auth_post_{$this->post_type_slug}_meta_gsdp_degree_shortname", array( $this, 'can_edit_restricted_field' ), 100, 4 );
 		add_filter( "auth_post_{$this->post_type_slug}_meta_gsdp_student_learning_outcome", array( $this, 'can_edit_restricted_field' ), 100, 4 );
 
@@ -1911,9 +1911,9 @@ class WSUWP_Graduate_Degree_Programs {
 			$data['description'] = $factsheet_data['gsdp_degree_description'][0];
 		}
 
-		if ( isset( $factsheet_data['gsdp_degree_id'][0] ) ) {
-			$data['degree_id'] = $factsheet_data['gsdp_degree_id'][0];
-		}
+		// if ( isset( $factsheet_data['gsdp_degree_id'][0] ) ) {
+		// 	$data['degree_id'] = $factsheet_data['gsdp_degree_id'][0];
+		// }
 
 		if ( isset( $factsheet_data['gsdp_include_in_programs'][0] ) && 1 === absint( $factsheet_data['gsdp_include_in_programs'][0] ) ) {
 			$data['public'] = 'Yes';
