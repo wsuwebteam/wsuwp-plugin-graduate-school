@@ -2176,10 +2176,10 @@ class WSUWP_Graduate_Degree_Programs {
 			return;
 		}
 
-		if ( 1 !== absint( get_post_meta( get_the_ID(), 'gsdp_include_in_programs', true ) ) ) {
-			wp_redirect( home_url( '/' . $this->archive_slug . '/' ) );
-			exit();
-		}
+		// if ( 1 !== absint( get_post_meta( get_the_ID(), 'gsdp_include_in_programs', true ) ) ) {
+		// 	wp_redirect( home_url( '/' . $this->archive_slug . '/' ) );
+		// 	exit();
+		// }
 	}
 
 	/**
