@@ -179,6 +179,7 @@ class WSUWP_Graduate_Degree_Degree_Type_Taxonomy {
 						<option value="doctorate" <?php selected( 'doctorate', $selected_value ); ?>>Doctorate</option>
 						<option value="masters" <?php selected( 'masters', $selected_value ); ?>>Master</option>
 						<option value="graduate-certificate" <?php selected( 'graduate-certificate', $selected_value ); ?>>Graduate Certificate</option>
+						<option value="administrator-credentials" <?php selected( 'administrator-credentials', $selected_value ); ?>>Administrator Credentials</option>
 					</select>
 				</td>
 			</tr>
@@ -200,7 +201,7 @@ class WSUWP_Graduate_Degree_Degree_Type_Taxonomy {
 			$classification = 'other';
 		}
 
-		if ( ! in_array( $classification, array( 'other', 'masters', 'doctorate', 'graduate-certificate' ), true ) ) {
+		if ( ! in_array( $classification, array( 'other', 'masters', 'doctorate', 'graduate-certificate', "administrator-credentials"), true ) ) {
 			$classification = 'other';
 		}
 

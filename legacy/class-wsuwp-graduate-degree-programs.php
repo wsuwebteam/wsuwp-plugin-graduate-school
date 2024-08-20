@@ -43,14 +43,14 @@ class WSUWP_Graduate_Degree_Programs {
 			'pre_html' => '<div class="factsheet-group">',
 			'location' => 'primary',
 		),
-		'gsdp_degree_id' => array(
-			'description' => 'Factsheet degree ID',
-			'type' => 'int',
-			'sanitize_callback' => 'absint',
-			'meta_field_callback' => array( __CLASS__, 'display_int_meta_field' ),
-			'restricted' => true,
-			'location' => 'primary',
-		),
+		// 'gsdp_degree_id' => array(
+		// 	'description' => 'Factsheet degree ID',
+		// 	'type' => 'int',
+		// 	'sanitize_callback' => 'absint',
+		// 	'meta_field_callback' => array( __CLASS__, 'display_int_meta_field' ),
+		// 	'restricted' => true,
+		// 	'location' => 'primary',
+		// ),
 		'gsdp_accepting_applications' => array(
 			'description' => 'Accepting applications',
 			'type' => 'bool',
@@ -72,6 +72,21 @@ class WSUWP_Graduate_Degree_Programs {
 			'meta_field_callback' => array( __CLASS__, 'display_int_meta_field' ),
 			'location' => 'primary',
 		),
+		'gsdp_grad_faculty_total' => array(
+			'description' => 'Total Graduate Faculty',
+			'type' => 'int',
+			'sanitize_callback' => 'absint',
+			'meta_field_callback' => array( __CLASS__, 'display_int_meta_field' ),
+			'location' => 'primary',
+		),
+
+		'gsdp_grad_core_faculty_total' => array(
+			'description' => 'Total Core Graduate Faculty',
+			'type' => 'int',
+			'sanitize_callback' => 'absint',
+			'meta_field_callback' => array( __CLASS__, 'display_int_meta_field' ),
+			'location' => 'primary',
+		),
 		'gsdp_grad_students_aided' => array(
 			'description' => 'Aided grad students',
 			'type' => 'int',
@@ -79,10 +94,24 @@ class WSUWP_Graduate_Degree_Programs {
 			'meta_field_callback' => array( __CLASS__, 'display_int_meta_field' ),
 			'location' => 'primary',
 		),
-		'gsdp_admission_gpa' => array(
-			'description' => 'Admission GPA',
-			'type' => 'float',
-			'sanitize_callback' => 'WSUWP_Graduate_Degree_Programs::sanitize_gpa',
+		'gsdp_program_handbook_url' => array(
+			'description' => 'Program Handbook URL',
+			'type' => 'string',
+			'sanitize_callback' => 'esc_url_raw',
+			'meta_field_callback' => array( __CLASS__, 'display_string_meta_field' ),
+			'location' => 'primary',
+		),
+		'gsdp_student_learning_outcome_url' => array(
+			'description' => 'Student Learning Outcomes URL',
+			'type' => 'string',
+			'sanitize_callback' => 'esc_url_raw',
+			'meta_field_callback' => array( __CLASS__, 'display_string_meta_field' ),
+			'location' => 'primary',
+		),
+		'gsdp_application_url' => array(
+			'description' => 'Application URL',
+			'type' => 'string',
+			'sanitize_callback' => 'esc_url_raw',
 			'meta_field_callback' => array( __CLASS__, 'display_string_meta_field' ),
 			'location' => 'primary',
 		),
@@ -101,8 +130,17 @@ class WSUWP_Graduate_Degree_Programs {
 			'meta_field_callback' => array( __CLASS__, 'display_locations_meta_field' ),
 			'restricted' => true,
 			'pre_html' => '<div class="factsheet-group">',
-			'post_html' => '</div>',
+			
 			'location' => 'primary',
+		),
+		'gsdp_global_URL' => array(
+			'description' => 'Global Campus URL (if different from physical campus)',
+			'type' => 'string',
+			'sanitize_callback' => 'sanitize_text_field',
+			'meta_field_callback' => array( __CLASS__, 'display_string_meta_field' ),
+			'restricted' => true,
+			'location' => 'primary',
+			'post_html' => '</div>',
 		),
 		'gsdp_deadlines' => array(
 			'description' => 'Deadlines',
@@ -113,11 +151,38 @@ class WSUWP_Graduate_Degree_Programs {
 			'post_html' => '</div>',
 			'location' => 'primary',
 		),
+		'gsdp_deadlines_prog' => array(
+			'description' => 'Program Deadlines',
+			'type' => 'deadlines_prog',
+			'sanitize_callback' => 'WSUWP_Graduate_Degree_Programs::sanitize_deadlines_prog',
+			'meta_field_callback' => array( __CLASS__, 'display_deadlines_prog_meta_field' ),
+			'pre_html' => '<div class="factsheet-group">',
+			'post_html' => '</div>',
+			'location' => 'primary',
+		),
 		'gsdp_requirements' => array(
-			'description' => 'Requirements',
+			'description' => 'Language Test Requirements',
 			'type' => 'requirements',
 			'sanitize_callback' => 'WSUWP_Graduate_Degree_Programs::sanitize_requirements',
 			'meta_field_callback' => array( __CLASS__, 'display_requirements_meta_field' ),
+			'pre_html' => '<div class="factsheet-group">',
+			'post_html' => '</div>',
+			'location' => 'primary',
+		),
+		'gsdp_requirements_gre' => array(
+			'description' => 'GRE Requirements',
+			'type' => 'requirements-gre',
+			'sanitize_callback' => 'WSUWP_Graduate_Degree_Programs::sanitize_requirements_gre',
+			'meta_field_callback' => array( __CLASS__, 'display_requirements_gre_meta_field' ),
+			'pre_html' => '<div class="factsheet-group">',
+			'post_html' => '</div>',
+			'location' => 'primary',
+		),
+		'gsdp_contacts' => array(
+			'description' => 'Contacts',
+			'type' => 'gscontacts',
+			'sanitize_callback' => 'WSUWP_Graduate_Degree_Programs::sanitize_contacts',
+			'meta_field_callback' => array( __CLASS__, 'display_contacts_meta_field' ),
 			'pre_html' => '<div class="factsheet-group">',
 			'post_html' => '</div>',
 			'location' => 'primary',
@@ -157,14 +222,7 @@ class WSUWP_Graduate_Degree_Programs {
 			'meta_field_callback' => array( __CLASS__, 'display_textarea_meta_field' ),
 			'location' => 'secondary',
 		),
-		'gsdp_student_learning_outcome' => array(
-			'description' => 'Student learning outcomes',
-			'type' => 'textarea',
-			'sanitize_callback' => 'wp_kses_post',
-			'meta_field_callback' => array( __CLASS__, 'display_textarea_meta_field' ),
-			'restricted' => true,
-			'location' => 'secondary',
-		),
+
 	);
 
 	/**
@@ -215,7 +273,7 @@ class WSUWP_Graduate_Degree_Programs {
 		add_filter( 'user_has_cap', array( $this, 'allow_edit_faculty_member' ), 20, 4 );
 
 		// Several fields are restricted to full editors or admins.
-		add_filter( "auth_post_{$this->post_type_slug}_meta_gsdp_degree_id", array( $this, 'can_edit_restricted_field' ), 100, 4 );
+		// add_filter( "auth_post_{$this->post_type_slug}_meta_gsdp_degree_id", array( $this, 'can_edit_restricted_field' ), 100, 4 );
 		add_filter( "auth_post_{$this->post_type_slug}_meta_gsdp_degree_shortname", array( $this, 'can_edit_restricted_field' ), 100, 4 );
 		add_filter( "auth_post_{$this->post_type_slug}_meta_gsdp_student_learning_outcome", array( $this, 'can_edit_restricted_field' ), 100, 4 );
 
@@ -357,8 +415,8 @@ class WSUWP_Graduate_Degree_Programs {
 		}
 
 		add_meta_box( 'factsheet-primary', 'Factsheet Data', array( $this, 'display_factsheet_primary_meta_box' ), null, 'normal', 'high' );
-		add_meta_box( 'factsheet-faculty', 'Faculty Members', array( $this, 'display_faculty_meta_box' ), null, 'normal', 'default' );
-		add_meta_box( 'factsheet-contact', 'Contact Information', array( $this, 'display_contact_meta_box' ), null, 'normal', 'default' );
+		// add_meta_box( 'factsheet-faculty', 'Faculty Members', array( $this, 'display_faculty_meta_box' ), null, 'normal', 'default' );
+		//add_meta_box( 'factsheet-contact', 'Contact Information', array( $this, 'display_contact_meta_box' ), null, 'normal', 'default' );
 		add_meta_box( 'factsheet-secondary', 'Factsheet Text Blocks', array( $this, 'display_factsheet_secondary_meta_box' ), null, 'normal', 'default' );
 	}
 
@@ -548,63 +606,15 @@ class WSUWP_Graduate_Degree_Programs {
 	 * @param WP_Post $post
 	 */
 	public function display_contact_meta_box( $post ) {
-		$contacts = wp_get_object_terms( $post->ID, 'gs-contact' );
-		$data['contacts'] = array();
-		if ( ! is_wp_error( $contacts ) ) {
-			foreach ( $contacts as $contact ) {
-				$contact_meta = WSUWP_Graduate_Degree_Contact_Taxonomy::get_all_term_meta( $contact->term_id );
-				$contact_meta['term_id'] = $contact->term_id;
-				$data['contacts'][] = $contact_meta;
-			}
-		}
-
-		echo '<div class="factsheet-contact-wrapper">';
-
-		foreach ( $data['contacts'] as $contact ) {
-			if ( empty( $contact ) ) {
-				continue;
-			}
-
-			?>
-			<div class="factsheet-contact">
-				<input type="hidden" name="contacts[]" value="<?php echo esc_attr( $contact['term_id'] ); ?>" />
-				<address>
-					<?php if ( ! empty( $contact['gs_contact_name'][0] ) ) : ?>
-						<div><?php echo esc_html( $contact['gs_contact_name'][0] ); ?></div>
-					<?php endif; ?>
-					<div>
-						<?php if ( ! empty( $contact['gs_contact_address_one'][0] ) ) : ?>
-							<div><?php echo esc_html( $contact['gs_contact_address_one'][0] ); ?></div>
-						<?php endif; ?>
-						<?php if ( ! empty( $contact['gs_contact_address_two'][0] ) ) : ?>
-							<div><?php echo esc_html( $contact['gs_contact_address_two'][0] ); ?></div>
-						<?php endif; ?>
-						<div>
-							<?php if ( ! empty( $contact['gs_contact_city'][0] ) && ! empty( $contact['gs_contact_state'][0] ) ) : ?>
-								<span><?php echo esc_html( $contact['gs_contact_city'][0] ); ?>, <?php echo esc_html( $contact['gs_contact_state'][0] ); ?></span>
-							<?php endif; ?>
-							<?php if ( ! empty( $contact['gs_contact_postal'][0] ) ) : ?>
-								<span><?php echo esc_html( $contact['gs_contact_postal'][0] ); ?></span>
-							<?php endif; ?>
-						</div>
-					</div>
-					<?php if ( ! empty( $contact['gs_contact_phone'][0] ) ) : ?>
-						<div><?php echo esc_html( $contact['gs_contact_phone'][0] ); ?></div>
-					<?php endif; ?>
-					<?php if ( ! empty( $contact['gs_contact_fax'][0] ) ) : ?>
-						<div><?php echo esc_html( $contact['gs_contact_fax'][0] ); ?></div>
-					<?php endif; ?>
-					<?php if ( ! empty( $contact['gs_contact_email'][0] ) ) : ?>
-						<div><a href="mailto:<?php echo esc_attr( $contact['gs_contact_email'][0] ); ?>"><?php echo esc_html( $contact['gs_contact_email'][0] ); ?></a></div>
-					<?php endif; ?>
-				</address>
-				<span class="remove-factsheet-contact">Remove</span>
-			</div>
-			<?php
-		}
-
-		echo '</div>' // End factsheet-contact-wrapper.
-
+		// $contacts = wp_get_object_terms( $post->ID, 'gs-contact' );
+		// $data['contacts'] = array();
+		// if ( ! is_wp_error( $contacts ) ) {
+		// 	foreach ( $contacts as $contact ) {
+		// 		$contact_meta = WSUWP_Graduate_Degree_Contact_Taxonomy::get_all_term_meta( $contact->term_id );
+		// 		$contact_meta['term_id'] = $contact->term_id;
+		// 		$data['contacts'][] = $contact_meta;
+		// 	}
+		// }
 		// @codingStandardsIgnoreStart
 		?>
 		<script type="text/template" id="factsheet-contact-template">
@@ -787,6 +797,91 @@ class WSUWP_Graduate_Degree_Programs {
 		wp_editor( $data[ $key ][0], esc_attr( $key ), $wp_editor_settings );
 	}
 
+		/**
+	 * Outputs the meta field HTML used to capture meta data stored as strings.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @param array  $meta
+	 * @param string $key
+	 * @param array  $data
+	 */
+	public function display_deadlines_prog_meta_field( $meta, $key, $data ) {
+		$field_data = maybe_unserialize( $data[ $key ][0] );
+
+		if ( empty( $field_data ) ) {
+			$field_data = array();
+		}
+
+		$default_field_data = array(
+			'semester' => 'None',
+			'deadline' => '',
+			'international' => '',
+		);
+		$field_count = 0;
+
+		?>
+		<div class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-wrapper">
+			<span class="factsheet-label"><strong>Program Deadlines:</strong></span>
+			<?php
+
+			foreach ( $field_data as $field_datum ) {
+				$field_datum = wp_parse_args( $field_datum, $default_field_data );
+
+				?>
+				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+					<select name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][semester]">
+						<option value="None" <?php selected( 'None', $field_datum['semester'] ); ?>>Not selected</option>
+						<option value="Fall" <?php selected( 'Fall', $field_datum['semester'] ); ?>>Fall</option>
+						<option value="Spring" <?php selected( 'Spring', $field_datum['semester'] ); ?>>Spring</option>
+						<option value="Summer" <?php selected( 'Summer', $field_datum['semester'] ); ?>>Summer</option>
+					</select>
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][deadline]" value="<?php echo esc_attr( $field_datum['deadline'] ); ?>" />
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][international]" value="<?php echo esc_attr( $field_datum['international'] ); ?>" />
+					<span class="remove-factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">Remove</span>
+				</span>
+				<?php
+				$field_count++;
+			}
+
+			// If no fields have been added, provide an empty field by default.
+			if ( 0 === count( $field_data ) ) {
+				?>
+				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+					<select name="<?php echo esc_attr( $key ); ?>[0][semester]">
+						<option value="None">Not selected</option>
+						<option value="Fall">Fall</option>
+						<option value="Spring">Spring</option>
+						<option value="Summer">Summer</option>
+					</select>
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][deadline]" value="" />
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][international]" value="" />
+				</span>
+				<?php
+			}
+
+			// @codingStandardsIgnoreStart
+			?>
+			<script type="text/template" id="factsheet-deadlines_prog-template">
+				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+					<select name="<?php echo esc_attr( $key ); ?>[<%= form_count %>][semester]">
+						<option value="None">Not selected</option>
+						<option value="Fall">Fall</option>
+						<option value="Spring">Spring</option>
+						<option value="Summer">Summer</option>
+					</select>
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[<%= form_count %>][deadline]" value="" />
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[<%= form_count %>][international]" value="" />
+					<span class="remove-factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">Remove</span>
+				</span>
+			</script>
+			<input type="button" class="add-factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field button" value="Add" />
+			<input type="hidden" name="factsheet_deadlines_prog_form_count" id="factsheet_deadlines_prog_form_count" value="<?php echo esc_attr( $field_count ); ?>" />
+		</div>
+		<?php
+		// @codingStandardsIgnoreEnd
+	}
+
 	/**
 	 * Outputs the meta field HTML used to capture meta data stored as strings.
 	 *
@@ -812,7 +907,7 @@ class WSUWP_Graduate_Degree_Programs {
 
 		?>
 		<div class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-wrapper">
-			<span class="factsheet-label">Deadlines:</span>
+			<span class="factsheet-label"><strong>Priority Deadlines:</strong></span>
 			<?php
 
 			foreach ( $field_data as $field_datum ) {
@@ -872,6 +967,174 @@ class WSUWP_Graduate_Degree_Programs {
 		// @codingStandardsIgnoreEnd
 	}
 
+
+		/**
+	 * Outputs the meta field HTML used to capture meta data stored as strings.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @param array  $meta
+	 * @param string $key
+	 * @param array  $data
+	 */
+	public function display_contacts_meta_field( $meta, $key, $data ) {
+			$field_data = maybe_unserialize( $data[ $key ][0] );
+	
+			if ( empty( $field_data ) ) {
+				$field_data = array();
+			}
+	
+			$default_field_data = array(
+				'name' => '',
+				'email' => '',
+			);
+			$field_count = 0;
+	
+			?>
+			<div class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-wrapper">
+				<span class="factsheet-label"><strong>Contact Information: </strong></span>
+				<?php
+	
+				foreach ( $field_data as $field_datum ) {
+					$field_datum = wp_parse_args( $field_datum, $default_field_data );
+	
+					?>
+					<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+						<label for="Name">Name: </label>
+						<input type="text" id="Name" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][name]" value="<?php echo esc_attr( $field_datum['name'] ); ?>" />
+						<label for="Email">Email: </label>
+						<input type="text" id ="Email" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][email]" value="<?php echo esc_attr( $field_datum['email'] ); ?>" />
+						<span class="remove-factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">Remove</span>
+					</span>
+					<?php
+					$field_count++;
+				}
+	
+				// If no fields have been added, provide an empty field by default.
+				if ( 0 === count( $field_data ) ) {
+					?>
+					<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+					<label for="Name">Name: </label>
+	
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][name]" value="" /><br>
+					<label for="Email">Email: </label>
+
+						<input type="text" name="<?php echo esc_attr( $key ); ?>[0][email]" value="" />
+					</span>
+					<?php
+				}
+	
+				// @codingStandardsIgnoreStart
+				?>
+				<script type="text/template" id="factsheet-gscontacts-template">
+					<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+					<label for="Name">Name: </label>
+						<input type="text" name="<?php echo esc_attr( $key ); ?>[<%= form_count %>][name]" value="" />
+						<label for="Email">Email: </label>
+						<input type="text" name="<?php echo esc_attr( $key ); ?>[<%= form_count %>][email]" value="" />
+						<span class="remove-factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">Remove</span>
+					</span>
+				</script>
+				<input type="button" class="add-factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field button" value="Add" />
+				<input type="hidden" name="factsheet_gscontacts_count" id="factsheet_gscontacts_count" value="<?php echo esc_attr( $field_count ); ?>" />
+			</div>
+			<?php
+			// @codingStandardsIgnoreEnd
+		}
+	
+
+
+	/**
+	 * Outputs the meta field HTML used to capture meta data stored as strings.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @param array  $meta
+	 * @param string $key
+	 * @param array  $data
+	 */
+	public function display_requirements_gre_meta_field( $meta, $key, $data ) {
+		$field_data = maybe_unserialize( $data[ $key ][0] );
+
+		if ( empty( $field_data ) ) {
+			$field_data = array();
+		}
+
+		$default_field_data = array(
+			'required' => 'None',
+			'test' => '',
+		);
+		$field_count = 0;
+
+		?>
+		<div class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-wrapper">
+			<span class="factsheet-label"><strong>Additional Program Requirements:</strong></span>
+			<?php
+
+			foreach ( $field_data as $field_datum ) {
+				$field_datum = wp_parse_args( $field_datum, $default_field_data );
+
+				?>
+				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+				<label for="test">Test Name (GRE, GMAT, etc.): </label>
+					<input type="text" id="test" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][test]" value="<?php echo esc_attr( $field_datum['test'] ); ?>" />
+					<label for="required">Required?:  </label>
+
+					<select id="required" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][required]">
+						<option value="None" <?php selected( 'None', $field_datum['required'] ); ?>>Not selected</option>
+						<option value="Optional" <?php selected( 'Optional', $field_datum['required'] ); ?>>Optional</option>
+						<option value="Yes" <?php selected( 'Yes', $field_datum['required'] ); ?>>Yes</option>
+						<option value="No" <?php selected( 'No', $field_datum['required'] ); ?>>No</option>
+					</select>
+					<span class="remove-factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">Remove</span>
+				</span>
+				<?php
+				$field_count++;
+			}
+
+			// If no fields have been added, provide an empty field by default.
+			if ( 0 === count( $field_data ) ) {
+				?>
+				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+				<label for="test">Test Name (GRE, GMAT, etc.): </label>
+
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][test]" value="" />
+					<label for="required">Required?:  </label>
+
+					<select id="required" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][required]">
+						<option value="None" <?php selected( 'None', $field_datum['required'] ); ?>>Not selected</option>
+						<option value="Optional" <?php selected( 'Optional', $field_datum['required'] ); ?>>Optional</option>
+						<option value="Yes" <?php selected( 'Yes', $field_datum['required'] ); ?>>Yes</option>
+						<option value="No" <?php selected( 'No', $field_datum['required'] ); ?>>No</option>
+					</select>
+				</span>
+				<?php
+			}
+
+			// @codingStandardsIgnoreStart
+			?>
+			<script type="text/template" id="factsheet-requirement-gre-template">
+				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+				<label for="test">Test Name (GRE, GMAT, etc.): </label>
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[<%= form_count %>][test]" value="" />
+				<label for="required">Required?:  </label>
+
+					<select id="required" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][required]">
+						<option value="None" <?php selected( 'None', $field_datum['required'] ); ?>>Not selected</option>
+						<option value="Optional" <?php selected( 'Optional', $field_datum['required'] ); ?>>Optional</option>
+						<option value="Yes" <?php selected( 'Yes', $field_datum['required'] ); ?>>Yes</option>
+						<option value="No" <?php selected( 'No', $field_datum['required'] ); ?>>No</option>
+					</select>
+					<span class="remove-factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">Remove</span>
+				</span>
+			</script>
+			<input type="button" class="add-factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field button" value="Add" />
+			<input type="hidden" name="factsheet_requirement_form_gre_count" id="factsheet_requirement_form_gre_count" value="<?php echo esc_attr( $field_count ); ?>" />
+		</div>
+		<?php
+		// @codingStandardsIgnoreEnd
+	}
+
 	/**
 	 * Outputs the meta field HTML used to capture meta data stored as strings.
 	 *
@@ -897,7 +1160,7 @@ class WSUWP_Graduate_Degree_Programs {
 
 		?>
 		<div class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-wrapper">
-			<span class="factsheet-label">Requirements:</span>
+			<span class="factsheet-label"><strong>Language Test Requirements:</strong></span>
 			<?php
 
 			foreach ( $field_data as $field_datum ) {
@@ -942,6 +1205,10 @@ class WSUWP_Graduate_Degree_Programs {
 		// @codingStandardsIgnoreEnd
 	}
 
+
+
+	
+
 	/**
 	 * Outputs the meta field HTML used to capture meta data stored as strings.
 	 *
@@ -963,7 +1230,9 @@ class WSUWP_Graduate_Degree_Programs {
 			'Spokane' => 'No',
 			'Tri-Cities' => 'No',
 			'Vancouver' => 'No',
-			'Global Campus' => 'No',
+			'Everett' => 'No',
+			'Global Campus (online)' => 'No',
+
 		);
 		$field_data = wp_parse_args( $field_data, $default_field_data );
 
@@ -975,7 +1244,7 @@ class WSUWP_Graduate_Degree_Programs {
 
 		?>
 		<div class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-wrapper">
-			<span class="factsheet-label">Locations:</span>
+			<span class="factsheet-label"><strong>Locations:</strong></span>
 			<?php
 
 			foreach ( $field_data as $location => $location_status ) {
@@ -996,6 +1265,8 @@ class WSUWP_Graduate_Degree_Programs {
 						<?php
 					}
 					?>
+
+
 				</span>
 				<?php
 			}
@@ -1113,7 +1384,7 @@ class WSUWP_Graduate_Degree_Programs {
 			$locations = array();
 		}
 
-		$location_names = array( 'Pullman', 'Spokane', 'Tri-Cities', 'Vancouver', 'Global Campus' );
+		$location_names = array( 'Pullman', 'Spokane', 'Tri-Cities', 'Vancouver',  'Everett','Global Campus (online)', );
 		$clean_locations = array();
 
 		foreach ( $location_names as $location_name ) {
@@ -1170,6 +1441,146 @@ class WSUWP_Graduate_Degree_Programs {
 		return $deadlines;
 	}
 
+
+	/**
+	 * Sanitizes a set of deadlines stored in a string.
+	 *
+	 * @since 0.4.0
+	 *
+	 * @param array $deadlines
+	 *
+	 * @return string
+	 */
+	public static function sanitize_deadlines_prog( $deadlines_prog ) {
+		if ( ! is_array( $deadlines_prog ) || 0 === count( $deadlines_prog ) ) {
+			return '';
+		}
+
+		$clean_deadlines_prog = array();
+
+		foreach ( $deadlines_prog as $deadline_prog ) {
+			$clean_deadline_prog = array();
+
+			if ( isset( $deadline_prog['semester'] ) && in_array( $deadline_prog['semester'], array( 'None', 'Fall', 'Spring', 'Summer' ), true ) ) {
+				$clean_deadline_prog['semester'] = $deadline_prog['semester'];
+			} else {
+				$clean_deadline_prog['semester'] = 'None';
+			}
+
+			if ( isset( $deadline_prog['deadline_prog'] ) ) {
+				$clean_deadline_prog['deadline_prog'] = sanitize_text_field( $deadline_prog['deadline_prog'] );
+			} else {
+				$clean_deadline_prog['deadline_prog'] = '';
+			}
+
+			if ( isset( $deadline_prog['international'] ) ) {
+				$clean_deadline_prog['international'] = sanitize_text_field( $deadline_prog['international'] );
+			} else {
+				$clean_deadline_prog['international'] = '';
+			}
+
+			$clean_deadlines_prog[] = $clean_deadline_prog;
+		}
+
+		return $deadlines_prog;
+	}
+
+		/**
+	 * Sanitizes a set of requirements stored in a string.
+	 *
+	 * @since 0.4.0
+	 *
+	 * @param array $requirements_gre
+	 *
+	 * @return string
+	 */
+	public static function sanitize_contacts( $contacts ) {
+		if ( ! is_array( $contacts ) || 0 === count( $contacts ) ) {
+			return '';
+		}
+
+		$clean_contacts = array();
+
+		foreach ( $contacts as $contact ) {
+			$clean_contact = array();
+
+			if ( isset( $contact['name'] ) ) {
+				$clean_contact['name'] = sanitize_text_field( $contact['name'] );
+			} else {
+				$clean_contact['name'] = '';
+			}
+
+			if ( isset( $contact['email'] ) ) {
+				$clean_contact['email'] = sanitize_text_field( $contact['email'] );
+			} else {
+				$clean_contact['email'] = '';
+			}
+
+			// if ( isset( $contact['required'] ) && in_array( $contact['required'], array('None','Optional', 'Yes', 'No'), true ) ) {
+			// 	$clean_contact['required'] = $contact['required'];
+			// } else {
+			// 	$clean_contact['required'] = 'None';
+			// }
+
+			$clean_contacts[] = $clean_contact;
+		}
+
+		return $clean_contacts;
+	}
+
+
+
+	/**
+	 * Sanitizes a set of requirements stored in a string.
+	 *
+	 * @since 0.4.0
+	 *
+	 * @param array $requirements_gre
+	 *
+	 * @return string
+	 */
+	public static function sanitize_requirements_gre( $requirements_gre ) {
+		if ( ! is_array( $requirements_gre ) || 0 === count( $requirements_gre ) ) {
+			return '';
+		}
+
+		$clean_requirements = array();
+
+		foreach ( $requirements_gre as $requirement ) {
+			$clean_requirement = array();
+
+			// if ( isset( $requirement['score'] ) ) {
+			// 	$clean_requirement['score'] = sanitize_text_field( $requirement['score'] );
+			// } else {
+			// 	$clean_requirement['score'] = '';
+			// }
+
+			if ( isset( $requirement['test'] ) ) {
+				$clean_requirement['test'] = sanitize_text_field( $requirement['test'] );
+			} else {
+				$clean_requirement['test'] = '';
+			}
+
+			if ( isset( $requirement['required'] ) && in_array( $requirement['required'], array('None','Optional', 'Yes', 'No'), true ) ) {
+				$clean_requirement['required'] = $requirement['required'];
+			} else {
+				$clean_requirement['required'] = 'None';
+			}
+
+			// if ( isset( $requirement['description'] ) ) {
+			// 	$clean_requirement['description'] = sanitize_text_field( $requirement['description'] );
+			// } else {
+			// 	$clean_requirement['description'] = '';
+			// }
+
+			$clean_requirements[] = $clean_requirement;
+		}
+
+		return $clean_requirements;
+	}
+
+
+
 	/**
 	 * Sanitizes a set of requirements stored in a string.
 	 *
@@ -1212,6 +1623,7 @@ class WSUWP_Graduate_Degree_Programs {
 
 		return $clean_requirements;
 	}
+
 
 	/**
 	 * Save additional data associated with a factsheet.
@@ -1467,16 +1879,26 @@ class WSUWP_Graduate_Degree_Programs {
 			'faculty' => array(),
 			'students' => 0,
 			'aided' => 0,
+			'totalfac' => 0,
+			'totalcorefac' => 0,
 			'degree_url' => 'Not available',
+			'student_learning_outcome_url' =>'', 
+			'application_url' => 'https://gradschool.wsu.edu/apply/',
+			'handbook_url' => '',
 			'deadlines' => array(),
+			'deadlines_prog' => array(),
 			'requirements' => array(),
+			'requirements_gre' => array(),
+			'contacts' => array(),
 			'locations' => array(
 				'Pullman' => 'No',
 				'Spokane' => 'No',
 				'Tri-Cities' => 'No',
 				'Vancouver' => 'No',
-				'Global Campus' => 'No',
+				'Everett' => 'No',
+				'Global Campus (online)' => 'No',
 			),
+			'global_URL' => '',
 			'admission_requirements',
 			'student_opportunities',
 			'career_opportunities',
@@ -1489,9 +1911,9 @@ class WSUWP_Graduate_Degree_Programs {
 			$data['description'] = $factsheet_data['gsdp_degree_description'][0];
 		}
 
-		if ( isset( $factsheet_data['gsdp_degree_id'][0] ) ) {
-			$data['degree_id'] = $factsheet_data['gsdp_degree_id'][0];
-		}
+		// if ( isset( $factsheet_data['gsdp_degree_id'][0] ) ) {
+		// 	$data['degree_id'] = $factsheet_data['gsdp_degree_id'][0];
+		// }
 
 		if ( isset( $factsheet_data['gsdp_include_in_programs'][0] ) && 1 === absint( $factsheet_data['gsdp_include_in_programs'][0] ) ) {
 			$data['public'] = 'Yes';
@@ -1505,9 +1927,16 @@ class WSUWP_Graduate_Degree_Programs {
 			$data['accepting_applications'] = 'Yes';
 		}
 
-		$faculty = wp_get_object_terms( $post_id, 'gs-faculty' );
-		if ( ! is_wp_error( $faculty ) ) {
-			$data['faculty'] = $faculty;
+		if ( isset( $factsheet_data['gsdp_grad_students_total'][0] ) ) {
+			$data['students'] = $factsheet_data['gsdp_grad_students_total'][0];
+		}
+
+		if ( isset( $factsheet_data['gsdp_grad_faculty_total'][0] ) ) {
+			$data['totalfac'] = $factsheet_data['gsdp_grad_faculty_total'][0];
+		}
+
+		if ( isset( $factsheet_data['gsdp_grad_core_faculty_total'][0] ) ) {
+			$data['totalcorefac'] = $factsheet_data['gsdp_grad_core_faculty_total'][0];
 		}
 
 		if ( isset( $factsheet_data['gsdp_grad_students_total'][0] ) ) {
@@ -1518,12 +1947,26 @@ class WSUWP_Graduate_Degree_Programs {
 			if ( 0 === absint( $data['students'] ) ) {
 				$data['aided'] = '0.00';
 			} else {
-				$data['aided'] = round( ( $factsheet_data['gsdp_grad_students_aided'][0] / $data['students'] ) * 100, 2 );
+				$data['aided'] = $factsheet_data['gsdp_grad_students_aided'][0];
 			}
 		}
 
 		if ( isset( $factsheet_data['gsdp_degree_url'][0] ) ) {
 			$data['degree_url'] = $factsheet_data['gsdp_degree_url'][0];
+		}
+
+		if ( isset( $factsheet_data['gsdp_application_url'][0] ) ) {
+			$data['application_url'] = $factsheet_data['gsdp_application_url'][0];
+		}
+		
+
+		if ( isset( $factsheet_data['gsdp_student_learning_outcome_url'][0] ) ) {
+			$data['student_learning_outcome_url'] = $factsheet_data['gsdp_student_learning_outcome_url'][0];
+		}
+
+
+		if ( isset( $factsheet_data['gsdp_program_handbook_url'][0] ) ) {
+			$data['handbook_url'] = $factsheet_data['gsdp_program_handbook_url'][0];
 		}
 
 		if ( isset( $factsheet_data['gsdp_deadlines'][0] ) ) {
@@ -1534,11 +1977,35 @@ class WSUWP_Graduate_Degree_Programs {
 			}
 		}
 
+		if ( isset( $factsheet_data['gsdp_deadlines_prog'][0] ) ) {
+			$data['deadlines_prog'] = maybe_unserialize( $factsheet_data['gsdp_deadlines_prog'][0] );
+
+			if ( ! is_array( $data['deadlines_prog'] ) ) {
+				$data['deadlines_prog'] = array();
+			}
+		}
+
+		if ( isset( $factsheet_data['gsdp_requirements_gre'][0] ) ) {
+			$data['requirements_gre'] = maybe_unserialize( $factsheet_data['gsdp_requirements_gre'][0] );
+
+			if ( ! is_array( $data['requirements_gre'] ) ) {
+				$data['requirements_gre'] = array();
+			}
+		}
+
 		if ( isset( $factsheet_data['gsdp_requirements'][0] ) ) {
 			$data['requirements'] = maybe_unserialize( $factsheet_data['gsdp_requirements'][0] );
 
 			if ( ! is_array( $data['requirements'] ) ) {
 				$data['requirements'] = array();
+			}
+		}
+
+		if ( isset( $factsheet_data['gsdp_contacts'][0] ) ) {
+			$data['gscontacts'] = maybe_unserialize( $factsheet_data['gsdp_contacts'][0] );
+
+			if ( ! is_array( $data['gscontacts'] ) ) {
+				$data['gscontacts'] = array();
 			}
 		}
 
@@ -1563,9 +2030,11 @@ class WSUWP_Graduate_Degree_Programs {
 			$data['career_placements'] = $factsheet_data['gsdp_career_placements'][0];
 		}
 
-		if ( isset( $factsheet_data['gsdp_student_learning_outcome'][0] ) ) {
-			$data['student_learning_outcome'] = $factsheet_data['gsdp_student_learning_outcome'][0];
+		if ( isset( $factsheet_data['gsdp_global_URL'][0] ) ) {
+			$data['global_URL'] = $factsheet_data['gsdp_global_URL'][0];
 		}
+
+
 
 		$contacts = wp_get_object_terms( $post_id, 'gs-contact' );
 		$data['contacts'] = array();
@@ -1707,10 +2176,10 @@ class WSUWP_Graduate_Degree_Programs {
 			return;
 		}
 
-		if ( 1 !== absint( get_post_meta( get_the_ID(), 'gsdp_include_in_programs', true ) ) ) {
-			wp_redirect( home_url( '/' . $this->archive_slug . '/' ) );
-			exit();
-		}
+		// if ( 1 !== absint( get_post_meta( get_the_ID(), 'gsdp_include_in_programs', true ) ) ) {
+		// 	wp_redirect( home_url( '/' . $this->archive_slug . '/' ) );
+		// 	exit();
+		// }
 	}
 
 	/**

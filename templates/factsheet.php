@@ -1,29 +1,71 @@
 
+        <div class="factsheet-apply">    
+            <?php if ( ! empty( $factsheet_data['application_url'] ) ) : ?>
+                <a class="wsu-button" href="<?php echo esc_url( $factsheet_data['application_url'] ); ?>">Apply Now</a>
+            <?php endif; ?>
 
-        <div class="factsheet-apply"><a class="wsu-button" href="https://gradschool.wsu.edu/apply/">Apply Now</a></div>
+            <?php if (empty( $factsheet_data['application_url'] ) ) : ?>
+                <a class="wsu-button" href="https://gradschool.wsu.edu/apply/">Apply Now</a>
+            <?php endif; ?>   
+        </div>
 
         <div class="factsheet-statistics-wrapper">
             <div class="factsheet-stat">
-                <span class="factsheet-label">Program URL:</span>
+                <span class="factsheet-label">Program Link:</span>
                 <span class="factsheet-value"><a href="<?php echo esc_url( $factsheet_data['degree_url'] ); ?>"><?php echo esc_html( $factsheet_data['degree_url'] ); ?></a></span>
             </div>
-            <div class="factsheet-stat">
-                <span class="factsheet-label">Faculty working with Students:</span>
-                <span class="factsheet-value"><?php echo count( $factsheet_data['faculty'] ); ?></span>
+            
+            <?php if ( ! empty( $factsheet_data['handbook_url'] ) ) : ?>
+                <div class="factsheet-stat">
+                    <span class="factsheet-label">Program Handbook:</span>
+                    <span class="factsheet-value"><a href="<?php echo esc_url( $factsheet_data['handbook_url'] ); ?>"><?php echo esc_html( $factsheet_data['handbook_url'] ); ?></a></span>
+                </div>
+            <?php endif; ?>
+
+            <?php if ( ! empty( $factsheet_data['student_learning_outcome_url'] ) ) : ?>
+                <div class="factsheet-stat">
+                    <span class="factsheet-label">Student Learning Outcomes:</span>
+                    <span class="factsheet-value"><a href="<?php echo esc_url( $factsheet_data['student_learning_outcome_url'] ); ?>"><?php echo esc_html( $factsheet_data['student_learning_outcome_url'] ); ?></a></span>
+                </div>
+            <?php endif; ?>
+
+            <?php if ( ! empty( $factsheet_data['totalfac'] ) ) : ?>
+
+                <div class="factsheet-stat">
+                    <span class="factsheet-label">Total Graduate Faculty in Program: </span>
+                    <span class="factsheet-value"><?php echo absint( $factsheet_data['totalfac'] ); ?></span>
+                </div>
+
+            <?php endif; ?>
+
+
+            <?php if ( ! empty( $factsheet_data['totalcorefac'] ) ) : ?>
+                <div class="factsheet-stat">
+                <span class="factsheet-label">Total Core Graduate Faculty in Program: </span>
+                <span class="factsheet-value"><?php echo absint( $factsheet_data['totalcorefac'] ); ?></span>
             </div>
+            <?php endif; ?>
+
+            <?php if ( ! empty( $factsheet_data['students'] ) ) : ?>
+
+                <div class="factsheet-stat">
+                    <span class="factsheet-label">Graduate Students in Program:</span>
+                    <span class="factsheet-value"><?php echo absint( $factsheet_data['students'] ); ?></span>
+                </div>
+           <?php endif; ?>
+
+            <?php if ( !empty( $factsheet_data['aided']) && !empty( $factsheet_data['students']))   : ?>
+
+                <div class="factsheet-stat">
+                    <span class="factsheet-label">Students Receiving Assistantships: </span>
+                    <span class="factsheet-value"><?php echo esc_html( $factsheet_data['aided'] ); ?></span>
+                </div>
+
+            <?php endif; ?>
+
 
             <div class="factsheet-stat">
-                <span class="factsheet-label">Students:</span>
-                <span class="factsheet-value"><?php echo absint( $factsheet_data['students'] ); ?></span>
-            </div>
-
-            <div class="factsheet-stat">
-                <span class="factsheet-label">Students receiving assistantships or scholarships:</span>
-                <span class="factsheet-value"><?php echo esc_html( $factsheet_data['aided'] ); ?>%</span>
-            </div>
-
-            <div class="factsheet-stat">
-                <span class="factsheet-label">Priority deadline:</span>
+                <span class="factsheet-label">Priority Deadlines:</span>
                 <div class="factsheet-set">
                     <ul class="wsu-list--style-lined">
                         <?php
@@ -50,6 +92,40 @@
                     </ul>
                 </div>
             </div>
+    
+            <?php if(!empty((($factsheet_data['deadlines_prog'])[0])["deadline"])):?>
+
+            <div class="factsheet-stat">
+                <span class="factsheet-label">Program Deadlines:</span>
+                <div class="factsheet-set">
+                    <ul class="wsu-list--style-lined">
+                        <?php
+                        foreach ( $factsheet_data['deadlines_prog'] as $fs_deadline_prog ) {
+                            if ( 'NULL' === $fs_deadline_prog['semester'] || 'None' === $fs_deadline_prog['semester'] ) {
+                                continue;
+                            }
+
+                            if ( in_array( strtolower( $fs_deadline_prog['semester'] ), array( 'summer', 'fall' ), true ) && 'default' === strtolower( $fs_deadline_prog['deadline'] ) ) {
+                                $fs_deadline_prog['deadline'] = 'January 10';
+                            } elseif ( 'spring' === strtolower( $fs_deadline_prog['semester'] ) && 'default' === strtolower( $fs_deadline_prog['deadline'] ) ) {
+                                $fs_deadline_prog['deadline'] = 'July 1';
+                            }
+
+                            $is_date_deadline = explode( '/', $fs_deadline_prog['deadline'] );
+                            if ( 3 === count( $is_date_deadline ) ) {
+                                $date_deadline = strtotime( $fs_deadline_prog['deadline'] );
+                                $fs_deadline_prog['deadline'] = date( 'F j', $date_deadline );
+                            }
+
+                            echo '<li>' . esc_html( $fs_deadline_prog['semester'] ) . ' ' . esc_html( $fs_deadline_prog['deadline'] ) . ' ' . esc_html( $fs_deadline_prog['international'] ) . '</li>';
+                        }
+                        ?>
+                    </ul>
+                </div>
+            </div>
+
+            <?php endif; ?>
+
 
             <div class="factsheet-stat">
                 <span class="factsheet-label">Campus:</span>
@@ -57,28 +133,63 @@
                     <ul>
                         <?php
                         foreach ( $factsheet_data['locations'] as $fs_location => $fs_location_status ) {
-                            if ( 'No' === $fs_location_status || 'By Exception' === $fs_location_status ) {
+                            if ( 'No' === $fs_location_status || 'By Exception' === $fs_location_status ) 
+                            {
                                 continue;
                             }
-                            echo '<li>' . esc_html( $fs_location ) . ': ' . esc_html( $fs_location_status ) . '</li>';
+                            if($fs_location == "Global Campus (online)" and !empty($factsheet_data['global_URL'] ))
+                            {
+                                echo '<li><a target="_blank" href="' . esc_html($factsheet_data['global_URL']) . '">Global Campus (online)</a></li>';
+                            }
+                            else
+                            {
+                                echo '<li>' . esc_html( $fs_location )  . '</li>';
+                            }
                         }
                         ?>
                     </ul>
                 </div>
             </div>
 
-            <div class="factsheet-stat">
-                <span class="factsheet-label">Tests required:</span>
-                <div class="factsheet-set">
-                    <ul>
-                        <?php
-                        foreach ( $factsheet_data['requirements'] as $fs_requirement ) {
-                            echo '<li>' . esc_html( $fs_requirement['score'] ) . ' ' . esc_html( $fs_requirement['test'] ) . ' ' . esc_html( $fs_requirement['description'] ) . '</li>';
-                        }
-                        ?>
-                    </ul>
+                <div class="factsheet-stat">
+                    <span class="factsheet-label">International Student English Proficiency Exams</span>
+                    <div class="factsheet-set">
+                   <p class="font-factsheet-label" style="padding-left:25px;">International students may need to surpass the Graduate School's minimum English language proficiency exam scores for this program. If the graduate program has unique score requirements, they will be detailed below. Otherwise, please refer to <a href="https://gradschool.wsu.edu/international-requirements/">the Graduate School's minimum score guidelines. </a></p>
+                    <?php if(!empty((($factsheet_data['requirements'])[0])["score"])):?>
+    
+                        <ul>
+                            <?php
+                            foreach ( $factsheet_data['requirements'] as $fs_requirement ) {
+                                echo '<li>' . esc_html( $fs_requirement['score'] ) . ' ' . esc_html( $fs_requirement['test'] ) . ' ' . esc_html( $fs_requirement['description'] ) . '</li>';
+                            }
+                            ?>
+                        </ul>
+
+                    <?php endif; ?>
+
+                    </div>
                 </div>
-            </div>
+
+
+
+            <?php if(!empty((($factsheet_data['requirements_gre'])[0])["test"])):?>
+                <div class="factsheet-stat">
+                    <span class="factsheet-label">Additional Degree Program Admission Requirements</span>
+                    <div class="factsheet-set">
+                        
+                        <ul>
+                            <?php
+                            foreach ( $factsheet_data['requirements_gre'] as $fs_requirement_gre ) {
+                                echo '<li>' . esc_html( $fs_requirement_gre['test'] ) . ' ' . esc_html( $fs_requirement_gre['required'] ) . '</li>';
+                            }
+                            ?>
+                        </ul>
+                    </div>
+                </div>
+            <?php endif; ?>           
+
+
+       
         </div>
 
 <div class="wsu-row wsu-row--sidebar-right ">
@@ -95,13 +206,6 @@
             <div class="factsheet-admission-requirements">
                 <h2>Admission Requirements:</h2>
                 <?php echo wp_kses_post( apply_filters( 'the_content', $factsheet_data['admission_requirements'] ) ); ?>
-            </div>
-        <?php endif; ?>
-
-        <?php if ( ! empty( $factsheet_data['student_learning_outcome'] ) ) : ?>
-            <div class="factsheet-student-learning-outcome">
-                <h2>Student Learning Outcomes:</h2>
-                <?php echo wp_kses_post( apply_filters( 'the_content', $factsheet_data['student_learning_outcome'] ) ); ?>
             </div>
         <?php endif; ?>
 
@@ -125,91 +229,18 @@
                 <?php echo wp_kses_post( apply_filters( 'the_content', $factsheet_data['career_placements'] ) ); ?>
             </div>
         <?php endif; ?>
-
-            <div class="factsheet-faculty-wrapper">
-                <h2>Faculty Members:</h2>
-        <?php
-        foreach ( $factsheet_data['faculty'] as $faculty ) {
-            ?>
-            <div class="factsheet-faculty">
-                <h3><?php echo esc_html( $faculty['display_name'] ); ?><?php if ( ! empty( $faculty['degree_abbreviation'] ) ) : ?>, <?php echo esc_html( $faculty['degree_abbreviation'] ); ?><?php endif; ?></h3>
-                <?php if ( ! empty( $faculty['email'] ) ) : ?>
-                <div><a href="mailto:<?php echo esc_attr( $faculty['email'] ); ?>"><?php echo esc_html( $faculty['email'] ); ?></a></div>
-                <?php endif; ?>
-                <?php if ( ! empty( $faculty['faculty_location'] ) ) : ?>
-                <div class="faculty-location"><strong>Location:</strong> <?php echo esc_html( $faculty['faculty_location'] ); ?></div>
-                <?php endif; ?>
-                <?php if ( ! empty( $faculty['url'] ) ) : ?>
-                <div><strong>URL:</strong> <a href="<?php echo esc_url( $faculty['url'] ); ?>"><?php echo esc_html( $faculty['url'] ); ?></a></div>
-                <?php endif; ?>
-                <?php if ( ! empty( $faculty['relationship'] ) ) : ?>
-                <div class="factsheet-faculty-relationship"><p><?php echo esc_html( $faculty['relationship'] ); ?></p></div>
-                <?php endif; ?>
-                <?php if ( ! empty( $faculty['research_interests'] ) ) : ?>
-                <div>
-                    <h4>Research Interests</h4>
-                    <?php echo wp_kses_post( apply_filters( 'the_content', $faculty['research_interests'] ) ); ?>
-                </div>
-                <?php endif; ?>
-            </div>
-            <?php
-        }
-        ?>
-            </div>
-    </div>
+        </div>
     <div class="wsu-column">
-        <h2>Contact Information:</h2>
-        <?php
-        foreach ( $factsheet_data['contacts'] as $contact ) {
-            ?>
-            <address class="factsheet-contact" itemscope itemtype="http://schema.org/Organization">
-                <?php if ( ! empty( $contact['gs_contact_name'][0] ) ) : ?>
-                <div itemprop="contactPoint" itemscope itemtype="http://schema.org/Person"><?php echo esc_html( $contact['gs_contact_name'][0] ); ?></div>
-                <?php endif; ?>
-                <div class="address">
-                    <?php if ( ! empty( $contact['gs_contact_address_one'][0] ) ) : ?>
-                    <div itemprop="streetAddress"><?php echo esc_html( $contact['gs_contact_address_one'][0] ); ?></div>
-                    <?php endif; ?>
-                    <?php if ( ! empty( $contact['gs_contact_address_two'][0] ) ) : ?>
-                    <div itemprop="streetAddress"><?php echo esc_html( $contact['gs_contact_address_two'][0] ); ?></div>
-                    <?php endif; ?>
-                    <div>
-                        <?php if ( ! empty( $contact['gs_contact_city'][0] ) && ! empty( $contact['gs_contact_state'][0] ) ) : ?>
-                        <span itemprop="addressLocality"><?php echo esc_html( $contact['gs_contact_city'][0] ); ?>, <?php echo esc_html( $contact['gs_contact_state'][0] ); ?></span>
-                        <?php endif; ?>
-                        <?php if ( ! empty( $contact['gs_contact_postal'][0] ) ) : ?>
-                        <span itemprop="postalcode"><?php echo esc_html( $contact['gs_contact_postal'][0] ); ?></span>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                <?php if ( ! empty( $contact['gs_contact_phone'][0] ) ) : ?>
-                <div itemprop="telephone"><?php echo esc_html( $contact['gs_contact_phone'][0] ); ?></div>
-                <?php endif; ?>
-                <?php if ( ! empty( $contact['gs_contact_fax'][0] ) ) : ?>
-                <div itemprop="faxNumber"><?php echo esc_html( $contact['gs_contact_fax'][0] ); ?></div>
-                <?php endif; ?>
-                <?php if ( ! empty( $contact['gs_contact_email'][0] ) ) : ?>
-                <div itemprop="email"><a href="mailto:<?php echo esc_attr( $contact['gs_contact_email'][0] ); ?>"><?php echo esc_html( $contact['gs_contact_email'][0] ); ?></a></div>
-                <?php endif; ?>
-            </address>
+        <h2>Contact Information:</h2>      
+        <ul>
             <?php
-        }
-        ?>
+                    foreach ( $factsheet_data['gscontacts'] as $fs_contact ) {
+                                echo '<li>' . esc_html( $fs_contact['name'] ) . ' <a href="mailto:' . esc_html( $fs_contact['email'] ) .'">'. esc_html( $fs_contact['email'] ). '</a></li>';
+                    }
+            ?>
+        </ul>
+
     </div>
 </div>
-<div class="wsu-row">
-    <div class="wsu-column">
-        <div class="progressbar"></div>
-        <div class="footer">
-            <ul>
-                <li><strong><a href="https://gradschool.wsu.edu">Graduate School</a></strong></li>
-                <li>Washington State University</li>
-                <li>Stadium Way, 324 French Administration Building</li>
-                <li>P.O. Box 641030</li>
-                <li>Pullman, WA 99164-1030</li>
-                <li><a href="mailto:gradschool@wsu.edu">gradschool@wsu.edu</a></li>
-                <li><a href="tel:15093356424">P: 509-335-6424</a>, F: 509-335-1949</li>
-            </ul>
-        </div>
-    </div>
-    </div>
+
+

@@ -261,7 +261,11 @@ body.searching .degree-search-section {
 }
 
 .graduate-certificate {
-	background: #00889d;
+	background: #00889d; 
+}
+
+.administrator-credentials{
+	background: #002D61; 
 }
 
 .key-group {
@@ -303,7 +307,8 @@ body.searching .degree-search-section {
 	.degree-list li .other,
 	.degree-list li .graduate-certificate,
 	.degree-list li .masters,
-	.degree-list li .doctorate {
+	.degree-list li .doctorate, 
+	.degree-list li .administrator-credentials {
 		margin: auto 3px;
 	}
 

@@ -1,15 +1,20 @@
 
-<form class="degree-search-wrapper">
+<!-- <form class="degree-search-wrapper">
     <label for="degree-search-input" class="visuallyhidden">Search Degrees</label>
     <input type="text" name="search-degrees" id="degree-search-input" placeholder="Search Degrees A-Z" />
     <button type="submit">Search</button>
-</form>
+</form> -->
+
 <div class="degree-list">
     <div class="toparea">
         <div class="pagination">
             <a class="active" href="#a">A</a> <a href="#b">B</a> <a href="#c">C</a> <a href="#d">D</a> <a href="#e">E</a> <a href="#f">F</a> <a href="#g">G</a> <a href="#h">H</a> <a href="#i">I</a> <a href="#j">J</a> <a href="#k">K</a> <a href="#l">L</a> <a href="#m">M</a> <a href="#n">N</a> <a href="#o">O</a> <a href="#p">P</a> <a href="#q">Q</a> <a href="#r">R</a> <a href="#s">S</a> <a href="#t">T</a> <a href="#u">U</a> <a href="#v">V</a> <a href="#w">W</a> <a href="#x">X</a> <a href="#y">Y</a> <a href="#z">Z</a>
         </div>
         <div class="key-group">
+            <div class="key-classification">
+                <span>Credentials</span>
+                <div class="degree-classification administrator-credentials">C</div>
+            </div>
             <div class="key-classification">
                 <span>Graduate Certificate</span>
                 <div class="degree-classification graduate-certificate">GC</div>
@@ -22,6 +27,7 @@
                 <span>Master</span>
                 <div class="degree-classification masters">M</div>
             </div>
+            
         </div>
     </div>
 
@@ -80,7 +86,12 @@
                             if ( 'graduate-certificate' === $item['degree_classification'] ) {
                                 echo 'GC';
                             } else {
-                                echo esc_html( $item['degree_classification'][0] );
+                                if('administrator-credentials' === $item['degree_classification']) 
+                                {
+                                    echo 'C';
+                                }else{
+                                    echo esc_html( $item['degree_classification'][0] );
+                                }
                             }
                             ?>
                         </div>
@@ -112,7 +123,12 @@
                             if ( 'graduate-certificate' === $item['degree_classification'] ) {
                                 echo 'GC';
                             } else {
-                                echo esc_html( $item['degree_classification'][0] );
+                                if('administrator-credentials' === $item['degree_classification']) 
+                                {
+                                    echo 'C';
+                                }else{
+                                    echo esc_html( $item['degree_classification'][0] );
+                                }
                             }
                             ?>
                         </div>
