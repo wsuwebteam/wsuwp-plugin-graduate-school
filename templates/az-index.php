@@ -27,8 +27,20 @@
                 <span>Master</span>
                 <div class="degree-classification masters">M</div>
             </div>
+            <div class="key-classification">
+                <span>Professional Master's</span>
+                <div class="degree-classification masters">PM</div>
+            </div>
+            <div class="key-classification">
+                <span>Masters with 4+1 Entry</span>
+                <div class="degree-classification masters">M(4+1)</div>
+            </div>
             
         </div>
+    </div>
+
+    <div class="filter-helper-text">
+        <p>Click on any degree type abbreviation above to filter the list below.</p>
     </div>
 
     <div class="lettergroup">
@@ -82,16 +94,17 @@
                         ?>
                         <div class="degree-classification <?php echo esc_attr( $item['degree_classification'] ); ?>">
                             <?php
-                            // Output the first character of the degree classification string.
+                            // Output the appropriate abbreviation for the degree classification.
                             if ( 'graduate-certificate' === $item['degree_classification'] ) {
                                 echo 'GC';
+                            } elseif ( 'administrator-credentials' === $item['degree_classification'] ) {
+                                echo 'C';
+                            } elseif ( 'professional-masters' === $item['degree_classification'] ) {
+                                echo 'PM';
+                            } elseif ( 'masters-4plus1' === $item['degree_classification'] ) {
+                                echo 'M(4+1)';
                             } else {
-                                if('administrator-credentials' === $item['degree_classification']) 
-                                {
-                                    echo 'C';
-                                }else{
-                                    echo esc_html( $item['degree_classification'][0] );
-                                }
+                                echo esc_html( $item['degree_classification'][0] );
                             }
                             ?>
                         </div>
@@ -119,16 +132,17 @@
                         </div>
                         <div class="degree-classification <?php echo esc_attr( $item['degree_classification'] ); ?>">
                             <?php
-                            // Output the first character of the degree classification string.
+                            // Output the appropriate abbreviation for the degree classification.
                             if ( 'graduate-certificate' === $item['degree_classification'] ) {
                                 echo 'GC';
+                            } elseif ( 'administrator-credentials' === $item['degree_classification'] ) {
+                                echo 'C';
+                            } elseif ( 'professional-masters' === $item['degree_classification'] ) {
+                                echo 'PM';
+                            } elseif ( 'masters-4plus1' === $item['degree_classification'] ) {
+                                echo 'M(4+1)';
                             } else {
-                                if('administrator-credentials' === $item['degree_classification']) 
-                                {
-                                    echo 'C';
-                                }else{
-                                    echo esc_html( $item['degree_classification'][0] );
-                                }
+                                echo esc_html( $item['degree_classification'][0] );
                             }
                             ?>
                         </div>

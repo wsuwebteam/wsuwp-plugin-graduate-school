@@ -268,6 +268,14 @@ body.searching .degree-search-section {
 	background: #002D61; 
 }
 
+.professional-masters {
+	background: #ef6615;
+}
+
+.masters-4plus1 {
+	background: #ef6615;
+}
+
 .key-group {
 	display: flex;
 	flex-direction: row-reverse;
@@ -290,6 +298,21 @@ body.searching .degree-search-section {
 	float: right;
 }
 
+.filter-helper-text {
+	text-align: center;
+	margin: 1em 0;
+	padding: 0.5em;
+	background-color: #f7f7f9;
+	border-left: 4px solid #ef6615;
+}
+
+.filter-helper-text p {
+	margin: 0;
+	font-style: italic;
+	color: #666;
+	font-size: 14px;
+}
+
 @media screen and (max-width: 768px) {
 
 	.lettergroup ul {
@@ -307,6 +330,8 @@ body.searching .degree-search-section {
 	.degree-list li .other,
 	.degree-list li .graduate-certificate,
 	.degree-list li .masters,
+	.degree-list li .professional-masters,
+	.degree-list li .masters-4plus1,
 	.degree-list li .doctorate, 
 	.degree-list li .administrator-credentials {
 		margin: auto 3px;
