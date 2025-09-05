@@ -8,8 +8,34 @@ class Shortcode {
 
 	}
 
+	/**
+	 * Enqueue frontend scripts and styles when shortcode is used.
+	 *
+	 * @since 1.1.24
+	 */
+	public static function enqueue_frontend_scripts() {
+		// This will be called by the shortcode when needed
+		wp_enqueue_style( 
+			'wsuwp-graduate-factsheets', 
+			Plugin::get( 'url' ) . '/css/30-factsheets.css', 
+			array(), 
+			WSUWPPLUGINGRADUATEVERSION 
+		);
+		
+		wp_enqueue_script( 
+			'wsuwp-graduate-factsheets-az', 
+			Plugin::get( 'url' ) . '/js/factsheet-az.min.js', 
+			array(), 
+			WSUWPPLUGINGRADUATEVERSION, 
+			true 
+		);
+	}
+
 
 	public static function add_gs_shortcodes( $atts, $content = '' ) {
+
+		// Enqueue the CSS when shortcode is used
+		self::enqueue_frontend_scripts();
 
 		$factsheets = self::get_fact_sheets();
 

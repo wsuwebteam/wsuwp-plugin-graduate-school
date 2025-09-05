@@ -82,6 +82,7 @@
 .degree-programs-header h1 {
 	font: 300 50px/45px "Open Sans", "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", sans-serif;
 	background: -webkit-linear-gradient(135deg, #ed6615, #880202);
+	background-clip: text;
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 }
@@ -241,7 +242,7 @@ body.searching .degree-search-section {
 	background: #ef6615;
 	border-radius: 50%;
 	color: #fff;
-	margin: .3em 5px .3em auto;
+	/* margin: .3em 5px .3em auto; */
 	text-transform: uppercase;
 	text-align: center;
 	font-size: 19px;
@@ -269,33 +270,35 @@ body.searching .degree-search-section {
 }
 
 .professional-masters {
-	background: #ef6615;
+	background: #8e44ad;
 }
 
 .masters-4plus1 {
-	background: #ef6615;
+	background: #27ae60;
 }
 
 .key-group {
-	display: flex;
-	flex-direction: row-reverse;
+	display: grid;
+	grid-template-columns: repeat(3, auto);
+	gap: 2em;
 	margin-top: 1em;
 	margin-bottom: 1em;
 }
 
 .key-classification {
-	flex-basis: auto;
-	margin-left: 1.5em;
+	display: flex;
+	align-items: center;
+	gap: 0;
+	justify-self: end;
 }
 
 .key-classification span {
-	float: left;
-	line-height: 49px;
-	padding-right: .5em;
+	line-height: 40px;
+	margin-right: 0.25em;
 }
 
 .key-classification .degree-classification {
-	float: right;
+	flex-shrink: 0;
 }
 
 .filter-helper-text {
@@ -303,7 +306,11 @@ body.searching .degree-search-section {
 	margin: 1em 0;
 	padding: 0.5em;
 	background-color: #f7f7f9;
-	border-left: 4px solid #ef6615;
+	border-left: 4px solid #94192b;
+
+	display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .filter-helper-text p {
@@ -314,6 +321,11 @@ body.searching .degree-search-section {
 }
 
 @media screen and (max-width: 768px) {
+	.key-group {
+		grid-template-columns: 1fr;
+		grid-template-rows: auto;
+		gap: 0.5em;
+	}
 
 	.lettergroup ul {
 		margin-left: 11px;
@@ -340,4 +352,195 @@ body.searching .degree-search-section {
 	.degree-list li {
 		min-height: 45px;
 	}
+}
+
+/* === DEGREE FILTERING ENHANCEMENTS === */
+/* Filter button enhancements */
+.degree-list .key-classification {
+	transition: all .3s ease;
+	position: relative;
+}
+
+.degree-list .key-classification:hover {
+	transform: translateY(-2px);
+	cursor: pointer;
+}
+
+.degree-list .key-classification:hover .degree-classification {
+	box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+	transform: scale(1.05);
+}
+
+.degree-list .key-classification.filter-active {
+	transform: translateY(-2px);
+}
+
+.degree-list .key-classification.filter-active .degree-classification {
+	box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+	transform: scale(1.1);
+	border: 2px solid #fff;
+	box-sizing: border-box;
+	line-height: 36px;
+}
+
+.degree-list .key-classification.filter-active::after {
+	content: '✓';
+	position: absolute;
+	top: -5px;
+	right: -5px;
+	background: #fff;
+	color: #28a745;
+	border-radius: 50%;
+	width: 20px;
+	height: 20px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	font-weight: bold;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+	z-index: 10;
+}
+
+/* Enhanced degree classification badges */
+.degree-list .degree-classification {
+	transition: all .3s ease;
+}
+
+/* Filter indicator styling */
+.filter-indicator {
+	background: linear-gradient(135deg,#f8f9fa,#e9ecef);
+	border: 2px solid #ca1237;
+	border-radius: 8px;
+	padding: 12px 16px;
+	margin-bottom: 1.5rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	box-shadow: 0 2px 8px rgba(202,18,55,0.1);
+}
+
+.filter-indicator span {
+	font-weight: 600;
+	color: #ca1237;
+	font-size: 1.1rem;
+}
+
+.clear-filter-btn {
+	background: #ca1237;
+	color: white;
+	border: none;
+	padding: 6px 12px;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: .9rem;
+	font-weight: 500;
+	transition: background-color .2s ease;
+}
+
+.clear-filter-btn:hover {
+	background: #a60f2d;
+}
+
+/* Animation for filtered rows */
+.degree-row-multiple {
+	transition: opacity .3s ease, transform .3s ease;
+}
+
+.degree-row-multiple[style*="none"] {
+	opacity: 0;
+	transform: translateY(-10px);
+}
+
+/* Letter groups animation */
+.lettergroup {
+	transition: opacity .3s ease;
+}
+
+.lettergroup[style*="none"] {
+	opacity: 0;
+}
+
+/* Add tooltips for better UX */
+.degree-list .key-classification:hover::before {
+	content: 'Click to filter • Double-click to clear';
+	position: absolute;
+	bottom: -35px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: rgba(0,0,0,0.8);
+	color: white;
+	padding: 4px 8px;
+	border-radius: 4px;
+	font-size: 11px;
+	white-space: nowrap;
+	z-index: 1000;
+	opacity: 0;
+	animation: tooltipFadeIn .3s ease forwards;
+}
+
+@keyframes tooltipFadeIn {
+	from {
+		opacity: 0;
+		transform: translateX(-50%) translateY(-5px);
+	}
+	
+	to {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0);
+	}
+}
+
+/* Responsive adjustments for mobile */
+@media screen and (max-width: 700px) {
+	.filter-indicator {
+		flex-direction: column;
+		text-align: center;
+	}
+	
+	.degree-list .key-classification:hover::before {
+		display: none;
+	/* Hide tooltips on mobile */
+	}
+	
+	.degree-list .key-classification.filter-active::after {
+		top: -3px;
+		right: -3px;
+		width: 16px;
+		height: 16px;
+		font-size: 10px;
+	}
+}
+
+/* Enhanced degree classification colors to match 30-factsheets.css */
+.degree-list .masters {
+	background: linear-gradient(135deg,#ef6615,#d85a12) !important;
+}
+
+.degree-list .doctorate {
+	background: linear-gradient(135deg,#931a2b,#7a1624) !important;
+}
+
+.degree-list .graduate-certificate {
+	background: linear-gradient(135deg,#00889d,#007085) !important;
+}
+
+.degree-list .administrator-credentials {
+	background: linear-gradient(135deg,#002D61,#002050) !important;
+	color: #fff !important;
+}
+
+.degree-list .other {
+	background: linear-gradient(135deg,#5e6a71,#4f595f) !important;
+	color: #fff !important;
+}
+
+.degree-list .professional-masters {
+	background: linear-gradient(135deg,#8e44ad,#7d3c98) !important;
+	color: #fff !important;
+}
+
+.degree-list .masters-4plus1 {
+	background: linear-gradient(135deg,#27ae60,#229954) !important;
+	color: #fff !important;
 }
