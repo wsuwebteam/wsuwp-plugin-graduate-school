@@ -40,6 +40,14 @@
                 <span>Masters Degree</span>
                 <div class="degree-classification masters">M</div>
             </div>
+            <div class="key-classification">
+                <span>Professional Master's</span>
+                <div class="degree-classification masters">PM</div>
+            </div>
+            <div class="key-classification">
+                <span>Masters with 4+1 Entry</span>
+                <div class="degree-classification masters">M(4+1)</div>
+            </div>
             
             <div class="key-classification">
                 <span>Masters with 4+1 Entry</span>
@@ -47,12 +55,7 @@
             </div>
             
         </div>
-
-        
-
     </div>
-
-    
 
     <div class="lettergroup">
         <a id="a" name="a"></a>

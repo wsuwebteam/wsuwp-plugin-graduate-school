@@ -320,6 +320,21 @@ body.searching .degree-search-section {
 	font-size: 14px;
 }
 
+.filter-helper-text {
+	text-align: center;
+	margin: 1em 0;
+	padding: 0.5em;
+	background-color: #f7f7f9;
+	border-left: 4px solid #ef6615;
+}
+
+.filter-helper-text p {
+	margin: 0;
+	font-style: italic;
+	color: #666;
+	font-size: 14px;
+}
+
 @media screen and (max-width: 768px) {
 	.key-group {
 		grid-template-columns: 1fr;
