@@ -10,21 +10,34 @@
         <div class="pagination">
             <a class="active" href="#a">A</a> <a href="#b">B</a> <a href="#c">C</a> <a href="#d">D</a> <a href="#e">E</a> <a href="#f">F</a> <a href="#g">G</a> <a href="#h">H</a> <a href="#i">I</a> <a href="#j">J</a> <a href="#k">K</a> <a href="#l">L</a> <a href="#m">M</a> <a href="#n">N</a> <a href="#o">O</a> <a href="#p">P</a> <a href="#q">Q</a> <a href="#r">R</a> <a href="#s">S</a> <a href="#t">T</a> <a href="#u">U</a> <a href="#v">V</a> <a href="#w">W</a> <a href="#x">X</a> <a href="#y">Y</a> <a href="#z">Z</a>
         </div>
+
+        <div class="filter-helper-text">
+            <p>Click on any degree type abbreviation below to filter the list.</p>
+        </div>
+        
         <div class="key-group">
             <div class="key-classification">
-                <span>Credentials</span>
-                <div class="degree-classification administrator-credentials">C</div>
+                <span>Doctorate Degree</span>
+                <div class="degree-classification doctorate">D</div>
             </div>
+
             <div class="key-classification">
                 <span>Graduate Certificate</span>
                 <div class="degree-classification graduate-certificate">GC</div>
             </div>
+            
             <div class="key-classification">
-                <span>Doctorate</span>
-                <div class="degree-classification doctorate">D</div>
+                <span>Credentials</span>
+                <div class="degree-classification administrator-credentials">C</div>
             </div>
+            
             <div class="key-classification">
-                <span>Master</span>
+                <span>Professional Masters</span>
+                <div class="degree-classification professional-masters">PM</div>
+            </div>
+            
+            <div class="key-classification">
+                <span>Masters Degree</span>
                 <div class="degree-classification masters">M</div>
             </div>
             <div class="key-classification">
@@ -36,11 +49,12 @@
                 <div class="degree-classification masters">M(4+1)</div>
             </div>
             
+            <div class="key-classification">
+                <span>Masters with 4+1 Entry</span>
+                <div class="degree-classification masters-4plus1">4+1</div>
+            </div>
+            
         </div>
-    </div>
-
-    <div class="filter-helper-text">
-        <p>Click on any degree type abbreviation above to filter the list below.</p>
     </div>
 
     <div class="lettergroup">
@@ -102,7 +116,7 @@
                             } elseif ( 'professional-masters' === $item['degree_classification'] ) {
                                 echo 'PM';
                             } elseif ( 'masters-4plus1' === $item['degree_classification'] ) {
-                                echo 'M(4+1)';
+                                echo '4+1';
                             } else {
                                 echo esc_html( $item['degree_classification'][0] );
                             }
@@ -140,7 +154,7 @@
                             } elseif ( 'professional-masters' === $item['degree_classification'] ) {
                                 echo 'PM';
                             } elseif ( 'masters-4plus1' === $item['degree_classification'] ) {
-                                echo 'M(4+1)';
+                                echo '4+1';
                             } else {
                                 echo esc_html( $item['degree_classification'][0] );
                             }
