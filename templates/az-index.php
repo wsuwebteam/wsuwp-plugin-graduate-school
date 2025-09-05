@@ -14,7 +14,7 @@
         <div class="filter-helper-text">
             <p>Click on any degree type abbreviation below to filter the list.</p>
         </div>
-        
+
         <div class="key-group">
             <div class="key-classification">
                 <span>Doctorate Degree</span>
@@ -25,35 +25,27 @@
                 <span>Graduate Certificate</span>
                 <div class="degree-classification graduate-certificate">GC</div>
             </div>
-            
+
             <div class="key-classification">
                 <span>Credentials</span>
                 <div class="degree-classification administrator-credentials">C</div>
             </div>
-            
+
             <div class="key-classification">
                 <span>Professional Masters</span>
                 <div class="degree-classification professional-masters">PM</div>
             </div>
-            
+
             <div class="key-classification">
                 <span>Masters Degree</span>
                 <div class="degree-classification masters">M</div>
             </div>
-            <div class="key-classification">
-                <span>Professional Master's</span>
-                <div class="degree-classification masters">PM</div>
-            </div>
-            <div class="key-classification">
-                <span>Masters with 4+1 Entry</span>
-                <div class="degree-classification masters">M(4+1)</div>
-            </div>
-            
+
             <div class="key-classification">
                 <span>Masters with 4+1 Entry</span>
                 <div class="degree-classification masters-4plus1">4+1</div>
             </div>
-            
+
         </div>
     </div>
 
