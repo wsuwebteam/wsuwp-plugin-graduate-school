@@ -89,41 +89,52 @@ class Shortcode {
 					$factsheet_data['permalink'] = str_replace( '/degrees/factsheet/', '/wsugradfair/degrees/factsheet/', $factsheet_data['permalink'] );
 				}
 		
-				$degree_types = wp_get_object_terms( get_the_ID(), 'gs-degree-type' );
-				$program_name = wp_get_object_terms( get_the_ID(), 'gs-program-name' );
-		
-				$degree_classification = '';
-				$degree_type = 'Other';
-				if ( ! is_wp_error( $degree_types ) && 0 < count( $degree_types ) ) {
-					$degree_classification = get_term_meta( $degree_types[0]->term_id, 'gs_degree_type_classification', true );
-					$degree_type = $degree_types[0]->name;
+			$degree_types = wp_get_object_terms( get_the_ID(), 'gs-degree-type' );
+			$program_name = wp_get_object_terms( get_the_ID(), 'gs-program-name' );
+
+			// Get program name once (used for all degree types)
+			if ( ! is_wp_error( $program_name ) && 0 < count( $program_name ) ) {
+				$program_name_value = $program_name[0]->name;
+			} else {
+				$program_name_value = '';
+			}
+
+			// Get factsheet key once (used for all degree types)
+			if ( ! empty( $factsheet_data['shortname'] ) ) {
+				$factsheet_key = $factsheet_data['shortname'];
+			} else {
+				$factsheet_key = get_the_title();
+			}
+
+			if ( ! isset( $factsheets[ $factsheet_key ] ) ) {
+				$factsheets[ $factsheet_key ] = array();
+			}
+
+			// Process each degree type separately to create multiple entries
+			if ( ! is_wp_error( $degree_types ) && 0 < count( $degree_types ) ) {
+				foreach ( $degree_types as $degree_type ) {
+					$degree_classification = get_term_meta( $degree_type->term_id, 'gs_degree_type_classification', true );
+					
+					// Create a copy of factsheet data for this degree type
+					$factsheet_entry = $factsheet_data;
+					$factsheet_entry['degree_type'] = $degree_type->name;
+					$factsheet_entry['program_name'] = $program_name_value;
+
+					if ( empty( $degree_classification ) ) {
+						$factsheet_entry['degree_classification'] = 'other';
+					} else {
+						$factsheet_entry['degree_classification'] = $degree_classification;
+					}
+
+					$factsheets[ $factsheet_key ][] = $factsheet_entry;
 				}
-		
-				if ( ! is_wp_error( $program_name ) && 0 < count( $program_name ) ) {
-					$factsheet_data['program_name'] = $program_name[0]->name;
-				} else {
-					$factsheet_data['program_name'] = '';
-				}
-		
-				$factsheet_data['degree_type'] = $degree_type;
-		
-				if ( empty( $degree_classification ) ) {
-					$factsheet_data['degree_classification'] = 'other';
-				} else {
-					$factsheet_data['degree_classification'] = $degree_classification;
-				}
-		
-				if ( ! empty( $factsheet_data['shortname'] ) ) {
-					$factsheet_key = $factsheet_data['shortname'];
-				} else {
-					$factsheet_key = get_the_title();
-				}
-		
-				if ( ! isset( $factsheets[ $factsheet_key ] ) ) {
-					$factsheets[ $factsheet_key ] = array();
-				}
-		
+			} else {
+				// Fallback for factsheets with no degree types
+				$factsheet_data['degree_type'] = 'Other';
+				$factsheet_data['program_name'] = $program_name_value;
+				$factsheet_data['degree_classification'] = 'other';
 				$factsheets[ $factsheet_key ][] = $factsheet_data;
+			}
 
 			}
 
