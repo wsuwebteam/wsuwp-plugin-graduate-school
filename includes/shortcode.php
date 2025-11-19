@@ -9,6 +9,42 @@ class Shortcode {
 	}
 
 	/**
+	 * Sort degree classifications in the specified order.
+	 *
+	 * @since 1.1.29
+	 *
+	 * @param array $classifications Array of classification strings.
+	 * @return array Sorted array of classifications.
+	 */
+	protected static function sort_classifications( $classifications ) {
+		$order = array(
+			'doctorate',
+			'masters',
+			'professional-masters',
+			'masters-4plus1',
+			'graduate-certificate',
+			'administrator-credentials',
+		);
+
+		usort( $classifications, function( $a, $b ) use ( $order ) {
+			$pos_a = array_search( $a, $order );
+			$pos_b = array_search( $b, $order );
+
+			// If not found in order array, put at end
+			if ( false === $pos_a ) {
+				$pos_a = 999;
+			}
+			if ( false === $pos_b ) {
+				$pos_b = 999;
+			}
+
+			return $pos_a - $pos_b;
+		} );
+
+		return $classifications;
+	}
+
+	/**
 	 * Enqueue frontend scripts and styles when shortcode is used.
 	 *
 	 * @since 1.1.24
@@ -37,7 +73,7 @@ class Shortcode {
 		// Enqueue the CSS when shortcode is used
 		self::enqueue_frontend_scripts();
 
-		$factsheets = self::get_fact_sheets();
+		$factsheets = self::get_fact_sheets( $atts );
 
 		ob_start();
 
@@ -52,9 +88,12 @@ class Shortcode {
 	}
 
 
-	protected static function get_fact_sheets() {
+	protected static function get_fact_sheets( $atts = array() ) {
 
 		$factsheets = array();
+		$all_entries = array(); // Collect all entries first
+		
+		$gradfair = isset( $atts['gradfair'] ) && $atts['gradfair'];
 
 		$query_args = array(
 			'post_type'      => 'gs-factsheet',
@@ -106,41 +145,119 @@ class Shortcode {
 				$factsheet_key = get_the_title();
 			}
 
-			if ( ! isset( $factsheets[ $factsheet_key ] ) ) {
-				$factsheets[ $factsheet_key ] = array();
-			}
-
-			// Process each degree type separately to create multiple entries
+			// Process each degree type and collect all entries
 			if ( ! is_wp_error( $degree_types ) && 0 < count( $degree_types ) ) {
 				foreach ( $degree_types as $degree_type ) {
 					$degree_classification = get_term_meta( $degree_type->term_id, 'gs_degree_type_classification', true );
 					
-					// Create a copy of factsheet data for this degree type
-					$factsheet_entry = $factsheet_data;
-					$factsheet_entry['degree_type'] = $degree_type->name;
-					$factsheet_entry['program_name'] = $program_name_value;
-
 					if ( empty( $degree_classification ) ) {
-						$factsheet_entry['degree_classification'] = 'other';
-					} else {
-						$factsheet_entry['degree_classification'] = $degree_classification;
+						$degree_classification = 'other';
 					}
-
-					$factsheets[ $factsheet_key ][] = $factsheet_entry;
+					
+					$entry = $factsheet_data;
+					$entry['degree_type'] = $degree_type->name;
+					$entry['program_name'] = $program_name_value;
+					$entry['degree_classification'] = $degree_classification;
+					$entry['factsheet_key'] = $factsheet_key;
+					
+					$all_entries[] = $entry;
 				}
 			} else {
 				// Fallback for factsheets with no degree types
 				$factsheet_data['degree_type'] = 'Other';
 				$factsheet_data['program_name'] = $program_name_value;
 				$factsheet_data['degree_classification'] = 'other';
-				$factsheets[ $factsheet_key ][] = $factsheet_data;
+				$factsheet_data['factsheet_key'] = $factsheet_key;
+				$all_entries[] = $factsheet_data;
 			}
 
 			}
-
-			ksort( $factsheets );
 
 		}
+
+		// Group entries by program name first
+		$grouped_by_program = array();
+		foreach ( $all_entries as $entry ) {
+			$group_key = $entry['factsheet_key'];
+			if ( ! isset( $grouped_by_program[ $group_key ] ) ) {
+				$grouped_by_program[ $group_key ] = array();
+			}
+			$grouped_by_program[ $group_key ][] = $entry;
+		}
+		
+		// Now process each program group
+		foreach ( $grouped_by_program as $program_key => $program_entries ) {
+			$masters_entries = array();
+			$non_masters_entries = array();
+			
+			// Separate masters from non-masters for this program
+			foreach ( $program_entries as $entry ) {
+				if ( in_array( $entry['degree_classification'], array( 'masters', 'professional-masters', 'masters-4plus1' ) ) ) {
+					$masters_entries[] = $entry;
+				} else {
+					$non_masters_entries[] = $entry;
+				}
+			}
+			
+			// Create grouped masters entry if there are any masters degrees
+			if ( ! empty( $masters_entries ) ) {
+				$grouped_masters = $masters_entries[0]; // Use first as base
+				$classifications = array_column( $masters_entries, 'degree_classification' );
+				$grouped_masters['degree_classifications'] = self::sort_classifications( $classifications );
+				$grouped_masters['degree_types'] = array_column( $masters_entries, 'degree_type' );
+				$grouped_masters['degree_classification'] = 'masters';
+				$grouped_masters['degree_type'] = 'Masters'; // Always use generic "Masters" for grouped entries
+				
+				$factsheets[ $program_key ][] = $grouped_masters;
+			}
+			
+			// Add non-masters entries
+			foreach ( $non_masters_entries as $entry ) {
+				$factsheets[ $program_key ][] = $entry;
+			}
+			
+			// Sort all entries in this factsheet by classification order
+			if ( isset( $factsheets[ $program_key ] ) && is_array( $factsheets[ $program_key ] ) ) {
+				usort( $factsheets[ $program_key ], function( $a, $b ) {
+					$order = array(
+						'doctorate',
+						'masters',
+						'professional-masters',
+						'masters-4plus1',
+						'graduate-certificate',
+						'administrator-credentials',
+					);
+					
+					// For grouped masters, use the first (highest priority) classification from sorted array
+					if ( isset( $a['degree_classifications'] ) && is_array( $a['degree_classifications'] ) && ! empty( $a['degree_classifications'] ) ) {
+						$class_a = $a['degree_classifications'][0];
+					} else {
+						$class_a = $a['degree_classification'];
+					}
+					
+					if ( isset( $b['degree_classifications'] ) && is_array( $b['degree_classifications'] ) && ! empty( $b['degree_classifications'] ) ) {
+						$class_b = $b['degree_classifications'][0];
+					} else {
+						$class_b = $b['degree_classification'];
+					}
+					
+					$pos_a = array_search( $class_a, $order );
+					$pos_b = array_search( $class_b, $order );
+					
+					// If not found in order array, put at end
+					if ( false === $pos_a ) {
+						$pos_a = 999;
+					}
+					if ( false === $pos_b ) {
+						$pos_b = 999;
+					}
+					
+					return $pos_a - $pos_b;
+				} );
+			}
+		}
+
+		ksort( $factsheets );
 
 		return $factsheets;
 
