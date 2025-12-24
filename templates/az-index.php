@@ -167,15 +167,18 @@
                     // Check if this is a grouped masters degree
                     if ( isset( $item['degree_classifications'] ) && is_array( $item['degree_classifications'] ) ) {
                         // Create a single grouped masters row with all badges
-                        ?>
-                        <div class="degree-row-bottom">
-                            <div class="degree-detail">
-                                <?php
-                                if ( ! empty( $item['degree_type'] ) ) {
-                                    echo '<a href="' . esc_url( $item['permalink'] ) . '">' . esc_html( $item['degree_type'] ) . '</a>';
-                                }
-                                ?>
-                            </div>
+                        // Only render degree-row-bottom if there are multiple factsheets (expandable items)
+                        // For single items, the link is already provided in degree-name, so avoid duplicate links for accessibility
+                        if ( 1 < count( $factsheet ) ) {
+                            ?>
+                            <div class="degree-row-bottom">
+                                <div class="degree-detail">
+                                    <?php
+                                    if ( ! empty( $item['degree_type'] ) ) {
+                                        echo '<a href="' . esc_url( $item['permalink'] ) . '">' . esc_html( $item['degree_type'] ) . '</a>';
+                                    }
+                                    ?>
+                                </div>
                             <?php
                             // Sort and display all masters badges
                             $sorted_classifications = $item['degree_classifications'];
@@ -226,37 +229,42 @@
                                 <?php
                             }
                             ?>
-                        </div>
-                        <?php
+                            </div>
+                            <?php
+                        }
                     } else {
                         // Single degree type for non-grouped degrees
-                        ?>
-                        <div class="degree-row-bottom">
-                            <div class="degree-detail">
-                                <?php
-                                if ( ! empty( $item['degree_type'] ) ) {
-                                    echo '<a href="' . esc_url( $item['permalink'] ) . '">' . esc_html( $item['degree_type'] ) . '</a>';
-                                }
-                                ?>
+                        // Only render degree-row-bottom if there are multiple factsheets (expandable items)
+                        // For single items, the link is already provided in degree-name, so avoid duplicate links for accessibility
+                        if ( 1 < count( $factsheet ) ) {
+                            ?>
+                            <div class="degree-row-bottom">
+                                <div class="degree-detail">
+                                    <?php
+                                    if ( ! empty( $item['degree_type'] ) ) {
+                                        echo '<a href="' . esc_url( $item['permalink'] ) . '">' . esc_html( $item['degree_type'] ) . '</a>';
+                                    }
+                                    ?>
+                                </div>
+                                <div class="degree-classification <?php echo esc_attr( $item['degree_classification'] ); ?>">
+                                    <?php
+                                    // Output the appropriate abbreviation for the degree classification.
+                                    if ( 'graduate-certificate' === $item['degree_classification'] ) {
+                                        echo 'GC';
+                                    } elseif ( 'administrator-credentials' === $item['degree_classification'] ) {
+                                        echo 'C';
+                                    } elseif ( 'professional-masters' === $item['degree_classification'] ) {
+                                        echo 'PM';
+                                    } elseif ( 'masters-4plus1' === $item['degree_classification'] ) {
+                                        echo '4+1';
+                                    } else {
+                                        echo esc_html( $item['degree_classification'][0] );
+                                    }
+                                    ?>
+                                </div>
                             </div>
-                            <div class="degree-classification <?php echo esc_attr( $item['degree_classification'] ); ?>">
-                                <?php
-                                // Output the appropriate abbreviation for the degree classification.
-                                if ( 'graduate-certificate' === $item['degree_classification'] ) {
-                                    echo 'GC';
-                                } elseif ( 'administrator-credentials' === $item['degree_classification'] ) {
-                                    echo 'C';
-                                } elseif ( 'professional-masters' === $item['degree_classification'] ) {
-                                    echo 'PM';
-                                } elseif ( 'masters-4plus1' === $item['degree_classification'] ) {
-                                    echo '4+1';
-                                } else {
-                                    echo esc_html( $item['degree_classification'][0] );
-                                }
-                                ?>
-                            </div>
-                        </div>
-                        <?php
+                            <?php
+                        }
                     }
                 }
                 ?>
@@ -281,5 +289,3 @@
     }
     ?>
 </div>
-
-
