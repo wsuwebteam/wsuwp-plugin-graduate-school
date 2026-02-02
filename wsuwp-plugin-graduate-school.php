@@ -57,17 +57,6 @@ function WSUWP_Graduate_Degree_Programs() {
 }
 
 /**
- * Retrieve the instance of the graduate degree faculty taxonomy.
- *
- * @since 0.4.0
- *
- * @return WSUWP_Graduate_Degree_Faculty_Taxonomy
- */
-function WSUWP_Graduate_Degree_Faculty_Taxonomy() {
-	return WSUWP_Graduate_Degree_Faculty_Taxonomy::get_instance();
-}
-
-/**
  * Retrieves the instance of the graduate degree program name taxonomy.
  *
  * @since 0.4.0
@@ -87,15 +76,4 @@ function WSUWP_Graduate_Degree_Program_Name_Taxonomy() {
  */
 function WSUWP_Graduate_Degree_Degree_Type_Taxonomy() {
 	return WSUWP_Graduate_Degree_Degree_Type_Taxonomy::get_instance();
-}
-
-/**
- * Retrieves the instance of the contact taxonomy.
- *
- * @since 0.4.0
- *
- * @return WSUWP_Graduate_Degree_Contact_Taxonomy
- */
-function WSUWP_Graduate_Degree_Contact_Taxonomy() {
-	return WSUWP_Graduate_Degree_Contact_Taxonomy::get_instance();
 }

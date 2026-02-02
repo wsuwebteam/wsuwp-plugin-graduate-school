@@ -24,16 +24,6 @@ class Plugin {
 	}
 
 
-
-	public static function init() {
-
-		require_once __DIR__ . '/shortcode.php';
-
-		require_once __DIR__ . '/single.php';
-
-	}
-
-
 	public static function load_class( $slug ) {
 
 		require_once self::get( 'dir' ) . "classes/class-{$slug}.php";
@@ -44,5 +34,3 @@ class Plugin {
 
 
 }
-
-Plugin::init();

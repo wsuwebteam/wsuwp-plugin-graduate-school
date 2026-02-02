@@ -247,18 +247,14 @@ class WSUWP_Graduate_Degree_Programs {
 	 * @since 0.4.0
 	 */
 	public function setup_hooks() {
-		require_once dirname( __FILE__ ) . '/class-graduate-degree-faculty-taxonomy.php';
 		require_once dirname( __FILE__ ) . '/class-graduate-degree-program-name-taxonomy.php';
 		require_once dirname( __FILE__ ) . '/class-graduate-degree-degree-type-taxonomy.php';
-		require_once dirname( __FILE__ ) . '/class-graduate-degree-contact-taxonomy.php';
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 
 		add_action( 'init', array( $this, 'register_post_type' ), 15 );
-		add_action( 'init', 'WSUWP_Graduate_Degree_Faculty_Taxonomy', 15 );
 		add_action( 'init', 'WSUWP_Graduate_Degree_Program_Name_Taxonomy', 15 );
 		add_action( 'init', 'WSUWP_Graduate_Degree_Degree_Type_Taxonomy', 15 );
-		add_action( 'init', 'WSUWP_Graduate_Degree_Contact_Taxonomy', 15 );
 
 		add_filter( 'query_vars', array( $this, 'add_gradfair_query_var' ) );
 		add_action( 'init', array( $this, 'register_mirror_menu' ) );
@@ -270,7 +266,6 @@ class WSUWP_Graduate_Degree_Programs {
 
 		// This should fire after the filter in Editorial Access Manager.
 		add_filter( 'map_meta_cap', array( $this, 'filter_map_meta_cap' ), 200, 4 );
-		add_filter( 'user_has_cap', array( $this, 'allow_edit_faculty_member' ), 20, 4 );
 
 		// Several fields are restricted to full editors or admins.
 		// add_filter( "auth_post_{$this->post_type_slug}_meta_gsdp_degree_id", array( $this, 'can_edit_restricted_field' ), 100, 4 );
@@ -302,16 +297,10 @@ class WSUWP_Graduate_Degree_Programs {
 			wp_enqueue_style( 'gsdp-admin', WSUWP\Plugin\Graduate\Plugin::get('url'). '/css/factsheet-admin.css', array(), WSUWP_Graduate_School_Theme()->theme_version() );
 			wp_register_script( 'gsdp-factsheet-admin', WSUWP\Plugin\Graduate\Plugin::get('url'). '/js/factsheet-admin.min.js', array( 'jquery', 'underscore', 'jquery-ui-autocomplete' ), WSUWP_Graduate_School_Theme()->theme_version(), true );
 
-			$rest_api_data = array(
-				'contact_rest_url' => rest_url( 'wp/v2/gs-contact/' ),
-				'faculty_rest_url' => rest_url( 'wp/v2/gs-faculty/' ),
-			);
-			wp_localize_script( 'gsdp-factsheet-admin', 'gs_factsheet', $rest_api_data );
-
 			wp_enqueue_script( 'gsdp-factsheet-admin' );
 		}
 
-		if ( in_array( $hook_suffix, array( 'edit-tags.php', 'term.php', 'term-new.php' ), true ) && in_array( get_current_screen()->taxonomy, array( 'gs-contact', 'gs-faculty', 'gs-degree-type' ), true ) ) {
+		if ( in_array( $hook_suffix, array( 'edit-tags.php', 'term.php', 'term-new.php' ), true ) && in_array( get_current_screen()->taxonomy, array( 'gs-degree-type' ), true ) ) {
 			wp_enqueue_style( 'gsdp-faculty-admin', WSUWP\Plugin\Graduate\Plugin::get('url'). '/css/faculty-admin.css', array(), WSUWP_Graduate_School_Theme()->theme_version() );
 		}
 	}
@@ -415,8 +404,6 @@ class WSUWP_Graduate_Degree_Programs {
 		}
 
 		add_meta_box( 'factsheet-primary', 'Factsheet Data', array( $this, 'display_factsheet_primary_meta_box' ), null, 'normal', 'high' );
-		// add_meta_box( 'factsheet-faculty', 'Faculty Members', array( $this, 'display_faculty_meta_box' ), null, 'normal', 'default' );
-		//add_meta_box( 'factsheet-contact', 'Contact Information', array( $this, 'display_contact_meta_box' ), null, 'normal', 'default' );
 		add_meta_box( 'factsheet-secondary', 'Factsheet Text Blocks', array( $this, 'display_factsheet_secondary_meta_box' ), null, 'normal', 'default' );
 	}
 
@@ -434,8 +421,6 @@ class WSUWP_Graduate_Degree_Programs {
 			return;
 		}
 
-		remove_meta_box( 'tagsdiv-gs-faculty', $this->post_type_slug, 'side' );
-		remove_meta_box( 'tagsdiv-gs-contact', $this->post_type_slug, 'side' );
 		remove_meta_box( 'wpseo_meta', $this->post_type_slug, 'normal' );
 	}
 
@@ -494,156 +479,6 @@ class WSUWP_Graduate_Degree_Programs {
 		return $faculty_relationships[ $unique_id ];
 	}
 
-	/**
-	 * Displays a meta box to capture faculty member information for
-	 * a factsheet.
-	 *
-	 * @since 0.7.0
-	 *
-	 * @param WP_Post $post
-	 */
-	public function display_faculty_meta_box( $post ) {
-		$faculty_members = wp_get_object_terms( $post->ID, 'gs-faculty' );
-		$faculty_relationships = get_post_meta( $post->ID, 'gsdp_faculty_relationships', true );
-
-		echo '<div class="factsheet-faculty-wrapper">';
-
-		foreach ( $faculty_members as $faculty_member ) {
-			$unique_id = get_term_meta( $faculty_member->term_id, 'gs_relationship_id', true );
-
-			// In a rare case where a faculty member does not have a unique relationship ID, create one.
-			if ( empty( $unique_id ) ) {
-				$unique_id = wp_generate_uuid4();
-				update_term_meta( $faculty_member->term_id, 'gs_relationship_id', $unique_id );
-			}
-
-			$faculty_relationship_defaults = array(
-				'chair' => 'false',
-				'cochair' => 'false',
-				'sit' => 'false',
-			);
-
-			if ( ! isset( $faculty_relationships[ $unique_id ] ) ) {
-				$faculty_relationships[ $unique_id ] = $this->convert_old_faculty_relationship_structure( $faculty_relationships, $faculty_member, $unique_id );
-			}
-
-			$faculty_relationships[ $unique_id ] = wp_parse_args( $faculty_relationships[ $unique_id ], $faculty_relationship_defaults );
-
-			?>
-			<div class="factsheet-faculty">
-				<div class="faculty-name"><?php echo esc_html( $faculty_member->name ); ?></div>
-				<div class="select-chair">
-					<label for="program_chair">Chair:</label>
-					<select name="faculty[<?php echo esc_attr( $faculty_member->term_id ); ?>][program_chair]" id="program_chair">
-						<option value="false" <?php selected( 'false', $faculty_relationships[ $unique_id ]['chair'] ); ?>>No</option>
-						<option value="true" <?php selected( 'true', $faculty_relationships[ $unique_id ]['chair'] ); ?>>Yes</option>
-					</select>
-				</div>
-				<div class="select-cochair">
-					<label for="program_cochair">Co-chair:</label>
-					<select name="faculty[<?php echo esc_attr( $faculty_member->term_id ); ?>][program_cochair]" id="program_cochair">
-						<option value="false" <?php selected( 'false', $faculty_relationships[ $unique_id ]['cochair'] ); ?>>No</option>
-						<option value="true" <?php selected( 'true', $faculty_relationships[ $unique_id ]['cochair'] ); ?>>Yes</option>
-					</select>
-				</div>
-				<div class="select-sit">
-					<label for="program_sit">Sit:</label>
-					<select name="faculty[<?php echo esc_attr( $faculty_member->term_id ); ?>][program_sit]" id="program_sit">
-						<option value="false" <?php selected( 'false', $faculty_relationships[ $unique_id ]['sit'] ); ?>>No</option>
-						<option value="true" <?php selected( 'true', $faculty_relationships[ $unique_id ]['sit'] ); ?>>Yes</option>
-					</select>
-				</div>
-				<span class="edit-factsheet-faculty"><a href="<?php echo esc_url( get_edit_term_link( $faculty_member->term_id, 'gs-faculty' ) ); ?>">Edit</a></span>
-				<span class="remove-factsheet-faculty">Remove</span>
-			</div>
-			<?php
-		}
-
-		echo '</div>'; // End of factsheet-faculty-wrapper.
-
-		// @codingStandardsIgnoreStart
-		?>
-		<script type="text/template" id="factsheet-faculty-template">
-			<div class="factsheet-faculty">
-				<div class="faculty-name"><%= faculty_name %></div>
-				<div class="select-chair">
-					<label for="program_chair">Chair:</label>
-					<select name="faculty[<%= term_id %>][program_chair]" id="program_chair">
-						<option value="false">No</option>
-						<option value="true">Yes</option>
-					</select>
-				</div>
-				<div class="select-cochair">
-					<label for="program_cochair">Co-chair:</label>
-					<select name="faculty[<%= term_id %>][program_cochair]" id="program_cochair">
-						<option value="false">No</option>
-						<option value="true">Yes</option>
-					</select>
-				</div>
-				<div class="select-sit">
-					<label for="program_sit">Sit:</label>
-					<select name="faculty[<%= term_id %>][program_sit]" id="program_sit">
-						<option value="false">No</option>
-						<option value="true">Yes</option>
-					</select>
-				</div>
-				<span class="remove-factsheet-faculty">Remove</span>
-			</div>
-		</script>
-		<div class="add-faculty-wrapper">
-			<label for="faculty-entry">Add Faculty Member:</label>
-			<input type="text" id="faculty-entry" value="" />
-		</div>
-		<?php
-		// @codingStandardsIgnoreEnd
-	}
-
-	/**
-	 * Displays a meta box to capture contact information for a factsheet.
-	 *
-	 * @since 0.7.0
-	 *
-	 * @param WP_Post $post
-	 */
-	public function display_contact_meta_box( $post ) {
-		// $contacts = wp_get_object_terms( $post->ID, 'gs-contact' );
-		// $data['contacts'] = array();
-		// if ( ! is_wp_error( $contacts ) ) {
-		// 	foreach ( $contacts as $contact ) {
-		// 		$contact_meta = WSUWP_Graduate_Degree_Contact_Taxonomy::get_all_term_meta( $contact->term_id );
-		// 		$contact_meta['term_id'] = $contact->term_id;
-		// 		$data['contacts'][] = $contact_meta;
-		// 	}
-		// }
-		// @codingStandardsIgnoreStart
-		?>
-		<script type="text/template" id="factsheet-contact-template">
-			<div class="factsheet-contact">
-				<input type="hidden" name="contacts[]" value="<%= contact_term_id %>" />
-				<address>
-					<div><%= contact_name %></div>
-					<div>
-						<div><%= contact_address_one %></div>
-						<div><%= contact_address_two %></div>
-						<div>
-							<span><%= contact_city %>, <%= contact_state %></span>
-							<span><%= contact_postal %></span>
-						</div>
-					</div>
-					<div><%= contact_phone %></div>
-					<div><%= contact_fax %></div>
-					<div><%= contact_email %></div>
-				</address>
-				<span class="remove-factsheet-contact">Remove</span>
-			</div>
-		</script>
-		<div class="add-contact-wrapper">
-			<label for="contact-entry">Add Contact:</label>
-			<input type="text" id="contact-entry" value="" />
-		</div>
-		<?php
-		// @codingStandardsIgnoreEnd
-	}
 
 	/**
 	 * Captures the secondary set of data about a degree factsheet.
@@ -910,6 +745,22 @@ class WSUWP_Graduate_Degree_Programs {
 			<span class="factsheet-label"><strong>Priority Deadlines:</strong></span>
 			<?php
 
+			// If no fields have been added, provide an empty field by default.
+			if ( 0 === count( $field_data ) ) {
+				?>
+				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+					<select name="<?php echo esc_attr( $key ); ?>[0][semester]">
+						<option value="None">Not selected</option>
+						<option value="Fall">Fall</option>
+						<option value="Spring">Spring</option>
+						<option value="Summer">Summer</option>
+					</select>
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][deadline]" value="" />
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][international]" value="" />
+				</span>
+				<?php
+			}
+
 			foreach ( $field_data as $field_datum ) {
 				$field_datum = wp_parse_args( $field_datum, $default_field_data );
 
@@ -929,21 +780,7 @@ class WSUWP_Graduate_Degree_Programs {
 				$field_count++;
 			}
 
-			// If no fields have been added, provide an empty field by default.
-			if ( 0 === count( $field_data ) ) {
-				?>
-				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
-					<select name="<?php echo esc_attr( $key ); ?>[0][semester]">
-						<option value="None">Not selected</option>
-						<option value="Fall">Fall</option>
-						<option value="Spring">Spring</option>
-						<option value="Summer">Summer</option>
-					</select>
-					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][deadline]" value="" />
-					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][international]" value="" />
-				</span>
-				<?php
-			}
+
 
 			// @codingStandardsIgnoreStart
 			?>
@@ -1071,6 +908,25 @@ class WSUWP_Graduate_Degree_Programs {
 			<span class="factsheet-label"><strong>Additional Program Requirements:</strong></span>
 			<?php
 
+			// If no fields have been added, provide an empty field by default.
+			if ( 0 === count( $field_data ) ) {
+				?>
+				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+				<label for="test">Test Name (GRE, GMAT, etc.): </label>
+
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][test]" value="" />
+					<label for="required">Required?:  </label>
+
+					<select id="required" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][required]">
+						<option value="None" <?php selected( 'None', $default_field_data['required'] ); ?>>Not selected</option>
+						<option value="Optional" <?php selected( 'Optional', $default_field_data['required'] ); ?>>Optional</option>
+						<option value="Yes" <?php selected( 'Yes', $default_field_data['required'] ); ?>>Yes</option>
+						<option value="No" <?php selected( 'No', $default_field_data['required'] ); ?>>No</option>
+					</select>
+				</span>
+				<?php
+			}
+
 			foreach ( $field_data as $field_datum ) {
 				$field_datum = wp_parse_args( $field_datum, $default_field_data );
 
@@ -1092,24 +948,7 @@ class WSUWP_Graduate_Degree_Programs {
 				$field_count++;
 			}
 
-			// If no fields have been added, provide an empty field by default.
-			if ( 0 === count( $field_data ) ) {
-				?>
-				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
-				<label for="test">Test Name (GRE, GMAT, etc.): </label>
-
-					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][test]" value="" />
-					<label for="required">Required?:  </label>
-
-					<select id="required" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][required]">
-						<option value="None" <?php selected( 'None', $field_datum['required'] ); ?>>Not selected</option>
-						<option value="Optional" <?php selected( 'Optional', $field_datum['required'] ); ?>>Optional</option>
-						<option value="Yes" <?php selected( 'Yes', $field_datum['required'] ); ?>>Yes</option>
-						<option value="No" <?php selected( 'No', $field_datum['required'] ); ?>>No</option>
-					</select>
-				</span>
-				<?php
-			}
+			
 
 			// @codingStandardsIgnoreStart
 			?>
@@ -1682,62 +1521,6 @@ class WSUWP_Graduate_Degree_Programs {
 		$wpdb->query( $wpdb->prepare( "UPDATE %s SET post_modified = %s, post_modified_gmt = %s  WHERE ID = %d", array( $wpdb->posts, $post_modified, $post_modified_gmt, $post_id ) ) );
 
 		// end last modified update.
-
-		if ( isset( $_POST['faculty'] ) ) {
-			$faculty_relationships = array();
-			$assigned_faculty = wp_get_object_terms( $post_id, 'gs-faculty' );
-			$assigned_faculty = wp_list_pluck( $assigned_faculty, 'term_id' );
-
-			foreach ( $assigned_faculty as $assigned ) {
-				if ( ! isset( $_POST['faculty'][ $assigned ] ) ) {
-					wp_remove_object_terms( $post_id, $assigned, 'gs-faculty' );
-				}
-			}
-
-			foreach ( $_POST['faculty'] as $term_id => $chair_selection ) {
-				if ( ! in_array( $term_id, $assigned_faculty, true ) ) {
-					wp_add_object_terms( $post_id, $term_id, 'gs-faculty' );
-				}
-
-				$unique_id = get_term_meta( $term_id, 'gs_relationship_id', true );
-				if ( empty( $unique_id ) ) {
-					$unique_id = wp_generate_uuid4();
-					update_term_meta( $term_id, 'gs_relationship_id', $unique_id );
-				}
-
-				if ( in_array( $chair_selection['program_chair'], array( 'true', 'false' ), true ) ) {
-					$faculty_relationships[ $unique_id ]['chair'] = $chair_selection['program_chair'];
-				} else {
-					$faculty_relationships[ $unique_id ]['chair'] = 'false';
-				}
-
-				if ( in_array( $chair_selection['program_cochair'], array( 'true', 'false' ), true ) ) {
-					$faculty_relationships[ $unique_id ]['cochair'] = $chair_selection['program_cochair'];
-				} else {
-					$faculty_relationships[ $unique_id ]['cochair'] = 'false';
-				}
-
-				if ( in_array( $chair_selection['program_sit'], array( 'true', 'false' ), true ) ) {
-					$faculty_relationships[ $unique_id ]['sit'] = $chair_selection['program_sit'];
-				} else {
-					$faculty_relationships[ $unique_id ]['sit'] = 'false';
-				}
-			}
-
-			update_post_meta( $post_id, 'gsdp_faculty_relationships', $faculty_relationships );
-		}
-
-		if ( isset( $_POST['contacts'] ) ) {
-			$full_contacts = array();
-			foreach ( $_POST['contacts'] as $contact ) {
-				if ( 0 !== absint( $contact ) ) {
-					$full_contacts[] = absint( $contact );
-				}
-			}
-			wp_set_object_terms( $post_id, $full_contacts, 'gs-contact' );
-		} else {
-			wp_set_object_terms( $post_id, array(), 'gs-contact' );
-		}
 	}
 
 	/**
@@ -1797,67 +1580,6 @@ class WSUWP_Graduate_Degree_Programs {
 		return $caps;
 	}
 
-	/**
-	 * Manage capabilities allowing EAM users to edit faculty members.
-	 *
-	 * @since 1.3.0
-	 *
-	 * @param array   $allcaps An array of all the user's capabilities.
-	 * @param array   $caps    Actual capabilities for meta capability.
-	 * @param array   $args    Optional parameters passed to has_cap(), typically object ID.
-	 * @param WP_User $user    The user object.
-	 * @return array Updated list of capabilities.
-	 */
-	public function allow_edit_faculty_member( $allcaps, $caps, $args, $user ) {
-		if ( 'manage_categories' === $args[0] ) {
-			if ( isset( $_POST['action'] ) && 'editedtag' === $_POST['action'] && isset( $_POST['tag_ID'] ) && 'gs-faculty' === $_POST['taxonomy'] ) { // @codingStandardsIgnoreLine (No reason to check a nonce here)
-				$term_id = absint( $_POST['tag_ID'] );
-			} else {
-				return $allcaps;
-			}
-		} elseif ( 'edit_term' === $args[0] ) {
-			$term_id = $args[2];
-		} else {
-			return $allcaps;
-		}
-
-		// Administrators always have access.
-		if ( in_array( 'administrator', $user->roles, true ) ) {
-			return $allcaps;
-		}
-
-		$factsheets = get_objects_in_term( $term_id, 'gs-faculty' );
-		if ( empty( $factsheets ) || is_wp_error( $factsheets ) ) {
-			return $allcaps;
-		}
-
-		$taxonomy = get_taxonomy( 'gs-faculty' );
-		$allowed = false;
-
-		foreach ( $factsheets as $post_id ) {
-			$enable_custom_access = get_post_meta( $post_id, 'eam_enable_custom_access', true );
-
-			if ( ! empty( $enable_custom_access ) ) {
-				if ( 'users' === $enable_custom_access ) {
-
-					// Reset caps for allowed users to do_not_allow.
-					$allowed_users = (array) get_post_meta( $post_id, 'eam_allowed_users', true );
-
-					if ( in_array( $user->ID, $allowed_users ) ) { // @codingStandardsIgnoreLine (Converting user IDs to ints is not worth it)
-						$allowed = true;
-						break;
-					}
-				}
-			}
-		}
-
-		if ( $allowed ) {
-			$allcaps[ $taxonomy->cap->edit_terms ] = true;
-			$allcaps[ $taxonomy->cap->manage_terms ] = true;
-		}
-
-		return $allcaps;
-	}
 
 	/**
 	 * Returns a usable subset of data for displaying a factsheet.
@@ -2033,74 +1755,6 @@ class WSUWP_Graduate_Degree_Programs {
 		if ( isset( $factsheet_data['gsdp_global_URL'][0] ) ) {
 			$data['global_URL'] = $factsheet_data['gsdp_global_URL'][0];
 		}
-
-
-
-		$contacts = wp_get_object_terms( $post_id, 'gs-contact' );
-		$data['contacts'] = array();
-		if ( ! is_wp_error( $contacts ) ) {
-			foreach ( $contacts as $contact ) {
-				$contact_meta = WSUWP_Graduate_Degree_Contact_Taxonomy::get_all_term_meta( $contact->term_id );
-				$data['contacts'][] = $contact_meta;
-			}
-		}
-
-		$faculty_relationships = get_post_meta( $post_id, 'gsdp_faculty_relationships', true );
-		$faculty = wp_get_object_terms( $post_id, 'gs-faculty' );
-		$data['faculty'] = array();
-		if ( ! is_wp_error( $faculty ) ) {
-			foreach ( $faculty as $person ) {
-				$faculty_meta = WSUWP_Graduate_Degree_Faculty_Taxonomy::get_all_term_meta( $person->term_id );
-				$faculty_meta['name'] = $person->name;
-
-				// Provide a way to display last name first.
-				$display_name = explode( ' ', $person->name );
-				if ( 1 < count( $display_name ) ) {
-					$faculty_meta['display_name'] = array_pop( $display_name );
-					$faculty_meta['display_name'] .= ', ' . implode( ' ', $display_name );
-				} else {
-					$faculty_meta['display_name'] = $person->name;
-				}
-
-				$unique_id = get_term_meta( $person->term_id, 'gs_relationship_id', true );
-				if ( empty( $unique_id ) ) {
-					// Generate something that won't actually cause a result to output.
-					$unique_id = wp_generate_uuid4();
-				}
-
-				if ( isset( $faculty_relationships[ $unique_id ] ) ) {
-					$faculty_relationship_defaults = array(
-						'chair' => 'false',
-						'cochair' => 'false',
-						'sit' => 'false',
-					);
-					$faculty_relationships[ $unique_id ] = wp_parse_args( $faculty_relationships[ $unique_id ], $faculty_relationship_defaults );
-
-					if ( 'true' === $faculty_relationships[ $unique_id ]['chair'] && 'true' === $faculty_relationships[ $unique_id ]['cochair'] && 'true' === $faculty_relationships[ $unique_id ]['sit'] ) {
-						$faculty_meta['relationship'] = 'Serves as: chair, co-chair, or member of graduate committee';
-					} elseif ( 'true' === $faculty_relationships[ $unique_id ]['chair'] && 'true' === $faculty_relationships[ $unique_id ]['cochair'] ) {
-						$faculty_meta['relationship'] = 'Serves as: chair or co-chair of graduate committee';
-					} elseif ( 'true' === $faculty_relationships[ $unique_id ]['chair'] && 'true' === $faculty_relationships[ $unique_id ]['sit'] ) {
-						$faculty_meta['relationship'] = 'Serves as: chair or member of graduate committee';
-					} elseif ( 'true' === $faculty_relationships[ $unique_id ]['chair'] ) {
-						$faculty_meta['relationship'] = 'Serves as: chair of graduate committee';
-					} elseif ( 'true' === $faculty_relationships[ $unique_id ]['cochair'] && 'true' === $faculty_relationships[ $unique_id ]['sit'] ) {
-						$faculty_meta['relationship'] = 'Serves as: co-chair or member of graduate committee';
-					} elseif ( 'true' === $faculty_relationships[ $unique_id ]['cochair'] ) {
-						$faculty_meta['relationship'] = 'Serves as: co-chair of graduate committee';
-					} elseif ( 'true' === $faculty_relationships[ $unique_id ]['sit'] ) {
-						$faculty_meta['relationship'] = 'Serves as: member only of graduate committee';
-					} else {
-						$faculty_meta['relationship'] = '';
-					}
-				} else {
-					$faculty_meta['relationship'] = '';
-				}
-
-				$data['faculty'][ $faculty_meta['display_name'] . time() ] = $faculty_meta;
-			}
-		}
-		ksort( $data['faculty'] );
 
 		return $data;
 	}
