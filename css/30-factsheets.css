@@ -1,0 +1,605 @@
+
+.degree-list {
+	text-align: left;
+}
+
+.degree-list li {
+	border-bottom: 1px solid #cecece;
+	width: 100%;
+	display: flex;
+}
+
+.degree-list li:after,
+.flexalign:after {
+	content: "";
+	flex-grow: 1;
+	order: 0;
+}
+
+.degree-list .pagination a {
+	width: 25px;
+	height: 25px;
+	border: 1px solid #cecece;
+	padding: 5px;
+	font-weight: 700;
+	color: #333;
+	display: inline-flex;
+	justify-content: center;
+	margin-bottom: 5px;
+	text-align: center;
+	text-decoration: none;
+}
+
+.degree-list .pagination a.active {
+	background-color: #94192b;
+	color: #fff;
+}
+
+.bigletter {
+	border-radius: 50%;
+	width: 60px;
+	height: 60px;
+	border: 1px solid #cecece;
+	color: #cecece;
+	text-align: center;
+	flex-direction: column;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 25px;
+	font-weight: 700;
+}
+
+.bigletter.active {
+	color: #94192b;
+}
+
+.bigletterline {
+	width: calc(100% - 60px);
+	border-bottom: 1px solid #cecece;
+	margin-left: 61px;
+	transform: translateY(-30px);
+}
+
+.lettergroup {
+	margin-top: 20px;
+}
+
+.lettergroup:first-of-type {
+	margin-top: 40px;
+}
+
+.lettergroup ul {
+	margin-left: 75px;
+}
+
+
+.degree-programs-header {
+	height: 190px;
+	background-color: #f7f7f9;
+	color: linear-gradient(to left, #ed6615, #880202, #880202);
+}
+
+.degree-programs-header h1 {
+	font: 300 50px/45px "Open Sans", "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", sans-serif;
+	background: -webkit-linear-gradient(135deg, #ed6615, #880202);
+	background-clip: text;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+.degree-search-section {
+	height: 80px;
+	background-color: #eff0f2;
+	display: flex;
+	align-items: center;
+}
+
+.degree-search-section .column {
+	width: 100%;
+}
+
+#degree-search-input {
+	border: none;
+	font-size: 25px;
+	width: 100%;
+	background: #eff0f2 url(./images/search-gry.png) no-repeat left 14px;
+	background-size: 16px;
+	padding-left: 36px;
+	outline-width: 0;
+}
+
+.overlay {
+	width: 100%;
+	height: 100vh;
+	background-color: rgba(0, 0, 0, .8);
+	z-index: 99999;
+	top: 0;
+	position: fixed;
+	visibility: hidden;
+	opacity: 0;
+	transition: visibility 0s, opacity .2s linear;
+}
+
+body.searching .overlay {
+	visibility: visible;
+	opacity: 1;
+}
+
+body.searching .degree-search-section {
+	z-index: 100000;
+}
+
+.ui-autocomplete {
+	z-index: 100000;
+	background: #efefef;
+	margin-top: 1.5em;
+	padding: 1em;
+}
+
+.ui-menu-item {
+	cursor: pointer;
+	color: #717171;
+	list-style-type: none;
+	margin-top: 5px;
+}
+
+.ui-menu-item a {
+	color: #717171;
+	list-style-type: none;
+	margin-top: 5px;
+	padding: 1em;
+}
+
+.ui-corner-all {
+	width: 100%;
+	display: inline-block;
+	padding-top: .5em;
+}
+
+.ui-menu-item .ui-state-highlight {
+	color: #222;
+}
+
+.ui-state-focus {
+	background: #ccc;
+	border: none;
+	color: #000;
+	border-radius: 0;
+}
+
+.post-type-archive-gs-factsheet main ul li a:before,
+.post-type-archive-gs-factsheet main ul li a:after,
+.post-type-archive-gs-factsheet main ul li:before,
+.post-type-archive-gs-factsheet main .pagination a:before,
+.post-type-archive-gs-factsheet main .pagination a:after {
+	display: none;
+}
+
+.degree-list ul li {
+	margin-left: 0;
+	padding: 0;
+}
+
+.degree-list li.degree-row-wrapper {
+	display: inline-block;
+}
+
+.degree-row-open .degree-classification,
+.degree-row-bottom {
+	display: none;
+}
+
+.degree-row-open .degree-row-bottom .degree-classification {
+	display: block;
+}
+
+.degree-row-top,
+.degree-row-open .degree-row-bottom {
+	display: flex;
+	flex-flow: row;
+}
+
+.degree-row-multiple .degree-row-top {
+	cursor: pointer;
+}
+
+.degree-row-bottom {
+	margin-top: 1em;
+	margin-left: 2em;
+}
+
+.degree-row-bottom ~ .degree-row-bottom {
+	margin-top: 0;
+}
+
+.degree-name,
+.degree-detail {
+	order: 1;
+	flex-grow: 1;
+	padding: .5em 0 0;
+	line-height: 38px;
+}
+
+.degree-name .degree-anchor {
+	color: #ab0d24;
+	transition-property: color, background;
+	transition-duration: .4s, .4s;
+}
+
+.degree-name .degree-anchor:hover {
+	color: #b7203d;
+}
+
+.degree-caret {
+	display: inline-block;
+	margin-right: 0.5em;
+	color: #999;
+	font-weight: 700;
+	vertical-align: middle;
+	width: 1em;
+	text-align: center;
+	font-size: 0.85em;
+}
+
+.degree-link-icon {
+	display: inline-block;
+	margin-right: 0.5em;
+	color: #ab0d24;
+	font-weight: 700;
+	vertical-align: middle;
+	width: 1em;
+	text-align: center;
+	font-size: 0.85em;
+}
+
+.degree-classification {
+	order: 2;
+	flex-basis: 40px;
+	height: 40px;
+	line-height: 40px;
+	width: 40px;
+	font-weight: 700;
+	background: #ef6615;
+	border-radius: 50%;
+	color: #fff;
+	margin-left: 8px;
+	text-transform: uppercase;
+	text-align: center;
+	font-size: 19px;
+}
+
+.degree-classification:hover {
+	cursor: default;
+}
+
+.doctorate {
+	background: #931a2b;
+	padding: 0;
+}
+
+.other {
+	background: #5e6a71;
+}
+
+.graduate-certificate {
+	background: #00889d; 
+}
+
+.administrator-credentials{
+	background: #002D61; 
+}
+
+.professional-masters {
+	background: #8e44ad;
+}
+
+.masters-4plus1 {
+	background: #27ae60;
+}
+
+.key-group {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 1.5em;
+	margin-top: 1.5em;
+	margin-bottom: 1.5em;
+	max-width: 800px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.key-classification {
+	display: flex;
+	align-items: center;
+	gap: 0.75em;
+	justify-content: space-between;
+	padding: 0.75em 1em;
+	background: #f8f9fa;
+	border: 1px solid #e9ecef;
+	border-radius: 8px;
+	transition: all 0.2s ease;
+	cursor: pointer;
+}
+
+.key-classification:hover {
+	background: #e9ecef;
+	border-color: #dee2e6;
+	transform: translateY(-1px);
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.key-classification.filter-active {
+	background: #007cba;
+	border-color: #007cba;
+	color: white;
+}
+
+.key-classification.filter-active span {
+	color: white;
+}
+
+.key-classification span {
+	font-weight: 500;
+	font-size: 14px;
+	color: #495057;
+	flex: 1;
+}
+
+.key-classification .degree-classification {
+	flex-shrink: 0;
+}
+
+.filter-helper-text {
+	text-align: center;
+	margin: 1.5em 0;
+	padding: 1em;
+	background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+	border: 1px solid #dee2e6;
+	border-radius: 8px;
+	max-width: 600px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.filter-helper-text p {
+	margin: 0;
+	color: #495057;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+@media screen and (max-width: 768px) {
+	.key-group {
+		grid-template-columns: 1fr;
+		gap: 1em;
+		margin: 1em 0;
+		max-width: 100%;
+	}
+	
+	.key-classification {
+		padding: 0.5em 0.75em;
+	}
+	
+	.filter-helper-text {
+		margin: 1em 0;
+		padding: 0.75em;
+	}
+
+	.lettergroup ul {
+		margin-left: 11px;
+		margin-top: 0;
+	}
+
+	.degree-list .degree-name {
+		max-width: 79%;
+		margin-right: 5px;
+		display: flex;
+		justify-content: center;
+	}
+
+	.degree-list li .other,
+	.degree-list li .graduate-certificate,
+	.degree-list li .masters,
+	.degree-list li .professional-masters,
+	.degree-list li .masters-4plus1,
+	.degree-list li .doctorate, 
+	.degree-list li .administrator-credentials {
+		margin: auto 3px;
+	}
+
+	.degree-list li {
+		min-height: 45px;
+	}
+}
+
+/* === DEGREE FILTERING ENHANCEMENTS === */
+/* Filter button enhancements */
+.degree-list .key-classification {
+	transition: all .3s ease;
+	position: relative;
+}
+
+.degree-list .key-classification:hover {
+	transform: translateY(-2px);
+	cursor: pointer;
+}
+
+.degree-list .key-classification:hover .degree-classification {
+	box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+	transform: scale(1.05);
+}
+
+.degree-list .key-classification.filter-active {
+	transform: translateY(-2px);
+}
+
+.degree-list .key-classification.filter-active .degree-classification {
+	box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+	transform: scale(1.1);
+	border: 2px solid #fff;
+	box-sizing: border-box;
+	line-height: 36px;
+}
+
+.degree-list .key-classification.filter-active::after {
+	content: '✓';
+	position: absolute;
+	top: -5px;
+	right: -5px;
+	background: #fff;
+	color: #28a745;
+	border-radius: 50%;
+	width: 20px;
+	height: 20px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	font-weight: bold;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+	z-index: 10;
+}
+
+/* Enhanced degree classification badges */
+.degree-list .degree-classification {
+	transition: all .3s ease;
+}
+
+/* Filter indicator styling */
+.filter-indicator {
+	background: linear-gradient(135deg,#f8f9fa,#e9ecef);
+	border: 2px solid #ca1237;
+	border-radius: 8px;
+	padding: 12px 16px;
+	margin-bottom: 1.5rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	box-shadow: 0 2px 8px rgba(202,18,55,0.1);
+}
+
+.filter-indicator span {
+	font-weight: 600;
+	color: #ca1237;
+	font-size: 1.1rem;
+}
+
+.clear-filter-btn {
+	background: #ca1237;
+	color: white;
+	border: none;
+	padding: 6px 12px;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: .9rem;
+	font-weight: 500;
+	transition: background-color .2s ease;
+}
+
+.clear-filter-btn:hover {
+	background: #a60f2d;
+}
+
+/* Animation for filtered rows */
+.degree-row-multiple {
+	transition: opacity .3s ease, transform .3s ease;
+}
+
+.degree-row-multiple[style*="none"] {
+	opacity: 0;
+	transform: translateY(-10px);
+}
+
+/* Letter groups animation */
+.lettergroup {
+	transition: opacity .3s ease;
+}
+
+.lettergroup[style*="none"] {
+	opacity: 0;
+}
+
+/* Add tooltips for better UX */
+.degree-list .key-classification:hover::before {
+	content: 'Click to filter • Double-click to clear';
+	position: absolute;
+	bottom: -35px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: rgba(0,0,0,0.8);
+	color: white;
+	padding: 4px 8px;
+	border-radius: 4px;
+	font-size: 11px;
+	white-space: nowrap;
+	z-index: 1000;
+	opacity: 0;
+	animation: tooltipFadeIn .3s ease forwards;
+}
+
+@keyframes tooltipFadeIn {
+	from {
+		opacity: 0;
+		transform: translateX(-50%) translateY(-5px);
+	}
+	
+	to {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0);
+	}
+}
+
+/* Responsive adjustments for mobile */
+@media screen and (max-width: 700px) {
+	.filter-indicator {
+		flex-direction: column;
+		text-align: center;
+	}
+	
+	.degree-list .key-classification:hover::before {
+		display: none;
+	/* Hide tooltips on mobile */
+	}
+	
+	.degree-list .key-classification.filter-active::after {
+		top: -3px;
+		right: -3px;
+		width: 16px;
+		height: 16px;
+		font-size: 10px;
+	}
+}
+
+/* Enhanced degree classification colors to match 30-factsheets.css */
+.degree-list .masters {
+	background: linear-gradient(135deg,#ef6615,#d85a12) !important;
+}
+
+.degree-list .doctorate {
+	background: linear-gradient(135deg,#931a2b,#7a1624) !important;
+}
+
+.degree-list .graduate-certificate {
+	background: linear-gradient(135deg,#00889d,#007085) !important;
+}
+
+.degree-list .administrator-credentials {
+	background: linear-gradient(135deg,#002D61,#002050) !important;
+	color: #fff !important;
+}
+
+.degree-list .other {
+	background: linear-gradient(135deg,#5e6a71,#4f595f) !important;
+	color: #fff !important;
+}
+
+.degree-list .professional-masters {
+	background: linear-gradient(135deg,#8e44ad,#7d3c98) !important;
+	color: #fff !important;
+}
+
+.degree-list .masters-4plus1 {
+	background: linear-gradient(135deg,#27ae60,#229954) !important;
+	color: #fff !important;
+}

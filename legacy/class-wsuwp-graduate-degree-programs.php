@@ -745,22 +745,6 @@ class WSUWP_Graduate_Degree_Programs {
 			<span class="factsheet-label"><strong>Priority Deadlines:</strong></span>
 			<?php
 
-			// If no fields have been added, provide an empty field by default.
-			if ( 0 === count( $field_data ) ) {
-				?>
-				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
-					<select name="<?php echo esc_attr( $key ); ?>[0][semester]">
-						<option value="None">Not selected</option>
-						<option value="Fall">Fall</option>
-						<option value="Spring">Spring</option>
-						<option value="Summer">Summer</option>
-					</select>
-					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][deadline]" value="" />
-					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][international]" value="" />
-				</span>
-				<?php
-			}
-
 			foreach ( $field_data as $field_datum ) {
 				$field_datum = wp_parse_args( $field_datum, $default_field_data );
 
@@ -780,7 +764,21 @@ class WSUWP_Graduate_Degree_Programs {
 				$field_count++;
 			}
 
-
+			// If no fields have been added, provide an empty field by default.
+			if ( 0 === count( $field_data ) ) {
+				?>
+				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+					<select name="<?php echo esc_attr( $key ); ?>[0][semester]">
+						<option value="None">Not selected</option>
+						<option value="Fall">Fall</option>
+						<option value="Spring">Spring</option>
+						<option value="Summer">Summer</option>
+					</select>
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][deadline]" value="" />
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][international]" value="" />
+				</span>
+				<?php
+			}
 
 			// @codingStandardsIgnoreStart
 			?>
@@ -908,25 +906,6 @@ class WSUWP_Graduate_Degree_Programs {
 			<span class="factsheet-label"><strong>Additional Program Requirements:</strong></span>
 			<?php
 
-			// If no fields have been added, provide an empty field by default.
-			if ( 0 === count( $field_data ) ) {
-				?>
-				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
-				<label for="test">Test Name (GRE, GMAT, etc.): </label>
-
-					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][test]" value="" />
-					<label for="required">Required?:  </label>
-
-					<select id="required" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][required]">
-						<option value="None" <?php selected( 'None', $default_field_data['required'] ); ?>>Not selected</option>
-						<option value="Optional" <?php selected( 'Optional', $default_field_data['required'] ); ?>>Optional</option>
-						<option value="Yes" <?php selected( 'Yes', $default_field_data['required'] ); ?>>Yes</option>
-						<option value="No" <?php selected( 'No', $default_field_data['required'] ); ?>>No</option>
-					</select>
-				</span>
-				<?php
-			}
-
 			foreach ( $field_data as $field_datum ) {
 				$field_datum = wp_parse_args( $field_datum, $default_field_data );
 
@@ -948,7 +927,24 @@ class WSUWP_Graduate_Degree_Programs {
 				$field_count++;
 			}
 
-			
+			// If no fields have been added, provide an empty field by default.
+			if ( 0 === count( $field_data ) ) {
+				?>
+				<span class="factsheet-<?php echo esc_attr( $meta['type'] ); ?>-field">
+				<label for="test">Test Name (GRE, GMAT, etc.): </label>
+
+					<input type="text" name="<?php echo esc_attr( $key ); ?>[0][test]" value="" />
+					<label for="required">Required?:  </label>
+
+					<select id="required" name="<?php echo esc_attr( $key ); ?>[<?php echo esc_attr( $field_count ); ?>][required]">
+						<option value="None" <?php selected( 'None', $field_datum['required'] ); ?>>Not selected</option>
+						<option value="Optional" <?php selected( 'Optional', $field_datum['required'] ); ?>>Optional</option>
+						<option value="Yes" <?php selected( 'Yes', $field_datum['required'] ); ?>>Yes</option>
+						<option value="No" <?php selected( 'No', $field_datum['required'] ); ?>>No</option>
+					</select>
+				</span>
+				<?php
+			}
 
 			// @codingStandardsIgnoreStart
 			?>
