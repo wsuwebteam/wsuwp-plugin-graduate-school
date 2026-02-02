@@ -271,8 +271,12 @@ class WSUWP_Graduate_Degree_Programs {
 		// add_filter( "auth_post_{$this->post_type_slug}_meta_gsdp_degree_id", array( $this, 'can_edit_restricted_field' ), 100, 4 );
 		add_filter( "auth_post_{$this->post_type_slug}_meta_gsdp_degree_shortname", array( $this, 'can_edit_restricted_field' ), 100, 4 );
 		add_filter( "auth_post_{$this->post_type_slug}_meta_gsdp_student_learning_outcome", array( $this, 'can_edit_restricted_field' ), 100, 4 );
+		add_filter( "auth_post_{$this->post_type_slug}_meta_gsdp_include_in_programs", array( $this, 'can_edit_restricted_field' ), 100, 4 );
 
 		add_filter( 'wp_insert_post_data', array( $this, 'manage_factsheet_title_update' ), 10, 2 );
+
+		// Block taxonomy term assignment for restricted contributors.
+		add_action( 'set_object_terms', array( $this, 'maybe_restore_taxonomy_terms' ), 10, 6 );
 
 		add_action( 'pre_get_posts', array( $this, 'adjust_factsheet_archive_query' ) );
 		add_action( 'template_redirect', array( $this, 'redirect_old_factsheet_urls' ) );
@@ -412,7 +416,11 @@ class WSUWP_Graduate_Degree_Programs {
 	 * factsheet screen. This data is managed via custom input in the primary
 	 * meta box.
 	 *
+	 * Also removes Program Names and Degree Types taxonomy boxes for restricted
+	 * contributors (EAM-assigned users or users with contributor/author roles).
+	 *
 	 * @since 0.7.0
+	 * @since 1.4.0 Added removal of taxonomy boxes for restricted contributors.
 	 *
 	 * @param string $post_type
 	 */
@@ -422,6 +430,15 @@ class WSUWP_Graduate_Degree_Programs {
 		}
 
 		remove_meta_box( 'wpseo_meta', $this->post_type_slug, 'normal' );
+
+		// Remove taxonomy meta boxes for restricted contributors
+		$user_id = get_current_user_id();
+		$post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		if ( $this->user_is_restricted_contributor( $user_id, $post_id ) ) {
+			remove_meta_box( 'gs-program-namediv', $this->post_type_slug, 'side' );
+			remove_meta_box( 'gs-degree-typediv', $this->post_type_slug, 'side' );
+		}
 	}
 
 	/**
@@ -1139,11 +1156,57 @@ class WSUWP_Graduate_Degree_Programs {
 	}
 
 	/**
-	 * Ensures that users assigned via Editorial Access Manager are not allowed to change
-	 * restricted fields.
+	 * Determines if a user is a restricted contributor.
+	 *
+	 * A user is considered a restricted contributor if:
+	 * - They are assigned via Editorial Access Manager (EAM), OR
+	 * - They have a WordPress role of 'contributor' or 'author' (and not 'administrator' or 'editor')
+	 *
+	 * @since 1.4.0
+	 *
+	 * @param int      $user_id The user ID to check.
+	 * @param int|null $post_id Optional. The post ID for EAM check.
+	 *
+	 * @return bool True if the user is a restricted contributor, false otherwise.
+	 */
+	public function user_is_restricted_contributor( $user_id, $post_id = null ) {
+		// Check EAM assignment (if post_id provided)
+		if ( $post_id && $this->user_is_eam_user( $user_id, $post_id ) ) {
+			return true;
+		}
+
+		// Check WordPress role
+		$user = new WP_User( $user_id );
+		$restricted_roles = array( 'contributor', 'author' );
+		$unrestricted_roles = array( 'administrator', 'editor' );
+
+		// If user has an unrestricted role, they are not a restricted contributor
+		foreach ( $unrestricted_roles as $role ) {
+			if ( in_array( $role, $user->roles, true ) ) {
+				return false;
+			}
+		}
+
+		// If user has a restricted role, they are a restricted contributor
+		foreach ( $restricted_roles as $role ) {
+			if ( in_array( $role, $user->roles, true ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Ensures that restricted contributors are not allowed to change restricted fields.
+	 *
+	 * Restricted contributors include:
+	 * - Users assigned via Editorial Access Manager (EAM)
+	 * - Users with WordPress contributor or author roles
 	 *
 	 * @since 1.1.0
 	 * @since 1.3.0 Updated to handle multiple restricted fields.
+	 * @since 1.4.0 Updated to use user_is_restricted_contributor() for role-based access.
 	 *
 	 * @param bool   $allowed
 	 * @param string $meta_key
@@ -1153,7 +1216,7 @@ class WSUWP_Graduate_Degree_Programs {
 	 * @return bool
 	 */
 	public function can_edit_restricted_field( $allowed, $meta_key, $object_id, $user_id ) {
-		if ( $this->user_is_eam_user( $user_id, $object_id ) ) {
+		if ( $this->user_is_restricted_contributor( $user_id, $object_id ) ) {
 			return false;
 		}
 
@@ -1161,10 +1224,14 @@ class WSUWP_Graduate_Degree_Programs {
 	}
 
 	/**
-	 * Prevents a user, assigned via Editorial Access Manager, from editing a factsheet's
-	 * title.
+	 * Prevents restricted contributors from editing a factsheet's title.
+	 *
+	 * Restricted contributors include:
+	 * - Users assigned via Editorial Access Manager (EAM)
+	 * - Users with WordPress contributor or author roles
 	 *
 	 * @since 1.1.0
+	 * @since 1.4.0 Updated to use user_is_restricted_contributor() for role-based access.
 	 *
 	 * @param array $data
 	 * @param array $postarr
@@ -1174,7 +1241,7 @@ class WSUWP_Graduate_Degree_Programs {
 	public function manage_factsheet_title_update( $data, $postarr ) {
 		$user = wp_get_current_user();
 
-		if ( isset( $postarr['ID'] ) && $this->user_is_eam_user( $user->ID, $postarr['ID'] ) ) {
+		if ( isset( $postarr['ID'] ) && $this->user_is_restricted_contributor( $user->ID, $postarr['ID'] ) ) {
 			$existing_title = get_post_field( 'post_title', absint( $postarr['ID'] ) );
 
 			if ( ! empty( $existing_title ) && $data['post_title'] !== $existing_title ) {
@@ -1183,6 +1250,60 @@ class WSUWP_Graduate_Degree_Programs {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Restores taxonomy terms if a restricted contributor tries to change them.
+	 *
+	 * This method hooks into 'set_object_terms' and restores the original terms
+	 * for Program Names and Degree Types taxonomies if the current user is a
+	 * restricted contributor.
+	 *
+	 * @since 1.4.0
+	 *
+	 * @param int    $object_id  Object ID.
+	 * @param array  $terms      An array of object term IDs or slugs.
+	 * @param array  $tt_ids     An array of term taxonomy IDs.
+	 * @param string $taxonomy   Taxonomy slug.
+	 * @param bool   $append     Whether to append new terms to the old terms.
+	 * @param array  $old_tt_ids Old array of term taxonomy IDs.
+	 */
+	public function maybe_restore_taxonomy_terms( $object_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids ) {
+		// Only check for our restricted taxonomies
+		$restricted_taxonomies = array( 'gs-program-name', 'gs-degree-type' );
+
+		if ( ! in_array( $taxonomy, $restricted_taxonomies, true ) ) {
+			return;
+		}
+
+		// Only check for our post type
+		if ( get_post_type( $object_id ) !== $this->post_type_slug ) {
+			return;
+		}
+
+		$user_id = get_current_user_id();
+
+		// If user is a restricted contributor, restore the old terms
+		if ( $this->user_is_restricted_contributor( $user_id, $object_id ) ) {
+			// Remove the action temporarily to avoid infinite loop
+			remove_action( 'set_object_terms', array( $this, 'maybe_restore_taxonomy_terms' ), 10 );
+
+			// Restore the old terms
+			$old_term_ids = array();
+			if ( ! empty( $old_tt_ids ) ) {
+				foreach ( $old_tt_ids as $old_tt_id ) {
+					$term = get_term_by( 'term_taxonomy_id', $old_tt_id );
+					if ( $term ) {
+						$old_term_ids[] = $term->term_id;
+					}
+				}
+			}
+
+			wp_set_object_terms( $object_id, $old_term_ids, $taxonomy );
+
+			// Re-add the action
+			add_action( 'set_object_terms', array( $this, 'maybe_restore_taxonomy_terms' ), 10, 6 );
+		}
 	}
 
 	/**
