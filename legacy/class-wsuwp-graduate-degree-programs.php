@@ -942,7 +942,7 @@ class WSUWP_Graduate_Degree_Programs {
 					</select>
 				</span>
 				<?php
-			}
+				}
 
 			foreach ( $field_data as $field_datum ) {
 				$field_datum = wp_parse_args( $field_datum, $default_field_data );
