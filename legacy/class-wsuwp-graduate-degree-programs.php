@@ -302,11 +302,14 @@ class WSUWP_Graduate_Degree_Programs {
 
 			wp_enqueue_script( 'gsdp-factsheet-admin' );
 
-			// Disable title and permalink for restricted contributors
+			// Disable title and permalink for restricted contributors (only on published posts, not new/draft ones)
 			$user_id = get_current_user_id();
 			$post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$post_status = get_post_status( $post_id );
+			$is_new_or_draft = empty( $post_id ) || in_array( $post_status, array( 'auto-draft', 'draft' ), true );
 
-			if ( $this->user_is_restricted_contributor( $user_id, $post_id ) ) {
+			// Only apply restrictions when editing published factsheets, not when creating new ones or editing drafts
+			if ( ! $is_new_or_draft && $this->user_is_restricted_contributor( $user_id, $post_id ) ) {
 				// Add inline CSS to visually disable restricted fields
 				$custom_css = '
 					/* Disable title field */
@@ -1231,14 +1234,17 @@ class WSUWP_Graduate_Degree_Programs {
 	 * - They are assigned via Editorial Access Manager (EAM), OR
 	 * - They have a WordPress role of 'contributor', 'author', or 'editor' (only 'administrator' has full access)
 	 *
-	 * Restricted users cannot edit:
+	 * Restricted users cannot edit (on existing factsheets only):
 	 * - Factsheet title
 	 * - Factsheet display name
 	 * - Include in programs list
 	 * - Program Names taxonomy
 	 * - Degree Types taxonomy
 	 *
+	 * Note: No restrictions apply when creating a NEW factsheet or editing a DRAFT - all fields are editable.
+	 *
 	 * @since 1.4.0
+	 * @since 1.5.0 Added check for new posts and drafts - no restrictions until published.
 	 *
 	 * @param int      $user_id The user ID to check.
 	 * @param int|null $post_id Optional. The post ID for EAM check.
@@ -1246,6 +1252,12 @@ class WSUWP_Graduate_Degree_Programs {
 	 * @return bool True if the user is a restricted contributor, false otherwise.
 	 */
 	public function user_is_restricted_contributor( $user_id, $post_id = null ) {
+		// No restrictions for new posts or drafts - allow full access when creating/drafting a factsheet
+		$post_status = $post_id ? get_post_status( $post_id ) : '';
+		if ( empty( $post_id ) || in_array( $post_status, array( 'auto-draft', 'draft' ), true ) ) {
+			return false;
+		}
+
 		// Check EAM assignment (if post_id provided)
 		if ( $post_id && $this->user_is_eam_user( $user_id, $post_id ) ) {
 			return true;
