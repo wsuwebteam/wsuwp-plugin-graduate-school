@@ -276,9 +276,6 @@ class WSUWP_Graduate_Degree_Programs {
 		add_filter( "auth_post_meta_gsdp_include_in_programs_for_{$this->post_type_slug}", array( $this, 'can_edit_restricted_field' ), 100, 4 );
 		add_filter( 'wp_insert_post_data', array( $this, 'manage_factsheet_title_update' ), 10, 2 );
 
-		// Block taxonomy term assignment for restricted contributors.
-		add_action( 'set_object_terms', array( $this, 'maybe_restore_taxonomy_terms' ), 10, 6 );
-
 		add_action( 'pre_get_posts', array( $this, 'adjust_factsheet_archive_query' ) );
 		add_action( 'template_redirect', array( $this, 'redirect_old_factsheet_urls' ) );
 		add_action( 'template_redirect', array( $this, 'redirect_private_factsheets' ) );
@@ -1218,8 +1215,6 @@ class WSUWP_Graduate_Degree_Programs {
 
 		if ( 'users' === $enable_custom_access ) {
 			$allowed_users = (array) get_post_meta( $post_id, 'eam_allowed_users', true );
-			//log allowed users
-			error_log( print_r( $allowed_users, true ) );
 
 			if ( in_array( $user_id, $allowed_users ) ) { // @codingStandardsIgnoreLine (Converting user IDs to ints is not worth it)
 				return true;
@@ -1323,77 +1318,15 @@ class WSUWP_Graduate_Degree_Programs {
 	 */
 	public function manage_factsheet_title_update( $data, $postarr ) {
 		$user = wp_get_current_user();
-		//print user id
-		error_log( 'User ID: ' . $user->ID );	
-		error_log( 'Post ID: ' . $postarr['ID'] );
-		error_log( 'User is restricted contributor: ' . $this->user_is_restricted_contributor( $user->ID, $postarr['ID'] ) );
-		error_log( 'Data post title: ' . $data['post_title'] );
 
 		if ( isset( $postarr['ID'] ) && $this->user_is_restricted_contributor( $user->ID, $postarr['ID'] ) ) {
 			$existing_title = get_post_field( 'post_title', absint( $postarr['ID'] ) );
-			error_log( 'Existing title: ' . $existing_title );
 			if ( ! empty( $existing_title ) && $data['post_title'] !== $existing_title ) {
 				$data['post_title'] = $existing_title;
-				error_log( 'Data post title: ' . $data['post_title'] );
 			}
-			error_log( 'Data post title: ' . $data['post_title'] );
 		}
 
 		return $data;
-	}
-
-	/**
-	 * Restores taxonomy terms if a restricted contributor tries to change them.
-	 *
-	 * This method hooks into 'set_object_terms' and restores the original terms
-	 * for Program Names and Degree Types taxonomies if the current user is a
-	 * restricted contributor.
-	 *
-	 * @since 1.4.0
-	 *
-	 * @param int    $object_id  Object ID.
-	 * @param array  $terms      An array of object term IDs or slugs.
-	 * @param array  $tt_ids     An array of term taxonomy IDs.
-	 * @param string $taxonomy   Taxonomy slug.
-	 * @param bool   $append     Whether to append new terms to the old terms.
-	 * @param array  $old_tt_ids Old array of term taxonomy IDs.
-	 */
-	public function maybe_restore_taxonomy_terms( $object_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids ) {
-		// Only check for our restricted taxonomies
-		$restricted_taxonomies = array( 'gs-program-name', 'gs-degree-type' );
-
-		if ( ! in_array( $taxonomy, $restricted_taxonomies, true ) ) {
-			return;
-		}
-
-		// Only check for our post type
-		if ( get_post_type( $object_id ) !== $this->post_type_slug ) {
-			return;
-		}
-
-		$user_id = get_current_user_id();
-
-		// If user is a restricted contributor, restore the old terms
-		if ( $this->user_is_restricted_contributor( $user_id, $object_id ) ) {
-			// Remove the action temporarily to avoid infinite loop
-			remove_action( 'set_object_terms', array( $this, 'maybe_restore_taxonomy_terms' ), 10 );
-
-			// Restore the old terms
-			$old_term_ids = array();
-			if ( ! empty( $old_tt_ids ) ) {
-				foreach ( $old_tt_ids as $old_tt_id ) {
-					$term = get_term_by( 'term_taxonomy_id', $old_tt_id );
-					if ( $term ) {
-						$old_term_ids[] = $term->term_id;
-					}
-				}
-			}
-
-			wp_set_object_terms( $object_id, $old_term_ids, $taxonomy );
-
-			// Re-add the action
-			add_action( 'set_object_terms', array( $this, 'maybe_restore_taxonomy_terms' ), 10, 6 );
-		}
 	}
 
 	/**
