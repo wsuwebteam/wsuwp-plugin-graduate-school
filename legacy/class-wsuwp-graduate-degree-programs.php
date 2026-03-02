@@ -6,6 +6,10 @@ class WSUWP_Graduate_Degree_Programs {
 	 */
 	private $factsheet_redirects;
 	/**
+	 * @var WSUWP_Factsheet_Archive
+	 */
+	private $factsheet_archive;
+	/**
 	 * @since 0.4.0
 	 *
 	 * @var WSUWP_Graduate_Degree_Programs
@@ -255,7 +259,10 @@ class WSUWP_Graduate_Degree_Programs {
 		require_once dirname( __FILE__ ) . '/class-graduate-degree-program-name-taxonomy.php';
 		require_once dirname( __FILE__ ) . '/class-graduate-degree-degree-type-taxonomy.php';
 		require_once dirname( __FILE__ ) . '/class-factsheet-redirects.php';
+		require_once dirname( __FILE__ ) . '/class-factsheet-archive.php';
 		$this->factsheet_redirects = new WSUWP_Factsheet_Redirects( $this->post_type_slug, $this->archive_slug );
+		$this->factsheet_archive = new WSUWP_Factsheet_Archive( $this->post_type_slug );
+
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 
@@ -263,8 +270,8 @@ class WSUWP_Graduate_Degree_Programs {
 		add_action( 'init', 'WSUWP_Graduate_Degree_Program_Name_Taxonomy', 15 );
 		add_action( 'init', 'WSUWP_Graduate_Degree_Degree_Type_Taxonomy', 15 );
 
-		add_filter( 'query_vars', array( $this, 'add_gradfair_query_var' ) );
-		add_action( 'init', array( $this, 'register_mirror_menu' ) );
+		add_filter( 'query_vars', array( $this->factsheet_archive, 'add_gradfair_query_var' ) );
+		add_action( 'init', array( $this->factsheet_archive, 'register_mirror_menu' ) );
 
 		add_action( 'init', array( $this, 'register_meta' ) );
 		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
@@ -282,11 +289,11 @@ class WSUWP_Graduate_Degree_Programs {
 		add_filter( "auth_post_meta_gsdp_include_in_programs_for_{$this->post_type_slug}", array( $this, 'can_edit_restricted_field' ), 100, 4 );
 		add_filter( 'wp_insert_post_data', array( $this, 'manage_factsheet_title_update' ), 10, 2 );
 
-		add_action( 'pre_get_posts', array( $this, 'adjust_factsheet_archive_query' ) );
+		add_action( 'pre_get_posts', array( $this->factsheet_archive, 'adjust_factsheet_archive_query' ) );
 		add_action( 'template_redirect', array( $this->factsheet_redirects, 'redirect_old_factsheet_urls' ) );
 		add_action( 'template_redirect', array( $this->factsheet_redirects, 'redirect_private_factsheets' ) );
 
-		add_filter( 'spine_get_title', array( $this, 'filter_factsheet_archive_title' ), 10, 3 );
+		add_filter( 'spine_get_title', array( $this->factsheet_archive, 'filter_factsheet_archive_title' ), 10, 3 );
 	}
 
 	/**
@@ -426,34 +433,6 @@ class WSUWP_Graduate_Degree_Programs {
 		register_post_type( $this->post_type_slug, $args );
 	}
 
-
-	/**
-	 * Add our custom query variable to the set of default query variables.
-	 *
-	 * @since 1.4.0
-	 *
-	 * @param array $vars
-	 *
-	 * @return array
-	 */
-	public function add_gradfair_query_var( $vars ) {
-		$vars[] = 'gradfair';
-
-		return $vars;
-	}
-
-	/**
-	 * Register a mirror navigation area for grad fair usage.
-	 *
-	 * @since 1.4.0
-	 */
-	public function register_mirror_menu() {
-		register_nav_menus(
-			array(
-				'gradfair'    => 'WSU Grad Fair',
-			)
-		);
-	}
 
 	/**
 	 * Register the meta keys used to store degree factsheet data.
@@ -1876,18 +1855,6 @@ class WSUWP_Graduate_Degree_Programs {
 	}
 
 	/**
-	 * Adjusts the archive query for factsheets to show all factsheets.
-	 *
-	 * @since 0.8.0
-	 *
-	 * @param WP_Query $query
-	 */
-	public function adjust_factsheet_archive_query( $query ) {
-		if ( is_post_type_archive( $this->post_type_slug ) ) {
-			$query->set( 'posts_per_page', -1 );
-		}
-	}
-	/**
 	 * Redirects a factsheet ID to its corresponding URL.
 	 *
 	 * @since 0.10.0
@@ -1896,23 +1863,5 @@ class WSUWP_Graduate_Degree_Programs {
 	 */
 	public function redirect_factsheet_id( $degree_id ) {
 		$this->factsheet_redirects->redirect_factsheet_id( $degree_id );
-	}
-	/**
-	 * Alters the title displayed for the factsheets landing page.
-	 *
-	 * @since 1.1.0
-	 *
-	 * @param string $view_title
-	 * @param string $site_title
-	 * @param string $global_title
-	 *
-	 * @return string
-	 */
-	public function filter_factsheet_archive_title( $view_title, $site_title, $global_title ) {
-		if ( is_post_type_archive( $this->post_type_slug ) ) {
-			return 'Graduate Degree Programs | ' . $site_title . $global_title;
-		}
-
-		return $view_title;
 	}
 }
