@@ -265,8 +265,8 @@ class WSUWP_Graduate_Degree_Programs {
 		add_action( 'add_meta_boxes', array( $this, 'remove_meta_boxes' ), 99 );
 		add_action( "save_post_{$this->post_type_slug}", array( $this, 'save_factsheet' ), 10, 2 );
 
-		// This should fire after the filter in Editorial Access Manager.
-		add_filter( 'map_meta_cap', array( $this, 'filter_map_meta_cap' ), 200, 4 );
+		// Capability mapping for team-based access is now handled by
+		// \WSUWP\Plugin\Graduate\Factsheet_Team::map_meta_cap() at priority 150.
 
 		// Several fields are restricted to full editors or admins.
 		// Updated to use new filter format (since WP 4.9.8): auth_post_meta_{meta_key}_for_{post_type}
@@ -501,6 +501,9 @@ class WSUWP_Graduate_Degree_Programs {
 		}
 
 		remove_meta_box( 'wpseo_meta', $this->post_type_slug, 'normal' );
+
+		// Team management is handled by Factsheet_Team; remove the EAM meta box if the plugin is active.
+		remove_meta_box( 'eam_access_manager', $this->post_type_slug, 'side' );
 	}
 
 	/**
@@ -1204,9 +1207,13 @@ class WSUWP_Graduate_Degree_Programs {
 	}
 
 	/**
-	 * Determines if a user has been assigned to a factsheet through Editorial Access Manager.
+	 * Determines if a user has been assigned to a factsheet as a team member.
+	 *
+	 * Delegates to {@see \WSUWP\Plugin\Graduate\Factsheet_Team::is_team_member()}
+	 * which also provides backward compatibility with legacy EAM post meta.
 	 *
 	 * @since 1.1.0
+	 * @since 1.3.0 Now delegates to the Factsheet_Team class instead of reading EAM meta directly.
 	 *
 	 * @param int $user_id
 	 * @param int $post_id
@@ -1214,24 +1221,14 @@ class WSUWP_Graduate_Degree_Programs {
 	 * @return bool
 	 */
 	public function user_is_eam_user( $user_id, $post_id ) {
-		$enable_custom_access = get_post_meta( $post_id, 'eam_enable_custom_access', true );
-
-		if ( 'users' === $enable_custom_access ) {
-			$allowed_users = (array) get_post_meta( $post_id, 'eam_allowed_users', true );
-
-			if ( in_array( $user_id, $allowed_users ) ) { // @codingStandardsIgnoreLine (Converting user IDs to ints is not worth it)
-				return true;
-			}
-		}
-
-		return false;
+		return \WSUWP\Plugin\Graduate\Factsheet_Team::is_team_member( $user_id, $post_id );
 	}
 
 	/**
 	 * Determines if a user is a restricted contributor.
 	 *
 	 * A user is considered a restricted contributor if:
-	 * - They are assigned via Editorial Access Manager (EAM), OR
+	 * - They are assigned as a am to have 2 member, OR
 	 * - They have a WordPress role of 'contributor', 'author', or 'editor' (only 'administrator' has full access)
 	 *
 	 * Restricted users cannot edit (on existing factsheets only):
@@ -1245,9 +1242,10 @@ class WSUWP_Graduate_Degree_Programs {
 	 *
 	 * @since 1.4.0
 	 * @since 1.5.0 Added check for new posts and drafts - no restrictions until published.
+	 * @since 1.6.0 Now uses Factsheet_Team for team membership instead of EAM.
 	 *
 	 * @param int      $user_id The user ID to check.
-	 * @param int|null $post_id Optional. The post ID for EAM check.
+	 * @param int|null $post_id Optional. The post ID for team membership check.
 	 *
 	 * @return bool True if the user is a restricted contributor, false otherwise.
 	 */
@@ -1291,7 +1289,7 @@ class WSUWP_Graduate_Degree_Programs {
 	 * Ensures that restricted contributors are not allowed to change restricted fields.
 	 *
 	 * Restricted contributors include:
-	 * - Users assigned via Editorial Access Manager (EAM)
+	 * - Users assigned as factsheet team members
 	 * - Users with WordPress contributor or author roles
 	 *
 	 * @since 1.1.0
@@ -1317,7 +1315,7 @@ class WSUWP_Graduate_Degree_Programs {
 	 * Prevents restricted contributors from editing a factsheet's title.
 	 *
 	 * Restricted contributors include:
-	 * - Users assigned via Editorial Access Manager (EAM)
+	 * - Users assigned as factsheet team members
 	 * - Users with WordPress contributor or author roles
 	 *
 	 * @since 1.1.0
@@ -1680,59 +1678,15 @@ class WSUWP_Graduate_Degree_Programs {
 	}
 
 	/**
-	 * Filters a user's ability to delete factsheets when they have been added as an
-	 * authorized user via Editorial Access Manager.
+	 * Deprecated. Capability mapping is now handled by
+	 * {@see \WSUWP\Plugin\Graduate\Factsheet_Team::map_meta_cap()}.
+	 *
+	 * Kept for reference; the filter hook has been removed from setup_hooks().
 	 *
 	 * @since 1.1.0
-	 *
-	 * @param array $caps
-	 * @param string $cap
-	 * @param int $user_id
-	 * @param array $args
-	 *
-	 * @return array
+	 * @deprecated 1.3.0
 	 */
 	public function filter_map_meta_cap( $caps, $cap, $user_id, $args ) {
-		$eam_caps = array(
-			'delete_page',
-			'delete_post',
-		);
-
-		if ( in_array( $cap, $eam_caps, true ) ) {
-
-			$post_id = ( isset( $args[0] ) ) ? (int) $args[0] : null;
-			if ( ! $post_id && ! empty( $_GET['post'] ) ) { // WPCS: CSRF Ok.
-				$post_id = (int) $_GET['post'];
-			}
-
-			if ( ! $post_id && ! empty( $_POST['post_ID'] ) ) { // @codingStandardsIgnoreLine (No reason to check a nonce here)
-				$post_id = (int) $_POST['post_ID'];
-			}
-
-			if ( ! $post_id ) {
-				return $caps;
-			}
-
-			$enable_custom_access = get_post_meta( $post_id, 'eam_enable_custom_access', true );
-
-			if ( ! empty( $enable_custom_access ) ) {
-				$user = new WP_User( $user_id );
-
-				// If user is admin, we do nothing
-				if ( ! in_array( 'administrator', $user->roles, true ) ) {
-
-					if ( 'users' === $enable_custom_access ) {
-						// Reset caps for allowed users to do_not_allow.
-						$allowed_users = (array) get_post_meta( $post_id, 'eam_allowed_users', true );
-
-						if ( in_array( $user_id, $allowed_users ) ) { // @codingStandardsIgnoreLine (Converting user IDs to ints is not worth it)
-							$caps[] = 'do_not_allow';
-						}
-					}
-				}
-			}
-		}
-
 		return $caps;
 	}
 
