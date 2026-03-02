@@ -63,6 +63,7 @@ class WSUWP_Graduate_Degree_Programs {
 			'type' => 'bool',
 			'sanitize_callback' => 'absint',
 			'meta_field_callback' => array( __CLASS__, 'display_bool_meta_field' ),
+			'restricted' => true,
 			'location' => 'primary',
 		),
 		'gsdp_grad_students_total' => array(
@@ -264,14 +265,15 @@ class WSUWP_Graduate_Degree_Programs {
 		add_action( 'add_meta_boxes', array( $this, 'remove_meta_boxes' ), 99 );
 		add_action( "save_post_{$this->post_type_slug}", array( $this, 'save_factsheet' ), 10, 2 );
 
-		// This should fire after the filter in Editorial Access Manager.
-		add_filter( 'map_meta_cap', array( $this, 'filter_map_meta_cap' ), 200, 4 );
+		// Capability mapping for team-based access is now handled by
+		// \WSUWP\Plugin\Graduate\Factsheet_Team::map_meta_cap() at priority 150.
 
 		// Several fields are restricted to full editors or admins.
-		// add_filter( "auth_post_{$this->post_type_slug}_meta_gsdp_degree_id", array( $this, 'can_edit_restricted_field' ), 100, 4 );
-		add_filter( "auth_post_{$this->post_type_slug}_meta_gsdp_degree_shortname", array( $this, 'can_edit_restricted_field' ), 100, 4 );
-		add_filter( "auth_post_{$this->post_type_slug}_meta_gsdp_student_learning_outcome", array( $this, 'can_edit_restricted_field' ), 100, 4 );
-
+		// Updated to use new filter format (since WP 4.9.8): auth_post_meta_{meta_key}_for_{post_type}
+		// add_filter( "auth_post_meta_gsdp_degree_id_for_{$this->post_type_slug}", array( $this, 'can_edit_restricted_field' ), 100, 4 );
+		add_filter( "auth_post_meta_gsdp_degree_shortname_for_{$this->post_type_slug}", array( $this, 'can_edit_restricted_field' ), 100, 4 );
+		add_filter( "auth_post_meta_gsdp_student_learning_outcome_for_{$this->post_type_slug}", array( $this, 'can_edit_restricted_field' ), 100, 4 );
+		add_filter( "auth_post_meta_gsdp_include_in_programs_for_{$this->post_type_slug}", array( $this, 'can_edit_restricted_field' ), 100, 4 );
 		add_filter( 'wp_insert_post_data', array( $this, 'manage_factsheet_title_update' ), 10, 2 );
 
 		add_action( 'pre_get_posts', array( $this, 'adjust_factsheet_archive_query' ) );
@@ -285,6 +287,7 @@ class WSUWP_Graduate_Degree_Programs {
 	 * Enqueue scripts and styles used in the admin.
 	 *
 	 * @since 0.4.0
+	 * @since 1.4.0 Added inline styles to disable title/permalink for restricted contributors.
 	 *
 	 * @param string $hook_suffix
 	 */
@@ -298,6 +301,79 @@ class WSUWP_Graduate_Degree_Programs {
 			wp_register_script( 'gsdp-factsheet-admin', WSUWP\Plugin\Graduate\Plugin::get('url'). '/js/factsheet-admin.min.js', array( 'jquery', 'underscore', 'jquery-ui-autocomplete' ), WSUWP_Graduate_School_Theme()->theme_version(), true );
 
 			wp_enqueue_script( 'gsdp-factsheet-admin' );
+
+			// Disable title and permalink for restricted contributors (only on published posts, not new/draft ones)
+			$user_id = get_current_user_id();
+			$post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$post_status = get_post_status( $post_id );
+			$is_new_or_draft = empty( $post_id ) || in_array( $post_status, array( 'auto-draft', 'draft' ), true );
+
+			// Only apply restrictions when editing published factsheets, not when creating new ones or editing drafts
+			if ( ! $is_new_or_draft && $this->user_is_restricted_contributor( $user_id, $post_id ) ) {
+				// Add inline CSS to visually disable restricted fields
+				$custom_css = '
+					/* Disable title field */
+					#titlewrap input#title {
+						pointer-events: none;
+						background-color: #f0f0f0;
+						color: #666;
+						cursor: not-allowed;
+					}
+					/* Disable permalink edit */
+					#edit-slug-box,
+					#edit-slug-buttons,
+					.edit-slug {
+						pointer-events: none;
+						opacity: 0.5;
+					}
+					#edit-slug-buttons {
+						display: none;
+					}
+					/* Disable Program Names panel (greyed out) */
+					#gs-program-namediv {
+						pointer-events: none;
+						opacity: 0.5;
+					}
+					#gs-program-namediv .inside {
+						background-color: #f0f0f0;
+					}
+					#gs-program-namediv input,
+					#gs-program-namediv select,
+					#gs-program-namediv button {
+						cursor: not-allowed;
+					}
+					/* Disable Degree Types panel (greyed out) */
+					#tagsdiv-gs-degree-type {
+						pointer-events: none;
+						opacity: 0.5;
+					}
+					#tagsdiv-gs-degree-type .inside {
+						background-color: #f0f0f0;
+					}
+					#tagsdiv-gs-degree-type input,
+					#tagsdiv-gs-degree-type select,
+					#tagsdiv-gs-degree-type button {
+						cursor: not-allowed;
+					}
+				';
+				wp_add_inline_style( 'gsdp-admin', $custom_css );
+
+				// Add inline JS to make fields readonly/disabled
+				$custom_js = '
+					jQuery(document).ready(function($) {
+						// Make title readonly
+						$("#title").prop("readonly", true);
+						// Disable permalink edit button
+						$("#edit-slug-buttons .edit-slug").remove();
+						$(".edit-slug").remove();
+						// Disable inputs in Program Names panel
+						$("#gs-program-namediv input, #gs-program-namediv select, #gs-program-namediv button").prop("disabled", true);
+						// Disable inputs in Degree Types panel
+						$("#tagsdiv-gs-degree-type input, #tagsdiv-gs-degree-type select, #tagsdiv-gs-degree-type button").prop("disabled", true);
+					});
+				';
+				wp_add_inline_script( 'gsdp-factsheet-admin', $custom_js );
+			}
 		}
 
 		if ( in_array( $hook_suffix, array( 'edit-tags.php', 'term.php', 'term-new.php' ), true ) && in_array( get_current_screen()->taxonomy, array( 'gs-degree-type' ), true ) ) {
@@ -408,11 +484,14 @@ class WSUWP_Graduate_Degree_Programs {
 	}
 
 	/**
-	 * Removes the faculty member and contact info taxonomy boxes from the
-	 * factsheet screen. This data is managed via custom input in the primary
-	 * meta box.
+	 * Removes unnecessary meta boxes from the factsheet screen.
+	 *
+	 * Note: Program Names and Degree Types taxonomy boxes are NOT removed here.
+	 * They are greyed out (disabled) via CSS/JS in admin_enqueue_scripts() for
+	 * restricted contributors.
 	 *
 	 * @since 0.7.0
+	 * @since 1.4.0 Taxonomy boxes now greyed out instead of removed.
 	 *
 	 * @param string $post_type
 	 */
@@ -422,6 +501,9 @@ class WSUWP_Graduate_Degree_Programs {
 		}
 
 		remove_meta_box( 'wpseo_meta', $this->post_type_slug, 'normal' );
+
+		// Team management is handled by Factsheet_Team; remove the EAM meta box if the plugin is active.
+		remove_meta_box( 'eam_access_manager', $this->post_type_slug, 'side' );
 	}
 
 	/**
@@ -549,7 +631,8 @@ class WSUWP_Graduate_Degree_Programs {
 		<label for="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $meta['description'] ); ?>:</label>
 		<?php
 
-		if ( isset( $meta['restricted'] ) && $meta['restricted'] && $this->user_is_eam_user( wp_get_current_user()->ID, get_the_ID() ) ) {
+		// Check if field is restricted and user is a restricted contributor
+		if ( isset( $meta['restricted'] ) && $meta['restricted'] && $this->user_is_restricted_contributor( wp_get_current_user()->ID, get_the_ID() ) ) {
 			$disabled = 'disabled';
 		} else {
 			$disabled = '';
@@ -574,7 +657,8 @@ class WSUWP_Graduate_Degree_Programs {
 		<label for="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $meta['description'] ); ?>:</label>
 		<?php
 
-		if ( isset( $meta['restricted'] ) && $meta['restricted'] && $this->user_is_eam_user( wp_get_current_user()->ID, get_the_ID() ) ) {
+		// Check if field is restricted and user is a restricted contributor
+		if ( isset( $meta['restricted'] ) && $meta['restricted'] && $this->user_is_restricted_contributor( wp_get_current_user()->ID, get_the_ID() ) ) {
 			$disabled = 'disabled';
 		} else {
 			$disabled = '';
@@ -589,15 +673,23 @@ class WSUWP_Graduate_Degree_Programs {
 	 * Outputs the meta field HTML used to capture meta data stored as boolean.
 	 *
 	 * @since 1.3.0
+	 * @since 1.4.0 Added support for restricted fields that are disabled for contributors.
 	 *
 	 * @param array  $meta
 	 * @param string $key
 	 * @param array  $data
 	 */
 	public function display_bool_meta_field( $meta, $key, $data ) {
+		// Check if field is restricted and user is a restricted contributor
+		if ( isset( $meta['restricted'] ) && $meta['restricted'] && $this->user_is_restricted_contributor( wp_get_current_user()->ID, get_the_ID() ) ) {
+			$disabled = 'disabled';
+		} else {
+			$disabled = '';
+		}
+
 		?>
 		<label for="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $meta['description'] ); ?>:</label>
-		<select name="<?php echo esc_attr( $key ); ?>">
+		<select name="<?php echo esc_attr( $key ); ?>" <?php echo $disabled; // @codingStandardsIgnoreLine ?>>
 			<option value="0" <?php selected( 0, absint( $data[ $key ][0] ) ); ?>>No</option>
 			<option value="1" <?php selected( 1, absint( $data[ $key ][0] ) ); ?>>Yes</option>
 		</select>
@@ -1115,9 +1207,13 @@ class WSUWP_Graduate_Degree_Programs {
 	}
 
 	/**
-	 * Determines if a user has been assigned to a factsheet through Editorial Access Manager.
+	 * Determines if a user has been assigned to a factsheet as a team member.
+	 *
+	 * Delegates to {@see \WSUWP\Plugin\Graduate\Factsheet_Team::is_team_member()}
+	 * which also provides backward compatibility with legacy EAM post meta.
 	 *
 	 * @since 1.1.0
+	 * @since 1.3.0 Now delegates to the Factsheet_Team class instead of reading EAM meta directly.
 	 *
 	 * @param int $user_id
 	 * @param int $post_id
@@ -1125,12 +1221,63 @@ class WSUWP_Graduate_Degree_Programs {
 	 * @return bool
 	 */
 	public function user_is_eam_user( $user_id, $post_id ) {
-		$enable_custom_access = get_post_meta( $post_id, 'eam_enable_custom_access', true );
+		return \WSUWP\Plugin\Graduate\Factsheet_Team::is_team_member( $user_id, $post_id );
+	}
 
-		if ( 'users' === $enable_custom_access ) {
-			$allowed_users = (array) get_post_meta( $post_id, 'eam_allowed_users', true );
+	/**
+	 * Determines if a user is a restricted contributor.
+	 *
+	 * A user is considered a restricted contributor if:
+	 * - They are assigned as a am to have 2 member, OR
+	 * - They have a WordPress role of 'contributor', 'author', or 'editor' (only 'administrator' has full access)
+	 *
+	 * Restricted users cannot edit (on existing factsheets only):
+	 * - Factsheet title
+	 * - Factsheet display name
+	 * - Include in programs list
+	 * - Program Names taxonomy
+	 * - Degree Types taxonomy
+	 *
+	 * Note: No restrictions apply when creating a NEW factsheet or editing a DRAFT - all fields are editable.
+	 *
+	 * @since 1.4.0
+	 * @since 1.5.0 Added check for new posts and drafts - no restrictions until published.
+	 * @since 1.6.0 Now uses Factsheet_Team for team membership instead of EAM.
+	 *
+	 * @param int      $user_id The user ID to check.
+	 * @param int|null $post_id Optional. The post ID for team membership check.
+	 *
+	 * @return bool True if the user is a restricted contributor, false otherwise.
+	 */
+	public function user_is_restricted_contributor( $user_id, $post_id = null ) {
+		// No restrictions for new posts or drafts - allow full access when creating/drafting a factsheet
+		$post_status = $post_id ? get_post_status( $post_id ) : '';
+		if ( empty( $post_id ) || in_array( $post_status, array( 'auto-draft', 'draft' ), true ) ) {
+			return false;
+		}
 
-			if ( in_array( $user_id, $allowed_users ) ) { // @codingStandardsIgnoreLine (Converting user IDs to ints is not worth it)
+		// Check EAM assignment (if post_id provided)
+		if ( $post_id && $this->user_is_eam_user( $user_id, $post_id ) ) {
+			return true;
+		}
+
+		// Check WordPress role
+		$user = new WP_User( $user_id );
+		// Editors, Authors, and Contributors have restricted access to certain fields
+		$restricted_roles = array( 'contributor', 'author', 'editor' );
+		// Only Administrators have full unrestricted access
+		$unrestricted_roles = array( 'administrator' );
+
+		// If user has an unrestricted role, they are not a restricted contributor
+		foreach ( $unrestricted_roles as $role ) {
+			if ( in_array( $role, $user->roles, true ) ) {
+				return false;
+			}
+		}
+
+		// If user has a restricted role, they are a restricted contributor
+		foreach ( $restricted_roles as $role ) {
+			if ( in_array( $role, $user->roles, true ) ) {
 				return true;
 			}
 		}
@@ -1139,11 +1286,15 @@ class WSUWP_Graduate_Degree_Programs {
 	}
 
 	/**
-	 * Ensures that users assigned via Editorial Access Manager are not allowed to change
-	 * restricted fields.
+	 * Ensures that restricted contributors are not allowed to change restricted fields.
+	 *
+	 * Restricted contributors include:
+	 * - Users assigned as factsheet team members
+	 * - Users with WordPress contributor or author roles
 	 *
 	 * @since 1.1.0
 	 * @since 1.3.0 Updated to handle multiple restricted fields.
+	 * @since 1.4.0 Updated to use user_is_restricted_contributor() for role-based access.
 	 *
 	 * @param bool   $allowed
 	 * @param string $meta_key
@@ -1153,7 +1304,7 @@ class WSUWP_Graduate_Degree_Programs {
 	 * @return bool
 	 */
 	public function can_edit_restricted_field( $allowed, $meta_key, $object_id, $user_id ) {
-		if ( $this->user_is_eam_user( $user_id, $object_id ) ) {
+		if ( $this->user_is_restricted_contributor( $user_id, $object_id ) ) {
 			return false;
 		}
 
@@ -1161,10 +1312,14 @@ class WSUWP_Graduate_Degree_Programs {
 	}
 
 	/**
-	 * Prevents a user, assigned via Editorial Access Manager, from editing a factsheet's
-	 * title.
+	 * Prevents restricted contributors from editing a factsheet's title.
+	 *
+	 * Restricted contributors include:
+	 * - Users assigned as factsheet team members
+	 * - Users with WordPress contributor or author roles
 	 *
 	 * @since 1.1.0
+	 * @since 1.4.0 Updated to use user_is_restricted_contributor() for role-based access.
 	 *
 	 * @param array $data
 	 * @param array $postarr
@@ -1174,9 +1329,8 @@ class WSUWP_Graduate_Degree_Programs {
 	public function manage_factsheet_title_update( $data, $postarr ) {
 		$user = wp_get_current_user();
 
-		if ( isset( $postarr['ID'] ) && $this->user_is_eam_user( $user->ID, $postarr['ID'] ) ) {
+		if ( isset( $postarr['ID'] ) && $this->user_is_restricted_contributor( $user->ID, $postarr['ID'] ) ) {
 			$existing_title = get_post_field( 'post_title', absint( $postarr['ID'] ) );
-
 			if ( ! empty( $existing_title ) && $data['post_title'] !== $existing_title ) {
 				$data['post_title'] = $existing_title;
 			}
@@ -1524,59 +1678,15 @@ class WSUWP_Graduate_Degree_Programs {
 	}
 
 	/**
-	 * Filters a user's ability to delete factsheets when they have been added as an
-	 * authorized user via Editorial Access Manager.
+	 * Deprecated. Capability mapping is now handled by
+	 * {@see \WSUWP\Plugin\Graduate\Factsheet_Team::map_meta_cap()}.
+	 *
+	 * Kept for reference; the filter hook has been removed from setup_hooks().
 	 *
 	 * @since 1.1.0
-	 *
-	 * @param array $caps
-	 * @param string $cap
-	 * @param int $user_id
-	 * @param array $args
-	 *
-	 * @return array
+	 * @deprecated 1.3.0
 	 */
 	public function filter_map_meta_cap( $caps, $cap, $user_id, $args ) {
-		$eam_caps = array(
-			'delete_page',
-			'delete_post',
-		);
-
-		if ( in_array( $cap, $eam_caps, true ) ) {
-
-			$post_id = ( isset( $args[0] ) ) ? (int) $args[0] : null;
-			if ( ! $post_id && ! empty( $_GET['post'] ) ) { // WPCS: CSRF Ok.
-				$post_id = (int) $_GET['post'];
-			}
-
-			if ( ! $post_id && ! empty( $_POST['post_ID'] ) ) { // @codingStandardsIgnoreLine (No reason to check a nonce here)
-				$post_id = (int) $_POST['post_ID'];
-			}
-
-			if ( ! $post_id ) {
-				return $caps;
-			}
-
-			$enable_custom_access = get_post_meta( $post_id, 'eam_enable_custom_access', true );
-
-			if ( ! empty( $enable_custom_access ) ) {
-				$user = new WP_User( $user_id );
-
-				// If user is admin, we do nothing
-				if ( ! in_array( 'administrator', $user->roles, true ) ) {
-
-					if ( 'users' === $enable_custom_access ) {
-						// Reset caps for allowed users to do_not_allow.
-						$allowed_users = (array) get_post_meta( $post_id, 'eam_allowed_users', true );
-
-						if ( in_array( $user_id, $allowed_users ) ) { // @codingStandardsIgnoreLine (Converting user IDs to ints is not worth it)
-							$caps[] = 'do_not_allow';
-						}
-					}
-				}
-			}
-		}
-
 		return $caps;
 	}
 
