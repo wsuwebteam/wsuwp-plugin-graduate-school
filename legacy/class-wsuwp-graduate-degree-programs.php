@@ -127,6 +127,7 @@ class WSUWP_Graduate_Degree_Programs {
 			'type' => 'string',
 			'sanitize_callback' => 'esc_url_raw',
 			'meta_field_callback' => array( 'WSUWP_Factsheet_Fields_Display', 'display_string_meta_field' ),
+			'restricted' => true,
 			'location' => 'primary',
 		),
 		'gsdp_degree_url' => array(
