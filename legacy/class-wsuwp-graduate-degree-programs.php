@@ -140,7 +140,7 @@ class WSUWP_Graduate_Degree_Programs {
 		'gsdp_locations' => array(
 			'description' => 'Locations',
 			'type' => 'locations',
-			'sanitize_callback' => 'WSUWP_Graduate_Degree_Programs::sanitize_locations',
+			'sanitize_callback' => 'WSUWP_Factsheet_Sanitizer::sanitize_locations',
 			'meta_field_callback' => array( __CLASS__, 'display_locations_meta_field' ),
 			'restricted' => true,
 			'pre_html' => '<div class="factsheet-group">',
@@ -159,7 +159,7 @@ class WSUWP_Graduate_Degree_Programs {
 		'gsdp_deadlines' => array(
 			'description' => 'Deadlines',
 			'type' => 'deadlines',
-			'sanitize_callback' => 'WSUWP_Graduate_Degree_Programs::sanitize_deadlines',
+			'sanitize_callback' => 'WSUWP_Factsheet_Sanitizer::sanitize_deadlines',
 			'meta_field_callback' => array( __CLASS__, 'display_deadlines_meta_field' ),
 			'pre_html' => '<div class="factsheet-group">',
 			'post_html' => '</div>',
@@ -168,7 +168,7 @@ class WSUWP_Graduate_Degree_Programs {
 		'gsdp_deadlines_prog' => array(
 			'description' => 'Program Deadlines',
 			'type' => 'deadlines_prog',
-			'sanitize_callback' => 'WSUWP_Graduate_Degree_Programs::sanitize_deadlines_prog',
+			'sanitize_callback' => 'WSUWP_Factsheet_Sanitizer::sanitize_deadlines_prog',
 			'meta_field_callback' => array( __CLASS__, 'display_deadlines_prog_meta_field' ),
 			'pre_html' => '<div class="factsheet-group">',
 			'post_html' => '</div>',
@@ -177,7 +177,7 @@ class WSUWP_Graduate_Degree_Programs {
 		'gsdp_requirements' => array(
 			'description' => 'Language Test Requirements',
 			'type' => 'requirements',
-			'sanitize_callback' => 'WSUWP_Graduate_Degree_Programs::sanitize_requirements',
+			'sanitize_callback' => 'WSUWP_Factsheet_Sanitizer::sanitize_requirements',
 			'meta_field_callback' => array( __CLASS__, 'display_requirements_meta_field' ),
 			'pre_html' => '<div class="factsheet-group">',
 			'post_html' => '</div>',
@@ -186,7 +186,7 @@ class WSUWP_Graduate_Degree_Programs {
 		'gsdp_requirements_gre' => array(
 			'description' => 'GRE Requirements',
 			'type' => 'requirements-gre',
-			'sanitize_callback' => 'WSUWP_Graduate_Degree_Programs::sanitize_requirements_gre',
+			'sanitize_callback' => 'WSUWP_Factsheet_Sanitizer::sanitize_requirements_gre',
 			'meta_field_callback' => array( __CLASS__, 'display_requirements_gre_meta_field' ),
 			'pre_html' => '<div class="factsheet-group">',
 			'post_html' => '</div>',
@@ -195,7 +195,7 @@ class WSUWP_Graduate_Degree_Programs {
 		'gsdp_contacts' => array(
 			'description' => 'Contacts',
 			'type' => 'gscontacts',
-			'sanitize_callback' => 'WSUWP_Graduate_Degree_Programs::sanitize_contacts',
+			'sanitize_callback' => 'WSUWP_Factsheet_Sanitizer::sanitize_contacts',
 			'meta_field_callback' => array( __CLASS__, 'display_contacts_meta_field' ),
 			'pre_html' => '<div class="factsheet-group">',
 			'post_html' => '</div>',
@@ -268,6 +268,7 @@ class WSUWP_Graduate_Degree_Programs {
 		require_once dirname( __FILE__ ) . '/class-factsheet-data.php';
 		require_once dirname( __FILE__ ) . '/class-factsheet-access.php';
 		require_once dirname( __FILE__ ) . '/class-factsheet-admin-assets.php';
+		require_once dirname( __FILE__ ) . '/class-factsheet-sanitizer.php';
 		$this->factsheet_redirects = new WSUWP_Factsheet_Redirects( $this->post_type_slug, $this->archive_slug );
 		$this->factsheet_archive = new WSUWP_Factsheet_Archive( $this->post_type_slug );
 		$this->factsheet_admin_assets = new WSUWP_Factsheet_Admin_Assets( $this->post_type_slug );
@@ -1064,11 +1065,7 @@ class WSUWP_Graduate_Degree_Programs {
 		<?php
 		// @codingStandardsIgnoreEnd
 	}
-
-
-
 	
-
 	/**
 	 * Outputs the meta field HTML used to capture meta data stored as strings.
 	 *
@@ -1162,285 +1159,6 @@ class WSUWP_Graduate_Degree_Programs {
 
 		return $data;
 	}
-
-	/**
-	 * Sanitizes a GPA value.
-	 *
-	 * @since 0.4.0
-	 *
-	 * @param string $gpa The unsanitized GPA.
-	 *
-	 * @return string The sanitized GPA.
-	 */
-	public static function sanitize_gpa( $gpa ) {
-		$dot_count = substr_count( $gpa, '.' );
-
-		if ( 0 === $dot_count ) {
-			$gpa = absint( $gpa ) . '.0';
-		} elseif ( 1 === $dot_count ) {
-			$gpa = explode( '.', $gpa );
-			$gpa = absint( $gpa[0] ) . '.' . absint( $gpa[1] );
-		} else {
-			$gpa = '0.0';
-		}
-
-		return $gpa;
-	}
-
-	/**
-	 * Sanitizes a set of locations stored in a string.
-	 *
-	 * @since 0.10.0
-	 *
-	 * @param array $locations
-	 *
-	 * @return array
-	 */
-	public static function sanitize_locations( $locations ) {
-		if ( ! is_array( $locations ) || 0 === count( $locations ) ) {
-			$locations = array();
-		}
-
-		$location_names = array( 'Pullman', 'Spokane', 'Tri-Cities', 'Vancouver',  'Everett','Global Campus (online)', );
-		$clean_locations = array();
-
-		foreach ( $location_names as $location_name ) {
-			if ( ! isset( $locations[ $location_name ] ) || ! in_array( $locations[ $location_name ], array( 'No', 'Yes', 'By Exception' ), true ) ) {
-				$clean_locations[ $location_name ] = 'No';
-			} else {
-				$clean_locations[ $location_name ] = $locations[ $location_name ];
-			}
-		}
-
-		return $clean_locations;
-	}
-
-	/**
-	 * Sanitizes a set of deadlines stored in a string.
-	 *
-	 * @since 0.4.0
-	 *
-	 * @param array $deadlines
-	 *
-	 * @return string
-	 */
-	public static function sanitize_deadlines( $deadlines ) {
-		if ( ! is_array( $deadlines ) || 0 === count( $deadlines ) ) {
-			return '';
-		}
-
-		$clean_deadlines = array();
-
-		foreach ( $deadlines as $deadline ) {
-			$clean_deadline = array();
-
-			if ( isset( $deadline['semester'] ) && in_array( $deadline['semester'], array( 'None', 'Fall', 'Spring', 'Summer' ), true ) ) {
-				$clean_deadline['semester'] = $deadline['semester'];
-			} else {
-				$clean_deadline['semester'] = 'None';
-			}
-
-			if ( isset( $deadline['deadline'] ) ) {
-				$clean_deadline['deadline'] = sanitize_text_field( $deadline['deadline'] );
-			} else {
-				$clean_deadline['deadline'] = '';
-			}
-
-			if ( isset( $deadline['international'] ) ) {
-				$clean_deadline['international'] = sanitize_text_field( $deadline['international'] );
-			} else {
-				$clean_deadline['international'] = '';
-			}
-
-			$clean_deadlines[] = $clean_deadline;
-		}
-
-		return $deadlines;
-	}
-
-
-	/**
-	 * Sanitizes a set of deadlines stored in a string.
-	 *
-	 * @since 0.4.0
-	 *
-	 * @param array $deadlines
-	 *
-	 * @return string
-	 */
-	public static function sanitize_deadlines_prog( $deadlines_prog ) {
-		if ( ! is_array( $deadlines_prog ) || 0 === count( $deadlines_prog ) ) {
-			return '';
-		}
-
-		$clean_deadlines_prog = array();
-
-		foreach ( $deadlines_prog as $deadline_prog ) {
-			$clean_deadline_prog = array();
-
-			if ( isset( $deadline_prog['semester'] ) && in_array( $deadline_prog['semester'], array( 'None', 'Fall', 'Spring', 'Summer' ), true ) ) {
-				$clean_deadline_prog['semester'] = $deadline_prog['semester'];
-			} else {
-				$clean_deadline_prog['semester'] = 'None';
-			}
-
-			if ( isset( $deadline_prog['deadline_prog'] ) ) {
-				$clean_deadline_prog['deadline_prog'] = sanitize_text_field( $deadline_prog['deadline_prog'] );
-			} else {
-				$clean_deadline_prog['deadline_prog'] = '';
-			}
-
-			if ( isset( $deadline_prog['international'] ) ) {
-				$clean_deadline_prog['international'] = sanitize_text_field( $deadline_prog['international'] );
-			} else {
-				$clean_deadline_prog['international'] = '';
-			}
-
-			$clean_deadlines_prog[] = $clean_deadline_prog;
-		}
-
-		return $deadlines_prog;
-	}
-
-		/**
-	 * Sanitizes a set of requirements stored in a string.
-	 *
-	 * @since 0.4.0
-	 *
-	 * @param array $requirements_gre
-	 *
-	 * @return string
-	 */
-	public static function sanitize_contacts( $contacts ) {
-		if ( ! is_array( $contacts ) || 0 === count( $contacts ) ) {
-			return '';
-		}
-
-		$clean_contacts = array();
-
-		foreach ( $contacts as $contact ) {
-			$clean_contact = array();
-
-			if ( isset( $contact['name'] ) ) {
-				$clean_contact['name'] = sanitize_text_field( $contact['name'] );
-			} else {
-				$clean_contact['name'] = '';
-			}
-
-			if ( isset( $contact['email'] ) ) {
-				$clean_contact['email'] = sanitize_text_field( $contact['email'] );
-			} else {
-				$clean_contact['email'] = '';
-			}
-
-			// if ( isset( $contact['required'] ) && in_array( $contact['required'], array('None','Optional', 'Yes', 'No'), true ) ) {
-			// 	$clean_contact['required'] = $contact['required'];
-			// } else {
-			// 	$clean_contact['required'] = 'None';
-			// }
-
-			$clean_contacts[] = $clean_contact;
-		}
-
-		return $clean_contacts;
-	}
-
-
-
-	/**
-	 * Sanitizes a set of requirements stored in a string.
-	 *
-	 * @since 0.4.0
-	 *
-	 * @param array $requirements_gre
-	 *
-	 * @return string
-	 */
-	public static function sanitize_requirements_gre( $requirements_gre ) {
-		if ( ! is_array( $requirements_gre ) || 0 === count( $requirements_gre ) ) {
-			return '';
-		}
-
-		$clean_requirements = array();
-
-		foreach ( $requirements_gre as $requirement ) {
-			$clean_requirement = array();
-
-			// if ( isset( $requirement['score'] ) ) {
-			// 	$clean_requirement['score'] = sanitize_text_field( $requirement['score'] );
-			// } else {
-			// 	$clean_requirement['score'] = '';
-			// }
-
-			if ( isset( $requirement['test'] ) ) {
-				$clean_requirement['test'] = sanitize_text_field( $requirement['test'] );
-			} else {
-				$clean_requirement['test'] = '';
-			}
-
-			if ( isset( $requirement['required'] ) && in_array( $requirement['required'], array('None','Optional', 'Yes', 'No'), true ) ) {
-				$clean_requirement['required'] = $requirement['required'];
-			} else {
-				$clean_requirement['required'] = 'None';
-			}
-
-			// if ( isset( $requirement['description'] ) ) {
-			// 	$clean_requirement['description'] = sanitize_text_field( $requirement['description'] );
-			// } else {
-			// 	$clean_requirement['description'] = '';
-			// }
-
-			$clean_requirements[] = $clean_requirement;
-		}
-
-		return $clean_requirements;
-	}
-
-
-
-	/**
-	 * Sanitizes a set of requirements stored in a string.
-	 *
-	 * @since 0.4.0
-	 *
-	 * @param array $requirements
-	 *
-	 * @return string
-	 */
-	public static function sanitize_requirements( $requirements ) {
-		if ( ! is_array( $requirements ) || 0 === count( $requirements ) ) {
-			return '';
-		}
-
-		$clean_requirements = array();
-
-		foreach ( $requirements as $requirement ) {
-			$clean_requirement = array();
-
-			if ( isset( $requirement['score'] ) ) {
-				$clean_requirement['score'] = sanitize_text_field( $requirement['score'] );
-			} else {
-				$clean_requirement['score'] = '';
-			}
-
-			if ( isset( $requirement['test'] ) ) {
-				$clean_requirement['test'] = sanitize_text_field( $requirement['test'] );
-			} else {
-				$clean_requirement['test'] = '';
-			}
-
-			if ( isset( $requirement['description'] ) ) {
-				$clean_requirement['description'] = sanitize_text_field( $requirement['description'] );
-			} else {
-				$clean_requirement['description'] = '';
-			}
-
-			$clean_requirements[] = $clean_requirement;
-		}
-
-		return $clean_requirements;
-	}
-
 
 	/**
 	 * Save additional data associated with a factsheet.
