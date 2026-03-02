@@ -1,0 +1,377 @@
+/* =================================================================
+   Editorial Access Manager – Factsheet Team meta box
+   A polished, modern UI that fits within WordPress admin.
+   Custom multi-select (no external JS).
+   ================================================================= */
+
+#gsdp-eam-wrap {
+	padding: 4px 0 0;
+}
+
+/* Hide native multi-selects until JS replaces them (avoids flash of unstyled/native control) */
+#gsdp_team_roles,
+#gsdp_team_members {
+	position: absolute !important;
+	left: -9999px !important;
+	width: 1px !important;
+	height: 1px !important;
+	clip: rect(0, 0, 0, 0);
+	opacity: 0;
+	pointer-events: none;
+}
+
+
+/* Loader shown until custom widget is built */
+.gsdp-multiselect-loader {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 12px;
+	min-height: 42px;
+	background: #f6f7f7;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	color: #50575e;
+	font-size: 13px;
+}
+
+.gsdp-multiselect-loader-spinner {
+	display: inline-block;
+	width: 18px;
+	height: 18px;
+	border: 2px solid #c3c4c7;
+	border-top-color: #2271b1;
+	border-radius: 50%;
+	animation: gsdp-spin 0.7s linear infinite;
+}
+
+.gsdp-multiselect-loader-text {
+	opacity: 0.85;
+}
+
+@keyframes gsdp-spin {
+	to { transform: rotate(360deg); }
+}
+
+/* -----------------------------------------------------------------
+   Status badge
+   ----------------------------------------------------------------- */
+
+.gsdp-eam-status {
+	margin-bottom: 12px;
+}
+
+.gsdp-eam-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 10px;
+	border-radius: 12px;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.4;
+}
+
+.gsdp-eam-badge .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+	line-height: 14px;
+}
+
+.gsdp-eam-badge--off {
+	background: #f0f0f1;
+	color: #787c82;
+}
+
+.gsdp-eam-badge--active {
+	background: #e6f2e8;
+	color: #1e7e34;
+}
+
+/* -----------------------------------------------------------------
+   Segmented-control mode selector
+   ----------------------------------------------------------------- */
+
+.gsdp-eam-modes {
+	display: flex;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	overflow: hidden;
+	margin-bottom: 14px;
+}
+
+.gsdp-eam-mode-btn {
+	flex: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 3px;
+	padding: 7px 4px;
+	margin: 0;
+	background: #f6f7f7;
+	border: none;
+	border-right: 1px solid #c3c4c7;
+	color: #50575e;
+	font-size: 12px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background 0.15s, color 0.15s;
+	line-height: 1;
+}
+
+.gsdp-eam-mode-btn:last-child {
+	border-right: none;
+}
+
+.gsdp-eam-mode-btn:hover {
+	background: #e8eaed;
+	color: #1d2327;
+}
+
+.gsdp-eam-mode-btn.active {
+	background: #2271b1;
+	color: #fff;
+}
+
+.gsdp-eam-mode-btn .dashicons {
+	font-size: 15px;
+	width: 15px;
+	height: 15px;
+	line-height: 15px;
+}
+
+/* -----------------------------------------------------------------
+   Tabs
+   ----------------------------------------------------------------- */
+
+#gsdp-eam-tabs {
+	display: flex;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+#gsdp-eam-tabs li {
+	margin: 0;
+}
+
+#gsdp-eam-tabs li a {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 12px;
+	color: #50575e;
+	text-decoration: none;
+	font-size: 13px;
+	font-weight: 500;
+	border-bottom: 2px solid transparent;
+	transition: color 0.15s, border-color 0.15s;
+	cursor: pointer;
+}
+
+#gsdp-eam-tabs li a:hover {
+	color: #2271b1;
+}
+
+#gsdp-eam-tabs li.active a {
+	color: #2271b1;
+	border-bottom-color: #2271b1;
+	font-weight: 600;
+}
+
+.gsdp-eam-count {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 18px;
+	height: 18px;
+	padding: 0 5px;
+	border-radius: 9px;
+	background: #dcdcde;
+	color: #50575e;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1;
+}
+
+#gsdp-eam-tabs li.active .gsdp-eam-count {
+	background: #2271b1;
+	color: #fff;
+}
+
+/* -----------------------------------------------------------------
+   Tab panels
+   ----------------------------------------------------------------- */
+
+#gsdp-eam-panels {
+	border: 1px solid #c3c4c7;
+	border-radius: 0 0 4px 4px;
+	border-top: none;
+	background: #fff;
+}
+
+.gsdp-eam-tab-panel {
+	padding: 10px;
+}
+
+/* -----------------------------------------------------------------
+   Custom multi-select widget (Chosen-like UI, no Chosen dependency)
+   ----------------------------------------------------------------- */
+
+.gsdp-multiselect {
+	position: relative;
+	display: block;
+	width: 100%;
+	font-size: 13px;
+	box-sizing: border-box;
+}
+
+.gsdp-multiselect-inner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px;
+	min-height: 34px;
+	padding: 4px 6px;
+	border: 1px solid #c3c4c7;
+	border-radius: 3px;
+	background: #fff;
+	cursor: text;
+}
+
+.gsdp-multiselect.is-open .gsdp-multiselect-inner {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.gsdp-multiselect-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	align-items: center;
+}
+
+.gsdp-multiselect-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 8px;
+	border: 1px solid #c3c4c7;
+	border-radius: 3px;
+	background: #f0f0f1;
+	color: #1d2327;
+	font-size: 12px;
+	line-height: 1.3;
+}
+
+.gsdp-multiselect-chip.is-disabled {
+	background: #e8eaed;
+	color: #50575e;
+	padding-right: 8px;
+}
+
+.gsdp-multiselect-chip-remove {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	margin: 0;
+	margin-left: 2px;
+	width: 16px;
+	height: 16px;
+	border: none;
+	background: none;
+	color: #787c82;
+	font-size: 16px;
+	line-height: 1;
+	cursor: pointer;
+	border-radius: 2px;
+}
+
+.gsdp-multiselect-chip-remove:hover {
+	color: #d63638;
+	background: rgba(0, 0, 0, 0.05);
+}
+
+.gsdp-multiselect-search-wrap {
+	flex: 1;
+	min-width: 80px;
+}
+
+.gsdp-multiselect-search {
+	width: 100%;
+	min-width: 80px;
+	padding: 4px 6px;
+	margin: 0;
+	border: none;
+	background: transparent;
+	font-size: 13px;
+	color: #1d2327;
+	outline: none;
+	box-sizing: border-box;
+}
+
+.gsdp-multiselect-search::placeholder {
+	color: #787c82;
+}
+
+.gsdp-multiselect-dropdown {
+	display: none;
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	z-index: 1010;
+	margin-top: -1px;
+	border: 1px solid #c3c4c7;
+	border-top: none;
+	border-radius: 0 0 3px 3px;
+	background: #fff;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	max-height: 200px;
+	overflow: hidden;
+}
+
+.gsdp-multiselect.is-open .gsdp-multiselect-dropdown {
+	display: block;
+}
+
+.gsdp-multiselect-results {
+	margin: 0;
+	padding: 4px 0;
+	list-style: none;
+	max-height: 200px;
+	overflow-y: auto;
+}
+
+.gsdp-multiselect-results li {
+	margin: 0;
+	padding: 6px 10px;
+	font-size: 13px;
+	line-height: 1.4;
+	cursor: pointer;
+}
+
+.gsdp-multiselect-results li[data-value]:hover {
+	background: #f0f0f1;
+}
+
+.gsdp-multiselect-results li.is-selected {
+	background: #e5f5fa;
+	color: #1d2327;
+}
+
+.gsdp-multiselect-results li.is-disabled {
+	color: #787c82;
+	cursor: default;
+}
+
+.gsdp-multiselect-no-results {
+	padding: 8px 10px !important;
+	color: #787c82;
+	font-style: italic;
+	cursor: default !important;
+	background: #f6f7f7 !important;
+}
