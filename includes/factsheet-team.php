@@ -105,7 +105,7 @@ class Factsheet_Team {
 	 */
 	public static function add_team_column( $columns ) {
 		// Insert our column near the end; adjust key if you want a different label.
-		$columns['gsdp_editorial_access'] = __( 'Editorial Access', 'wsuwp-plugin-graduate-school' );
+		$columns['gsdp_editorial_access'] = __( 'Editorial Access Manager', 'wsuwp-plugin-graduate-school' );
 	
 		return $columns;
 	}
