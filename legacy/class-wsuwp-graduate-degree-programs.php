@@ -1662,19 +1662,6 @@ class WSUWP_Graduate_Degree_Programs {
 		// end last modified update.
 	}
 
-	/**
-	 * Deprecated. Capability mapping is now handled by
-	 * {@see \WSUWP\Plugin\Graduate\Factsheet_Team::map_meta_cap()}.
-	 *
-	 * Kept for reference; the filter hook has been removed from setup_hooks().
-	 *
-	 * @since 1.1.0
-	 * @deprecated 1.3.0
-	 */
-	public function filter_map_meta_cap( $caps, $cap, $user_id, $args ) {
-		return $caps;
-	}
-
 
 	/**
 	 * Returns a usable subset of data for displaying a factsheet.
