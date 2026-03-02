@@ -249,6 +249,9 @@ class Factsheet_Team {
 	 * @param \WP_Post $post    Post object.
 	 */
 	public static function save_team_members( $post_id, $post ) {
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			return;
+		}
 		if ( \defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;
 		}

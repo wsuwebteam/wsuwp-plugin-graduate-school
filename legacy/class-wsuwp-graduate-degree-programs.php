@@ -389,6 +389,32 @@ class WSUWP_Graduate_Degree_Programs {
 				';
 				wp_add_inline_script( 'gsdp-factsheet-admin', $custom_js );
 			}
+			// Disable Editorial Access Manager (Factsheet Team) panel for non-admins
+			if ( ! current_user_can( 'manage_options' ) ) {
+				$eam_css = '
+					/* Disable EAM / Factsheet Team panel (greyed out) for non-admins */
+					#gsdp-team-members {
+						pointer-events: none;
+						opacity: 0.5;
+					}
+					#gsdp-team-members .inside {
+						background-color: #f0f0f0;
+					}
+					#gsdp-team-members input,
+					#gsdp-team-members select,
+					#gsdp-team-members button {
+						cursor: not-allowed;
+					}
+				';
+				wp_add_inline_style( 'gsdp-admin', $eam_css );
+
+				$eam_js = '
+					jQuery(document).ready(function($) {
+						$("#gsdp-team-members input, #gsdp-team-members select, #gsdp-team-members button").prop("disabled", true);
+					});
+				';
+				wp_add_inline_script( 'gsdp-factsheet-admin', $eam_js );
+			}
 		}
 
 		if ( in_array( $hook_suffix, array( 'edit-tags.php', 'term.php', 'term-new.php' ), true ) && in_array( get_current_screen()->taxonomy, array( 'gs-degree-type' ), true ) ) {
