@@ -265,7 +265,7 @@ class WSUWP_Graduate_Degree_Programs {
 		$this->factsheet_redirects = new WSUWP_Factsheet_Redirects( $this->post_type_slug, $this->archive_slug );
 		$this->factsheet_archive = new WSUWP_Factsheet_Archive( $this->post_type_slug );
 
-
+		add_filter( 'admin_body_class', array( $this, 'add_factsheet_admin_body_classes' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 
 		add_action( 'init', array( $this, 'register_post_type' ), 15 );
@@ -317,111 +317,45 @@ class WSUWP_Graduate_Degree_Programs {
 
 			wp_enqueue_script( 'gsdp-factsheet-admin' );
 
-			// Disable title and permalink for restricted contributors (only on published posts, not new/draft ones)
-			$user_id = get_current_user_id();
-			$post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$post_status = get_post_status( $post_id );
-			$is_new_or_draft = empty( $post_id ) || in_array( $post_status, array( 'auto-draft', 'draft' ), true );
-
-			// Only apply restrictions when editing published factsheets, not when creating new ones or editing drafts
-			if ( ! $is_new_or_draft && WSUWP_Factsheet_Access::user_is_restricted_contributor( $user_id, $post_id ) ) {
-				// Add inline CSS to visually disable restricted fields
-				$custom_css = '
-					/* Disable title field */
-					#titlewrap input#title {
-						pointer-events: none;
-						background-color: #f0f0f0;
-						color: #666;
-						cursor: not-allowed;
-					}
-					/* Disable permalink edit */
-					#edit-slug-box,
-					#edit-slug-buttons,
-					.edit-slug {
-						pointer-events: none;
-						opacity: 0.5;
-					}
-					#edit-slug-buttons {
-						display: none;
-					}
-					/* Disable Program Names panel (greyed out) */
-					#gs-program-namediv {
-						pointer-events: none;
-						opacity: 0.5;
-					}
-					#gs-program-namediv .inside {
-						background-color: #f0f0f0;
-					}
-					#gs-program-namediv input,
-					#gs-program-namediv select,
-					#gs-program-namediv button {
-						cursor: not-allowed;
-					}
-					/* Disable Degree Types panel (greyed out) */
-					#tagsdiv-gs-degree-type {
-						pointer-events: none;
-						opacity: 0.5;
-					}
-					#tagsdiv-gs-degree-type .inside {
-						background-color: #f0f0f0;
-					}
-					#tagsdiv-gs-degree-type input,
-					#tagsdiv-gs-degree-type select,
-					#tagsdiv-gs-degree-type button {
-						cursor: not-allowed;
-					}
-				';
-				wp_add_inline_style( 'gsdp-admin', $custom_css );
-
-				// Add inline JS to make fields readonly/disabled
-				$custom_js = '
-					jQuery(document).ready(function($) {
-						// Make title readonly
-						$("#title").prop("readonly", true);
-						// Disable permalink edit button
-						$("#edit-slug-buttons .edit-slug").remove();
-						$(".edit-slug").remove();
-						// Disable inputs in Program Names panel
-						$("#gs-program-namediv input, #gs-program-namediv select, #gs-program-namediv button").prop("disabled", true);
-						// Disable inputs in Degree Types panel
-						$("#tagsdiv-gs-degree-type input, #tagsdiv-gs-degree-type select, #tagsdiv-gs-degree-type button").prop("disabled", true);
-					});
-				';
-				wp_add_inline_script( 'gsdp-factsheet-admin', $custom_js );
-			}
-			// Disable Editorial Access Manager (Factsheet Team) panel for non-admins
-			if ( ! current_user_can( 'manage_options' ) ) {
-				$eam_css = '
-					/* Disable EAM / Factsheet Team panel (greyed out) for non-admins */
-					#gsdp-team-members {
-						pointer-events: none;
-						opacity: 0.5;
-					}
-					#gsdp-team-members .inside {
-						background-color: #f0f0f0;
-					}
-					#gsdp-team-members input,
-					#gsdp-team-members select,
-					#gsdp-team-members button {
-						cursor: not-allowed;
-					}
-				';
-				wp_add_inline_style( 'gsdp-admin', $eam_css );
-
-				$eam_js = '
-					jQuery(document).ready(function($) {
-						$("#gsdp-team-members input, #gsdp-team-members select, #gsdp-team-members button").prop("disabled", true);
-					});
-				';
-				wp_add_inline_script( 'gsdp-factsheet-admin', $eam_js );
-			}
 		}
+		
 
 		if ( in_array( $hook_suffix, array( 'edit-tags.php', 'term.php', 'term-new.php' ), true ) && in_array( get_current_screen()->taxonomy, array( 'gs-degree-type' ), true ) ) {
 			wp_enqueue_style( 'gsdp-faculty-admin', WSUWP\Plugin\Graduate\Plugin::get('url'). '/css/faculty-admin.css', array(), WSUWP_Graduate_School_Theme()->theme_version() );
 		}
 	}
+	/**
+	 * Add body classes on factsheet edit screen for conditional admin CSS/JS.
+	 *
+	 * @param string|array $classes Existing body classes (string in older WP, array in WP 5.9+).
+	 * @return string|array
+	 */
+	public function add_factsheet_admin_body_classes( $classes ) {
+		$is_string = is_string( $classes );
+		if ( $is_string ) {
+			$classes = array_filter( array_map( 'trim', explode( ' ', $classes ) ) );
+		}
 
+		$screen = get_current_screen();
+		if ( ! $screen || 'gs-factsheet' !== $screen->id || ! in_array( $screen->base, array( 'post', 'post-new' ), true ) ) {
+			return $is_string ? implode( ' ', $classes ) : $classes;
+		}
+
+		$user_id = get_current_user_id();
+		$post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$post_status = $post_id ? get_post_status( $post_id ) : '';
+		$is_new_or_draft = empty( $post_id ) || in_array( $post_status, array( 'auto-draft', 'draft' ), true );
+
+		if ( ! $is_new_or_draft && WSUWP_Factsheet_Access::user_is_restricted_contributor( $user_id, $post_id ) ) {
+			$classes[] = 'gsdp-restricted-contributor';
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			$classes[] = 'gsdp-eam-disabled';
+		}
+
+		return $is_string ? implode( ' ', $classes ) : $classes;
+	}
 
 	/**
 	 * Register the degree program factsheet post type.
