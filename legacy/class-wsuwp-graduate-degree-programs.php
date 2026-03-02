@@ -17,6 +17,11 @@ class WSUWP_Graduate_Degree_Programs {
 	private static $instance;
 
 	/**
+	 * @var WSUWP_Factsheet_Admin_Assets
+	 */
+	private $factsheet_admin_assets;
+
+	/**
 	 * The slug used to register the factsheet post type.
 	 *
 	 * @since 0.4.0
@@ -262,11 +267,14 @@ class WSUWP_Graduate_Degree_Programs {
 		require_once dirname( __FILE__ ) . '/class-factsheet-archive.php';
 		require_once dirname( __FILE__ ) . '/class-factsheet-data.php';
 		require_once dirname( __FILE__ ) . '/class-factsheet-access.php';
+		require_once dirname( __FILE__ ) . '/class-factsheet-admin-assets.php';
 		$this->factsheet_redirects = new WSUWP_Factsheet_Redirects( $this->post_type_slug, $this->archive_slug );
 		$this->factsheet_archive = new WSUWP_Factsheet_Archive( $this->post_type_slug );
+		$this->factsheet_admin_assets = new WSUWP_Factsheet_Admin_Assets( $this->post_type_slug );
+
 
 		add_filter( 'admin_body_class', array( $this, 'add_factsheet_admin_body_classes' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
+		add_action( 'admin_enqueue_scripts', array( $this->factsheet_admin_assets, 'admin_enqueue_scripts' ) );
 
 		add_action( 'init', array( $this, 'register_post_type' ), 15 );
 		add_action( 'init', 'WSUWP_Graduate_Degree_Program_Name_Taxonomy', 15 );
@@ -298,32 +306,6 @@ class WSUWP_Graduate_Degree_Programs {
 		add_filter( 'spine_get_title', array( $this->factsheet_archive, 'filter_factsheet_archive_title' ), 10, 3 );
 	}
 
-	/**
-	 * Enqueue scripts and styles used in the admin.
-	 *
-	 * @since 0.4.0
-	 * @since 1.4.0 Added inline styles to disable title/permalink for restricted contributors.
-	 *
-	 * @param string $hook_suffix
-	 */
-	public function admin_enqueue_scripts( $hook_suffix ) {
-		if ( in_array( $hook_suffix, array( 'post.php', 'post-new.php' ), true ) && 'gs-factsheet' === get_current_screen()->id ) {
-			wp_deregister_script( 'yoast-seo-post-scraper' );
-			wp_deregister_script( 'yoast-seo-term-scraper' );
-			wp_deregister_script( 'yoast-seo-featured-image' );
-
-			wp_enqueue_style( 'gsdp-admin', WSUWP\Plugin\Graduate\Plugin::get('url'). '/css/factsheet-admin.css', array(), WSUWP_Graduate_School_Theme()->theme_version() );
-			wp_register_script( 'gsdp-factsheet-admin', WSUWP\Plugin\Graduate\Plugin::get('url'). '/js/factsheet-admin.min.js', array( 'jquery', 'underscore', 'jquery-ui-autocomplete' ), WSUWP_Graduate_School_Theme()->theme_version(), true );
-
-			wp_enqueue_script( 'gsdp-factsheet-admin' );
-
-		}
-		
-
-		if ( in_array( $hook_suffix, array( 'edit-tags.php', 'term.php', 'term-new.php' ), true ) && in_array( get_current_screen()->taxonomy, array( 'gs-degree-type' ), true ) ) {
-			wp_enqueue_style( 'gsdp-faculty-admin', WSUWP\Plugin\Graduate\Plugin::get('url'). '/css/faculty-admin.css', array(), WSUWP_Graduate_School_Theme()->theme_version() );
-		}
-	}
 	/**
 	 * Add body classes on factsheet edit screen for conditional admin CSS/JS.
 	 *
@@ -434,7 +416,7 @@ class WSUWP_Graduate_Degree_Programs {
 	 * Removes unnecessary meta boxes from the factsheet screen.
 	 *
 	 * Note: Program Names and Degree Types taxonomy boxes are NOT removed here.
-	 * They are greyed out (disabled) via CSS/JS in admin_enqueue_scripts() for
+	 * They are greyed out (disabled) via CSS/JS in Factsheet_Admin_Assets::admin_enqueue_scripts() for
 	 * restricted contributors.
 	 *
 	 * @since 0.7.0

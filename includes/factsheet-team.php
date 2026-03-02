@@ -30,6 +30,8 @@ class Factsheet_Team {
 		add_filter( 'eam_post_types', array( __CLASS__, 'exclude_from_eam' ) );
 
 		add_filter( 'map_meta_cap', array( __CLASS__, 'map_meta_cap' ), 150, 4 );
+		add_action( 'transition_post_status', array( __CLASS__, 'enable_team_access_on_publish' ), 10, 3 );
+
 	}
 
 	/**
@@ -41,6 +43,42 @@ class Factsheet_Team {
 	public static function exclude_from_eam( $post_types ) {
 		unset( $post_types[ self::POST_TYPE ] );
 		return $post_types;
+	}
+
+	/**
+	 * When a factsheet is published, enable team access with the post author as the only team member
+	 * if EAM/team access is not already configured.
+	 *
+	 * @param string   $new_status New post status.
+	 * @param string   $old_status Old post status.
+	 * @param \WP_Post $post       Post object.
+	 */
+	public static function enable_team_access_on_publish( $new_status, $old_status, $post ) {
+		
+		if ( 'publish' !== $new_status ) {
+			return;
+		}
+		// the EAM is turned on only on the transition into publish and not on every save
+		if ( $old_status === 'publish' ) {
+			return;
+		}
+
+		if ( ! $post || self::POST_TYPE !== \get_post_type( $post ) ) {
+			return;
+		}
+
+		if ( 'off' !== self::get_access_mode( $post->ID ) ) {
+			return;
+		}
+
+		$author_id = (int) $post->post_author;
+		$member_ids = $author_id > 0 ? array( $author_id ) : array();
+
+		\update_post_meta( $post->ID, self::META_KEY_MODE, 'users' );
+		\update_post_meta( $post->ID, 'eam_enable_custom_access', 'users' );
+
+		\update_post_meta( $post->ID, self::META_KEY_MEMBERS, $member_ids );
+		\update_post_meta( $post->ID, 'eam_allowed_users', $member_ids );
 	}
 
 	// ------------------------------------------------------------------
