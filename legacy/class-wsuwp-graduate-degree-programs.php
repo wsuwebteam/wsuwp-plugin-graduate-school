@@ -300,6 +300,7 @@ class WSUWP_Graduate_Degree_Programs {
 		add_filter( "auth_post_meta_gsdp_degree_shortname_for_{$this->post_type_slug}", array( 'WSUWP_Factsheet_Access', 'can_edit_restricted_field' ), 100, 4 );
 		add_filter( "auth_post_meta_gsdp_student_learning_outcome_for_{$this->post_type_slug}", array( 'WSUWP_Factsheet_Access', 'can_edit_restricted_field' ), 100, 4 );
 		add_filter( "auth_post_meta_gsdp_include_in_programs_for_{$this->post_type_slug}", array( 'WSUWP_Factsheet_Access', 'can_edit_restricted_field' ), 100, 4 );
+		add_filter( "auth_post_meta_gsdp_application_url_for_{$this->post_type_slug}", array( 'WSUWP_Factsheet_Access', 'can_edit_restricted_field' ), 100, 4 );
 		add_filter( 'wp_insert_post_data', array( $this, 'manage_factsheet_title_update' ), 10, 2 );
 
 		add_action( 'pre_get_posts', array( $this->factsheet_archive, 'adjust_factsheet_archive_query' ) );
