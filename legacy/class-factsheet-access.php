@@ -65,7 +65,7 @@ class WSUWP_Factsheet_Access {
 
 		// Check WordPress role
 		$user = new WP_User( $user_id );
-		$restricted_roles = array( 'contributor', 'author', 'editor' );
+		$restricted_roles = array( 'subscriber', 'contributor' );
 		$unrestricted_roles = array( 'administrator' );
 
 		foreach ( $unrestricted_roles as $role ) {
