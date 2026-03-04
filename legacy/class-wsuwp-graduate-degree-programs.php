@@ -334,7 +334,7 @@ class WSUWP_Graduate_Degree_Programs {
 	/**
 	 * Remove "Add New" / "Add Factsheet" from the Factsheets menu for Contributors.
 	 *
-	 * @since 1.x.x
+	 * @since 1.2.2
 	 */
 	public function remove_add_new_factsheet_for_contributor() {
 		$user = wp_get_current_user();
