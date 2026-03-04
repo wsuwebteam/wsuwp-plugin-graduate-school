@@ -155,7 +155,7 @@ class Factsheet_Team {
 			$user_ids = self::get_team_member_ids( $post_id );
 	
 			if ( empty( $user_ids ) ) {
-				echo esc_html__( 'No users assigned', 'wsuwp-plugin-graduate-school' );
+				echo esc_html__( '', 'wsuwp-plugin-graduate-school' );
 				return;
 			}
 	
@@ -169,7 +169,7 @@ class Factsheet_Team {
 			}
 	
 			if ( empty( $user_names ) ) {
-				echo esc_html__( 'No users assigned', 'wsuwp-plugin-graduate-school' );
+				echo esc_html__( '', 'wsuwp-plugin-graduate-school' );
 			} else {
 				printf(
 					/* translators: %s: comma-separated list of users */
