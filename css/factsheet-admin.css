@@ -250,6 +250,10 @@ input[name="gsdp_program_handbook_url"], input[name="gsdp_student_learning_outco
 	body.gsdp-restricted-contributor #tagsdiv-gs-degree-type button {
 		cursor: not-allowed;
 	}
+	/* Hide "Add Factsheet" button on list screen for Contributors */
+	body.gsdp-contributor-no-add .page-title-action {
+		display: none;
+	}
 
 	/* EAM / Factsheet Team panel disabled for non-admins */
 	body.gsdp-eam-disabled #gsdp-team-members {

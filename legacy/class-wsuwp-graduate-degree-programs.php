@@ -291,6 +291,8 @@ class WSUWP_Graduate_Degree_Programs {
 		add_action( 'add_meta_boxes', array( $this, 'remove_meta_boxes' ), 99 );
 		add_action( "save_post_{$this->post_type_slug}", array( $this, 'save_factsheet' ), 10, 2 );
 
+		add_action( 'admin_menu', array( $this, 'remove_add_new_factsheet_for_contributor' ), 999 );
+
 		// Capability mapping for team-based access is now handled by
 		// \WSUWP\Plugin\Graduate\Factsheet_Team::map_meta_cap() at priority 150.
 
@@ -308,6 +310,41 @@ class WSUWP_Graduate_Degree_Programs {
 		add_action( 'template_redirect', array( $this->factsheet_redirects, 'redirect_private_factsheets' ) );
 
 		add_filter( 'spine_get_title', array( $this->factsheet_archive, 'filter_factsheet_archive_title' ), 10, 3 );
+		add_filter( 'post_row_actions', array( $this, 'remove_quick_edit_for_contributors_on_factsheets' ), 10, 2 );
+	}
+
+	/**
+	 * Remove "Quick Edit" from row actions on the Factsheets list for Contributors.
+	 *
+	 * @param string[] $actions Row action links.
+	 * @param \WP_Post $post    Post object.
+	 * @return string[]
+	 */
+	public function remove_quick_edit_for_contributors_on_factsheets( $actions, $post ) {
+		if ( $this->post_type_slug !== $post->post_type ) {
+			return $actions;
+		}
+		$user = wp_get_current_user();
+		if ( ! $user->exists() || ! in_array( 'contributor', $user->roles, true ) ) {
+			return $actions;
+		}
+		unset( $actions['inline hide-if-no-js'] );
+		return $actions;
+	}
+	/**
+	 * Remove "Add New" / "Add Factsheet" from the Factsheets menu for Contributors.
+	 *
+	 * @since 1.x.x
+	 */
+	public function remove_add_new_factsheet_for_contributor() {
+		$user = wp_get_current_user();
+		if ( ! $user->exists() || ! in_array( 'contributor', $user->roles, true ) ) {
+			return;
+		}
+		remove_submenu_page(
+			'edit.php?post_type=' . $this->post_type_slug,
+			'post-new.php?post_type=' . $this->post_type_slug
+		);
 	}
 
 	/**
@@ -323,7 +360,16 @@ class WSUWP_Graduate_Degree_Programs {
 		}
 
 		$screen = get_current_screen();
-		if ( ! $screen || 'gs-factsheet' !== $screen->id || ! in_array( $screen->base, array( 'post', 'post-new' ), true ) ) {
+		if ( ! $screen ) {
+			return $is_string ? implode( ' ', $classes ) : $classes;
+		}
+		// List screen: hide "Add Factsheet" button for contributors only.
+		$user = wp_get_current_user();
+		if ( $user->exists() && in_array( 'contributor', $user->roles, true ) ) {
+			$classes[] = 'gsdp-contributor-no-add';
+		}
+
+		if ( 'gs-factsheet' !== $screen->id || ! in_array( $screen->base, array( 'post', 'post-new' ), true ) ) {
 			return $is_string ? implode( ' ', $classes ) : $classes;
 		}
 

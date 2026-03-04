@@ -31,6 +31,8 @@ class Factsheet_Team {
 
 		add_filter( 'map_meta_cap', array( __CLASS__, 'map_meta_cap' ), 150, 4 );
 		add_action( 'transition_post_status', array( __CLASS__, 'enable_team_access_on_publish' ), 10, 3 );
+		add_filter( 'manage_gs-factsheet_posts_columns', array( __CLASS__, 'add_team_column' ) );
+		add_action( 'manage_gs-factsheet_posts_custom_column', array( __CLASS__, 'render_team_column' ), 10, 2 );
 
 	}
 
@@ -95,7 +97,93 @@ class Factsheet_Team {
 			'default'
 		);
 	}
+	/**
+	 * Add the editorial access column to the factsheet posts list table.
+	 *
+	 * @param array $columns The existing columns array.
+	 * @return array The modified columns array.
+	 */
+	public static function add_team_column( $columns ) {
+		// Insert our column near the end; adjust key if you want a different label.
+		$columns['gsdp_editorial_access'] = __( 'Editorial Access Manager', 'wsuwp-plugin-graduate-school' );
+	
+		return $columns;
+	}
 
+	public static function render_team_column( $column, $post_id ) {
+		if ( 'gsdp_editorial_access' !== $column ) {
+			return;
+		}
+	
+		$mode = self::get_access_mode( $post_id );
+	
+		if ( 'off' === $mode ) {
+			echo esc_html__( 'Open access', 'wsuwp-plugin-graduate-school' );
+			return;
+		}
+	
+		if ( 'roles' === $mode ) {
+			$roles = self::get_team_role_slugs( $post_id );
+	
+			if ( empty( $roles ) ) {
+				echo esc_html__( 'No roles assigned', 'wsuwp-plugin-graduate-school' );
+				return;
+			}
+	
+			$role_names = array();
+			foreach ( $roles as $role_slug ) {
+				$role = get_role( $role_slug );
+				if ( $role && ! empty( $role->name ) ) {
+					$role_names[] = translate_user_role( $role->name );
+				}
+			}
+	
+			if ( empty( $role_names ) ) {
+				echo esc_html__( 'No roles assigned', 'wsuwp-plugin-graduate-school' );
+			} else {
+				printf(
+					/* translators: %s: comma-separated list of roles */
+					esc_html__( 'Roles: %s', 'wsuwp-plugin-graduate-school' ),
+					esc_html( implode( ', ', $role_names ) )
+				);
+			}
+	
+			return;
+		}
+	
+		if ( 'users' === $mode ) {
+			$user_ids = self::get_team_member_ids( $post_id );
+	
+			if ( empty( $user_ids ) ) {
+				echo esc_html__( '', 'wsuwp-plugin-graduate-school' );
+				return;
+			}
+	
+			$user_names = array();
+			foreach ( $user_ids as $user_id ) {
+				$user = get_userdata( $user_id );
+				if ( $user ) {
+					// You can switch to display_name if you prefer full names.
+					$user_names[] = $user->user_login;
+				}
+			}
+	
+			if ( empty( $user_names ) ) {
+				echo esc_html__( '', 'wsuwp-plugin-graduate-school' );
+			} else {
+				printf(
+					/* translators: %s: comma-separated list of users */
+					esc_html__( ' %s', 'wsuwp-plugin-graduate-school' ),
+					esc_html( implode( ', ', $user_names ) )
+				);
+			}
+	
+			return;
+		}
+	
+		// Fallback for unexpected modes.
+		echo esc_html__( 'Unknown access mode', 'wsuwp-plugin-graduate-school' );
+	}
 	/**
 	 * Render the meta box.
 	 *
@@ -115,6 +203,13 @@ class Factsheet_Team {
 		$available_roles = self::get_editable_roles_for_post_type();
 		$available_users = self::get_eligible_users();
 
+		// Default display to "Users" with author when no mode has been saved yet.
+		if ( 'off' === $mode && empty( $selected_users ) && empty( $selected_roles ) ) {
+			$mode           = 'users';
+			$author_id      = (int) $post->post_author;
+			$selected_users = $author_id > 0 ? array( $author_id ) : array();
+		}
+		
 		$roles_active = ( 'roles' === $mode );
 		$users_active = ( 'users' === $mode );
 
