@@ -203,6 +203,13 @@ class Factsheet_Team {
 		$available_roles = self::get_editable_roles_for_post_type();
 		$available_users = self::get_eligible_users();
 
+		// Default display to "Users" with author when no mode has been saved yet.
+		if ( 'off' === $mode && empty( $selected_users ) && empty( $selected_roles ) ) {
+			$mode           = 'users';
+			$author_id      = (int) $post->post_author;
+			$selected_users = $author_id > 0 ? array( $author_id ) : array();
+		}
+		
 		$roles_active = ( 'roles' === $mode );
 		$users_active = ( 'users' === $mode );
 
