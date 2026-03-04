@@ -51,6 +51,11 @@ class WSUWP_Factsheet_Admin_Assets {
 			wp_enqueue_style( 'gsdp-admin', WSUWP\Plugin\Graduate\Plugin::get( 'url' ) . '/css/factsheet-admin.css', array(), WSUWP_Graduate_School_Theme()->theme_version() );
 			wp_register_script( 'gsdp-factsheet-admin', WSUWP\Plugin\Graduate\Plugin::get( 'url' ) . '/js/factsheet-admin.min.js', array( 'jquery', 'underscore', 'jquery-ui-autocomplete' ), WSUWP_Graduate_School_Theme()->theme_version(), true );
 			wp_enqueue_script( 'gsdp-factsheet-admin' );
+     
+		}
+        // List screen: load admin CSS so "Add Factsheet" can be hidden for contributors.
+		if ( 'edit.php' === $hook_suffix && isset( $screen->post_type ) && $this->post_type_slug === $screen->post_type ) {
+			wp_enqueue_style( 'gsdp-admin', WSUWP\Plugin\Graduate\Plugin::get( 'url' ) . '/css/factsheet-admin.css', array(), WSUWP_Graduate_School_Theme()->theme_version() );
 		}
 
 		if ( in_array( $hook_suffix, array( 'edit-tags.php', 'term.php', 'term-new.php' ), true ) && $this->taxonomy_degree_type === $screen->taxonomy ) {

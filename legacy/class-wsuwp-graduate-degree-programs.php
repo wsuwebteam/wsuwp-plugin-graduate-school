@@ -291,6 +291,8 @@ class WSUWP_Graduate_Degree_Programs {
 		add_action( 'add_meta_boxes', array( $this, 'remove_meta_boxes' ), 99 );
 		add_action( "save_post_{$this->post_type_slug}", array( $this, 'save_factsheet' ), 10, 2 );
 
+		add_action( 'admin_menu', array( $this, 'remove_add_new_factsheet_for_contributor' ), 999 );
+
 		// Capability mapping for team-based access is now handled by
 		// \WSUWP\Plugin\Graduate\Factsheet_Team::map_meta_cap() at priority 150.
 
@@ -311,6 +313,22 @@ class WSUWP_Graduate_Degree_Programs {
 	}
 
 	/**
+	 * Remove "Add New" / "Add Factsheet" from the Factsheets menu for Contributors.
+	 *
+	 * @since 1.x.x
+	 */
+	public function remove_add_new_factsheet_for_contributor() {
+		$user = wp_get_current_user();
+		if ( ! $user->exists() || ! in_array( 'contributor', $user->roles, true ) ) {
+			return;
+		}
+		remove_submenu_page(
+			'edit.php?post_type=' . $this->post_type_slug,
+			'post-new.php?post_type=' . $this->post_type_slug
+		);
+	}
+
+	/**
 	 * Add body classes on factsheet edit screen for conditional admin CSS/JS.
 	 *
 	 * @param string|array $classes Existing body classes (string in older WP, array in WP 5.9+).
@@ -323,7 +341,16 @@ class WSUWP_Graduate_Degree_Programs {
 		}
 
 		$screen = get_current_screen();
-		if ( ! $screen || 'gs-factsheet' !== $screen->id || ! in_array( $screen->base, array( 'post', 'post-new' ), true ) ) {
+		if ( ! $screen ) {
+			return $is_string ? implode( ' ', $classes ) : $classes;
+		}
+		// List screen: hide "Add Factsheet" button for contributors only.
+		$user = wp_get_current_user();
+		if ( $user->exists() && in_array( 'contributor', $user->roles, true ) ) {
+			$classes[] = 'gsdp-contributor-no-add';
+		}
+
+		if ( 'gs-factsheet' !== $screen->id || ! in_array( $screen->base, array( 'post', 'post-new' ), true ) ) {
 			return $is_string ? implode( ' ', $classes ) : $classes;
 		}
 
