@@ -52,7 +52,7 @@ class Shortcode {
 		$factsheets_by_key = array();
 		foreach ( $factsheets as $factsheet_name => $entries ) {
 			foreach ( $entries as $entry ) {
-				$title = $factsheet_name;
+				$title = ! empty( $entry['title'] ) ? $entry['title'] : $factsheet_name;
 				$url = $entry['permalink'];
 				$shortname = ! empty( $entry['shortname'] ) ? $entry['shortname'] : $title;
 				$program_name = ! empty( $entry['program_name'] ) ? $entry['program_name'] : $shortname;
@@ -277,6 +277,7 @@ class Shortcode {
 					
 					$entry = $factsheet_data;
 					$entry['id'] = get_the_ID();
+					$entry['title'] = get_the_title();
 					$entry['degree_type'] = $degree_type->name;
 					$entry['program_name'] = $program_name_value;
 					$entry['degree_classification'] = $degree_classification;
@@ -287,6 +288,7 @@ class Shortcode {
 			} else {
 				// Fallback for factsheets with no degree types
 				$factsheet_data['id'] = get_the_ID();
+				$factsheet_data['title'] = get_the_title();
 				$factsheet_data['degree_type'] = 'Other';
 				$factsheet_data['program_name'] = $program_name_value;
 				$factsheet_data['degree_classification'] = 'other';
