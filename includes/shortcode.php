@@ -1,17 +1,24 @@
 <?php namespace WSUWP\Plugin\Graduate;
 
 class Shortcode {
-	
+
+	/**
+	 * Initialize the shortcode.
+	 * Scripts and styles are enqueued when the shortcode is used.
+	 *
+	 * @since 1.2.2
+	 */
 	public static function init() {
 
 		add_shortcode( 'gsdegrees', array( __CLASS__, 'add_gs_shortcodes' ) );
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'maybe_enqueue_assets' ) );
 
 	}
 
 	/**
 	 * Sort degree classifications in the specified order.
 	 *
-	 * @since 1.1.29
+	 * @since 1.2.2
 	 *
 	 * @param array $classifications Array of classification strings.
 	 * @return array Sorted array of classifications.
@@ -23,44 +30,118 @@ class Shortcode {
 			'professional-masters',
 			'masters-4plus1',
 			'graduate-certificate',
+			'global-campus',
 			'administrator-credentials',
 		);
 
 		usort( $classifications, function( $a, $b ) use ( $order ) {
-			$pos_a = array_search( $a, $order );
-			$pos_b = array_search( $b, $order );
+			$a_rank = ( $i = array_search( $a, $order, true ) ) === false ? 999 : $i;
+			$b_rank = ( $i = array_search( $b, $order, true ) ) === false ? 999 : $i;
 
-			// If not found in order array, put at end
-			if ( false === $pos_a ) {
-				$pos_a = 999;
-			}
-			if ( false === $pos_b ) {
-				$pos_b = 999;
-			}
-
-			return $pos_a - $pos_b;
+			return $a_rank - $b_rank;
 		} );
 
 		return $classifications;
 	}
 
 	/**
+	 * Transform factsheets array to programs array for landing page
+	 * Matches program-builder.ts: 1) De-duplicate by title|url 2) Group by program_name → shortname 3) Sort alphabetically, then by classification rank
+	 */
+	protected static function transform_factsheets_to_programs( $factsheets ) {
+		$factsheets_by_key = array();
+		foreach ( $factsheets as $factsheet_name => $entries ) {
+			foreach ( $entries as $entry ) {
+				$title = $factsheet_name;
+				$url = $entry['permalink'];
+				$shortname = ! empty( $entry['shortname'] ) ? $entry['shortname'] : $title;
+				$program_name = ! empty( $entry['program_name'] ) ? $entry['program_name'] : $shortname;
+				$key = $title . '|' . $url;
+				if ( ! isset( $factsheets_by_key[ $key ] ) ) {
+					$factsheets_by_key[ $key ] = array( 'title' => $title, 'url' => $url, 'shortname' => $shortname, 'program_name' => $program_name, 'classifications' => array() );
+				}
+				if ( isset( $entry['degree_classifications'] ) && is_array( $entry['degree_classifications'] ) ) {
+					foreach ( $entry['degree_classifications'] as $class ) {
+						if ( ! in_array( $class, $factsheets_by_key[ $key ]['classifications'], true ) ) {
+							$factsheets_by_key[ $key ]['classifications'][] = $class;
+						}
+					}
+				} elseif ( ! empty( $entry['degree_classification'] ) ) {
+					if ( ! in_array( $entry['degree_classification'], $factsheets_by_key[ $key ]['classifications'], true ) ) {
+						$factsheets_by_key[ $key ]['classifications'][] = $entry['degree_classification'];
+					}
+				}
+			}
+		}
+		$by_program_and_shortname = array();
+		foreach ( $factsheets_by_key as $entry ) {
+			$prog = $entry['program_name'];
+			$short = $entry['shortname'];
+			if ( ! isset( $by_program_and_shortname[ $prog ] ) ) $by_program_and_shortname[ $prog ] = array();
+			if ( ! isset( $by_program_and_shortname[ $prog ][ $short ] ) ) $by_program_and_shortname[ $prog ][ $short ] = array();
+			$by_program_and_shortname[ $prog ][ $short ][] = array( 'title' => $entry['title'], 'url' => $entry['url'], 'shortname' => $entry['shortname'], 'classifications' => $entry['classifications'] );
+		}
+		$programs = array();
+		$sorted_programs = array_keys( $by_program_and_shortname );
+		sort( $sorted_programs );
+		foreach ( $sorted_programs as $program_name ) {
+			$shortname_groups = $by_program_and_shortname[ $program_name ];
+			$sorted_shortnames = array_keys( $shortname_groups );
+			sort( $sorted_shortnames );
+			foreach ( $sorted_shortnames as $shortname ) {
+				$entries = $shortname_groups[ $shortname ];
+				usort( $entries, function( $a, $b ) {
+					$a_rank = self::get_classification_rank( $a['classifications'] );
+					$b_rank = self::get_classification_rank( $b['classifications'] );
+					return $a_rank !== $b_rank ? $a_rank - $b_rank : strcasecmp( $a['title'], $b['title'] );
+				} );
+				$all_classifications = array();
+				foreach ( $entries as $e ) {
+					foreach ( $e['classifications'] as $class ) {
+						if ( ! in_array( $class, $all_classifications, true ) ) $all_classifications[] = $class;
+					}
+				}
+				$sorted_classifications = self::sort_classifications( $all_classifications );
+				$primary_classification = ! empty( $sorted_classifications[0] ) ? $sorted_classifications[0] : 'other';
+				$first_char = strtoupper( substr( $program_name, 0, 1 ) );
+				if ( ! preg_match( '/^[A-Z]$/', $first_char ) ) $first_char = 'A';
+				$programs[] = array( 'name' => $program_name, 'shortname' => $shortname, 'entries' => $entries, 'classification' => $primary_classification, 'classifications' => $sorted_classifications, 'letter' => $first_char );
+			}
+		}
+		return $programs;
+	}
+
+	protected static function get_classification_rank( $classifications ) {
+		$order = array( 'doctorate', 'masters', 'professional-masters', 'masters-4plus1', 'graduate-certificate', 'global-campus', 'administrator-credentials' );
+		if ( empty( $classifications ) ) return count( $order );
+		$ranks = array();
+		foreach ( $classifications as $class ) {
+			$index = array_search( $class, $order, true );
+			if ( false !== $index ) $ranks[] = $index;
+		}
+		return ! empty( $ranks ) ? min( $ranks ) : count( $order );
+	}
+
+	/**
 	 * Enqueue frontend scripts and styles when shortcode is used.
 	 *
-	 * @since 1.1.24
+	 * @since 1.2.2
 	 */
 	public static function enqueue_frontend_scripts() {
+		if ( wp_script_is( 'wsuwp-graduate-factsheets-landing', 'enqueued' ) ) {
+			return;
+		}
 		// This will be called by the shortcode when needed
 		wp_enqueue_style( 
-			'wsuwp-graduate-factsheets', 
-			Plugin::get( 'url' ) . '/css/30-factsheets.css', 
+			'wsuwp-graduate-factsheets-landing', 
+			Plugin::get( 'url' ) . '/css/factsheet-landing.css', 
 			array(), 
 			WSUWPPLUGINGRADUATEVERSION 
 		);
 		
 		wp_enqueue_script( 
-			'wsuwp-graduate-factsheets-az', 
-			Plugin::get( 'url' ) . '/js/factsheet-az.min.js', 
+			'wsuwp-graduate-factsheets-landing', 
+			Plugin::get( 'url' ) . '/js/factsheet-landing.js', 
 			array(), 
 			WSUWPPLUGINGRADUATEVERSION, 
 			true 
@@ -69,15 +150,42 @@ class Shortcode {
 
 
 	public static function add_gs_shortcodes( $atts, $content = '' ) {
+		/**
+		 * Add the gsdegrees shortcode to the page.
+		 *
+		 * @param array $atts The attributes of the shortcode.
+		 * @param string $content The content of the shortcode.
+		 * @return string The HTML content of the shortcode.
+		 * 
+		 * @version 1.2.2
+		 */
 
 		// Enqueue the CSS when shortcode is used
 		self::enqueue_frontend_scripts();
 
 		$factsheets = self::get_fact_sheets( $atts );
+		$programs_data  = self::transform_factsheets_to_programs( $factsheets );
+		$config_data    = self::get_landing_config();
+		$programs_json  = wp_json_encode( $programs_data );
+		$json_size      = strlen( $programs_json );
+
+		if ( $json_size > 100000 ) {
+			error_log( sprintf( 'WSUWP Graduate Plugin: Large JSON payload (%d bytes, %d programs)', $json_size, count( $programs_data ) ) );
+		}
+		if ( $json_size > 1000000 ) {
+			error_log( 'WSUWP Graduate Plugin: JSON payload exceeds 1MB, aborting render' );
+			return '<!-- Error: Too many programs to display. Please contact site administrator. -->';
+		}
+	
+		$template_path = Plugin::get( 'dir' ) . '/templates/az-landing.php';
+		if ( ! file_exists( $template_path ) ) {
+			error_log( 'WSUWP Graduate Plugin: Landing template not found at ' . $template_path );
+			return '<!-- Error: Landing page template not found. Please check plugin files. -->';
+		}
 
 		ob_start();
 
-		include Plugin::get( 'dir' ) . '/templates/az-index.php';
+		include $template_path;
 
 		$html_content = ob_get_clean();
 
@@ -87,6 +195,19 @@ class Shortcode {
 
 	}
 
+	/**
+	 * Maybe enqueue frontend scripts when the shortcode is used.
+	 * Ensure css/js  are added when page containing [gs-degrees] shortcode is loaded not only when shortcode runs
+	 *
+	 * @since 1.2.2
+	 */
+	public static function maybe_enqueue_assets() {
+		global $post;
+
+		if ( is_a( $post, 'WP_Post' ) && has_shortcode( $post->post_content, 'gsdegrees' ) ) {
+			self::enqueue_frontend_scripts();
+		}
+	}
 
 	protected static function get_fact_sheets( $atts = array() ) {
 
@@ -155,6 +276,7 @@ class Shortcode {
 					}
 					
 					$entry = $factsheet_data;
+					$entry['id'] = get_the_ID();
 					$entry['degree_type'] = $degree_type->name;
 					$entry['program_name'] = $program_name_value;
 					$entry['degree_classification'] = $degree_classification;
@@ -164,6 +286,7 @@ class Shortcode {
 				}
 			} else {
 				// Fallback for factsheets with no degree types
+				$factsheet_data['id'] = get_the_ID();
 				$factsheet_data['degree_type'] = 'Other';
 				$factsheet_data['program_name'] = $program_name_value;
 				$factsheet_data['degree_classification'] = 'other';
@@ -263,7 +386,37 @@ class Shortcode {
 
 
 	}
+	/**
+	 * Get the landing config.
+	 *
+	 * @since 1.2.2
+	 * @return array The landing config.
+	 */
+	protected static function get_landing_config() {
 
+		return array(
+			'badgeMap' => array(
+				'doctorate' => array( 'text' => 'D', 'class' => 'doctorate', 'label' => 'Doctorate' ),
+				'masters' => array( 'text' => 'M', 'class' => 'masters', 'label' => 'Masters' ),
+				'professional-masters' => array( 'text' => 'PM', 'class' => 'professional-masters', 'label' => 'Professional Masters' ),
+				'masters-4plus1' => array( 'text' => '4+1', 'class' => 'masters-entry', 'label' => '4+1 Entry' ),
+				'graduate-certificate' => array( 'text' => 'GC', 'class' => 'graduate-cert', 'label' => 'Graduate Certificate' ),
+				'global-campus' => array( 'text' => 'G', 'class' => 'global-campus', 'label' => 'Global Campus' ),
+				'administrator-credentials' => array( 'text' => 'C', 'class' => 'credential', 'label' => 'Administrator Credentials' ),
+			),
+			'classificationOrder' => array( 'doctorate', 'masters', 'professional-masters', 'masters-4plus1', 'graduate-certificate', 'global-campus', 'administrator-credentials' ),
+			'filterDefinitions' => array(
+				array( 'type' => 'all', 'label' => 'All Programs' ),
+				array( 'type' => 'doctorate', 'label' => 'Doctorate', 'badge' => 'D', 'badgeClass' => 'doctorate' ),
+				array( 'type' => 'masters', 'label' => 'Masters', 'badge' => 'M', 'badgeClass' => 'masters' ),
+				array( 'type' => 'professional-masters', 'label' => 'Professional Masters', 'badge' => 'PM', 'badgeClass' => 'professional-masters' ),
+				array( 'type' => 'graduate-certificate', 'label' => 'Graduate Certificate', 'badge' => 'GC', 'badgeClass' => 'graduate-cert' ),
+				array( 'type' => 'global-campus', 'label' => 'Global Campus', 'badge' => 'G', 'badgeClass' => 'global-campus' ),
+				array( 'type' => 'administrator-credentials', 'label' => 'Credentials', 'badge' => 'C', 'badgeClass' => 'credential' ),
+				array( 'type' => 'masters-4plus1', 'label' => '4+1 Entry', 'badge' => '4+1', 'badgeClass' => 'masters-entry' ),
+			),
+		);
+	}
 }
 
 Shortcode::init();
