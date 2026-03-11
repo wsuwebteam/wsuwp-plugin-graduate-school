@@ -165,7 +165,8 @@ class Shortcode {
 
 		$factsheets = self::get_fact_sheets( $atts );
 		$programs_data  = self::transform_factsheets_to_programs( $factsheets );
-		$config_data    = self::get_landing_config();
+		$full_config = self::get_landing_config();
+		$config_data    = array_diff_key( $full_config, array( 'degreeTypeClassifications' => '' ) );
 		$programs_json  = wp_json_encode( $programs_data );
 		$json_size      = strlen( $programs_json );
 
@@ -272,7 +273,8 @@ class Shortcode {
 					$degree_classification = get_term_meta( $degree_type->term_id, 'gs_degree_type_classification', true );
 					
 					if ( empty( $degree_classification ) ) {
-						$degree_classification = 'other';
+						$config = self::get_landing_config();
+						$degree_classification = $config['degreeTypeClassifications'][ $degree_type->name ] ?? 'other';
 					}
 					
 					$entry = $factsheet_data;
@@ -417,6 +419,29 @@ class Shortcode {
 				array( 'type' => 'administrator-credentials', 'label' => 'Credentials', 'badge' => 'C', 'badgeClass' => 'credential' ),
 				array( 'type' => 'masters-4plus1', 'label' => '4+1 Entry', 'badge' => '4+1', 'badgeClass' => 'masters-entry' ),
 			),
+			'degreeTypeClassifications' => array(
+			'Doctor of Philosophy'                              => 'doctorate',
+			'Doctor of Education'                               => 'doctorate',
+			'Master of Science'                                 => 'masters',
+			'Master of Arts'                                    => 'masters',
+			'Master of Education'                               => 'masters',
+			'Master of Fine Arts'                               => 'masters',
+			'Master of Architecture'                            => 'masters',
+			'Master of Engineering'                             => 'masters',
+			'Master of Business Administration'                 => 'masters',
+			'Executive Master of Business Administration'       => 'masters',
+			'Master of Applied Economics'                       => 'masters',
+			'Master of Energy Conscious Construction'           => 'masters',
+			'Master of Engineering and Technology Management'   => 'masters',
+			'Master of Healthcare Administration and Leadership'=> 'professional-masters',
+			'Master of Nursing'                                 => 'professional-masters',
+			'Master in Athletic Training'                       => 'professional-masters',
+			'Master in Teaching'                                => 'masters',
+			'Professional Science Masters'                      => 'masters',
+			'Natural Resource Sciences'                         => 'masters',
+			'Graduate Certificate'                              => 'graduate-certificate',
+			'Administrator Credentials'                         => 'administrator-credentials',
+		),
 		);
 	}
 }
