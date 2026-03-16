@@ -51,12 +51,19 @@
     let programsData = [];
     let nestedData = [];
 
+    function showNoFactsheetAvailable() {
+    const resultsCount = document.getElementById('wsuResultsCount');
+
+    if (resultsCount) resultsCount.textContent = '';
+    resultsCount.textContent = 'No factsheets found.';
+    }
     function init() {
         applyConfig();
         programsData = loadProgramsData();
 
         if (!programsData || programsData.length === 0) {
             console.warn('Factsheet programs data not found');
+            showNoFactsheetAvailable();
             return;
         }
 
