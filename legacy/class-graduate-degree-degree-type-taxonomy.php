@@ -182,6 +182,7 @@ class WSUWP_Graduate_Degree_Degree_Type_Taxonomy {
 						<option value="masters-4plus1" <?php selected( 'masters-4plus1', $selected_value ); ?>>Masters with 4+1 Entry</option>
 						<option value="graduate-certificate" <?php selected( 'graduate-certificate', $selected_value ); ?>>Graduate Certificate</option>
 						<option value="administrator-credentials" <?php selected( 'administrator-credentials', $selected_value ); ?>>Administrator Credentials</option>
+						<option value="global-campus" <?php selected( 'global-campus', $selected_value ); ?>>Global Campus</option>
 					</select>
 				</td>
 			</tr>
@@ -192,7 +193,8 @@ class WSUWP_Graduate_Degree_Degree_Type_Taxonomy {
 	/**
 	 * Sanitizes a classification for a degree type.
 	 *
-	 * @since 0.8.0
+	 * @since 1.2.3
+	 * added global-campus to the allowed classifications
 	 *
 	 * @param string $classification
 	 *
@@ -203,7 +205,7 @@ class WSUWP_Graduate_Degree_Degree_Type_Taxonomy {
 			$classification = 'other';
 		}
 
-		if ( ! in_array( $classification, array( 'other', 'masters', 'professional-masters', 'masters-4plus1', 'doctorate', 'graduate-certificate', "administrator-credentials"), true ) ) {
+		if ( ! in_array( $classification, array( 'other', 'masters', 'professional-masters', 'masters-4plus1', 'doctorate', 'graduate-certificate', "administrator-credentials", "global-campus"), true ) ) {
 			$classification = 'other';
 		}
 

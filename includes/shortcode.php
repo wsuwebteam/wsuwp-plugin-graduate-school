@@ -390,6 +390,29 @@ class Shortcode {
 
 
 	}
+
+	/**
+	 * Build degree type name => classification map from gs-degree-type taxonomy term meta.
+	 * No hardcoding: uses gs_degree_type_classification term meta. Missing meta => 'other'.
+	 *
+	 * @return array<string, string>
+	 * @since 1.2.3
+	 */
+	protected static function get_degree_type_classifications() {
+		$terms = get_terms( array(
+			'taxonomy'   => 'gs-degree-type',
+			'hide_empty' => false,
+		) );
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			return array();
+		}
+		$map = array();
+		foreach ( $terms as $term ) {
+			$classification = get_term_meta( $term->term_id, 'gs_degree_type_classification', true );
+			$map[ $term->name ] = ( $classification !== '' && $classification !== false ) ? $classification : 'other';
+		}
+		return $map;
+	}
 	/**
 	 * Get the landing config.
 	 *
@@ -419,29 +442,7 @@ class Shortcode {
 				array( 'type' => 'administrator-credentials', 'label' => 'Credentials', 'badge' => 'C', 'badgeClass' => 'credential' ),
 				array( 'type' => 'masters-4plus1', 'label' => '4+1 Entry', 'badge' => '4+1', 'badgeClass' => 'masters-entry' ),
 			),
-			'degreeTypeClassifications' => array(
-			'Doctor of Philosophy'                              => 'doctorate',
-			'Doctor of Education'                               => 'doctorate',
-			'Master of Science'                                 => 'masters',
-			'Master of Arts'                                    => 'masters',
-			'Master of Education'                               => 'masters',
-			'Master of Fine Arts'                               => 'masters',
-			'Master of Architecture'                            => 'masters',
-			'Master of Engineering'                             => 'masters',
-			'Master of Business Administration'                 => 'masters',
-			'Executive Master of Business Administration'       => 'masters',
-			'Master of Applied Economics'                       => 'masters',
-			'Master of Energy Conscious Construction'           => 'masters',
-			'Master of Engineering and Technology Management'   => 'masters',
-			'Master of Healthcare Administration and Leadership'=> 'professional-masters',
-			'Master of Nursing'                                 => 'professional-masters',
-			'Master in Athletic Training'                       => 'professional-masters',
-			'Master in Teaching'                                => 'masters',
-			'Professional Science Masters'                      => 'masters',
-			'Natural Resource Sciences'                         => 'masters',
-			'Graduate Certificate'                              => 'graduate-certificate',
-			'Administrator Credentials'                         => 'administrator-credentials',
-		),
+			'degreeTypeClassifications' => self::get_degree_type_classifications(),
 		);
 	}
 }
