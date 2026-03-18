@@ -165,8 +165,7 @@ class Shortcode {
 
 		$factsheets = self::get_fact_sheets( $atts );
 		$programs_data  = self::transform_factsheets_to_programs( $factsheets );
-		$full_config = self::get_landing_config();
-		$config_data    = array_diff_key( $full_config, array( 'degreeTypeClassifications' => '' ) );
+		$config_data    = self::get_landing_config();
 		$programs_json  = wp_json_encode( $programs_data );
 		$json_size      = strlen( $programs_json );
 
@@ -273,8 +272,7 @@ class Shortcode {
 					$degree_classification = get_term_meta( $degree_type->term_id, 'gs_degree_type_classification', true );
 					
 					if ( empty( $degree_classification ) ) {
-						$config = self::get_landing_config();
-						$degree_classification = $config['degreeTypeClassifications'][ $degree_type->name ] ?? 'other';
+						$degree_classification = $degree_type->slug;
 					}
 					
 					$entry = $factsheet_data;
@@ -314,32 +312,22 @@ class Shortcode {
 		
 		// Now process each program group
 		foreach ( $grouped_by_program as $program_key => $program_entries ) {
-			$masters_entries = array();
-			$non_masters_entries = array();
-			
-			// Separate masters from non-masters for this program
+			// Collect all masters classifications for this program (for badges)
+			$all_masters_classifications = array();
 			foreach ( $program_entries as $entry ) {
 				if ( in_array( $entry['degree_classification'], array( 'masters', 'professional-masters', 'masters-4plus1' ) ) ) {
-					$masters_entries[] = $entry;
-				} else {
-					$non_masters_entries[] = $entry;
+					$all_masters_classifications[] = $entry['degree_classification'];
 				}
 			}
-			
-			// Create grouped masters entry if there are any masters degrees
-			if ( ! empty( $masters_entries ) ) {
-				$grouped_masters = $masters_entries[0]; // Use first as base
-				$classifications = array_column( $masters_entries, 'degree_classification' );
-				$grouped_masters['degree_classifications'] = self::sort_classifications( $classifications );
-				$grouped_masters['degree_types'] = array_column( $masters_entries, 'degree_type' );
-				$grouped_masters['degree_classification'] = 'masters';
-				$grouped_masters['degree_type'] = 'Masters'; // Always use generic "Masters" for grouped entries
-				
-				$factsheets[ $program_key ][] = $grouped_masters;
-			}
-			
-			// Add non-masters entries
-			foreach ( $non_masters_entries as $entry ) {
+			$all_masters_classifications = array_unique( $all_masters_classifications );
+			$sorted_masters_classifications = self::sort_classifications( $all_masters_classifications );
+
+			// Add ALL entries individually (no merging)
+			foreach ( $program_entries as $entry ) {
+				// For masters entries, attach all masters classifications so badges show correctly
+				if ( in_array( $entry['degree_classification'], array( 'masters', 'professional-masters', 'masters-4plus1' ) ) ) {
+					$entry['degree_classifications'] = $sorted_masters_classifications;
+				}
 				$factsheets[ $program_key ][] = $entry;
 			}
 			
@@ -392,28 +380,6 @@ class Shortcode {
 	}
 
 	/**
-	 * Build degree type name => classification map from gs-degree-type taxonomy term meta.
-	 * No hardcoding: uses gs_degree_type_classification term meta. Missing meta => 'other'.
-	 *
-	 * @return array<string, string>
-	 * @since 1.2.3
-	 */
-	protected static function get_degree_type_classifications() {
-		$terms = get_terms( array(
-			'taxonomy'   => 'gs-degree-type',
-			'hide_empty' => false,
-		) );
-		if ( is_wp_error( $terms ) || empty( $terms ) ) {
-			return array();
-		}
-		$map = array();
-		foreach ( $terms as $term ) {
-			$classification = get_term_meta( $term->term_id, 'gs_degree_type_classification', true );
-			$map[ $term->name ] = ( $classification !== '' && $classification !== false ) ? $classification : 'other';
-		}
-		return $map;
-	}
-	/**
 	 * Get the landing config.
 	 *
 	 * @since 1.2.2
@@ -442,7 +408,7 @@ class Shortcode {
 				array( 'type' => 'administrator-credentials', 'label' => 'Credentials', 'badge' => 'C', 'badgeClass' => 'credential' ),
 				array( 'type' => 'masters-4plus1', 'label' => '4+1 Entry', 'badge' => '4+1', 'badgeClass' => 'masters-entry' ),
 			),
-			'degreeTypeClassifications' => self::get_degree_type_classifications(),
+			
 		);
 	}
 }
