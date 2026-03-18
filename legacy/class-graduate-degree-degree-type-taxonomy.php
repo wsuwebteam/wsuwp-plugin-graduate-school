@@ -192,8 +192,6 @@ class WSUWP_Graduate_Degree_Degree_Type_Taxonomy {
 	/**
 	 * Sanitizes a classification for a degree type.
 	 *
-	 * @since 0.8.0
-	 *
 	 * @param string $classification
 	 *
 	 * @return string

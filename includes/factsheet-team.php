@@ -209,7 +209,7 @@ class Factsheet_Team {
 			$author_id      = (int) $post->post_author;
 			$selected_users = $author_id > 0 ? array( $author_id ) : array();
 		}
-		
+
 		$roles_active = ( 'roles' === $mode );
 		$users_active = ( 'users' === $mode );
 
@@ -314,11 +314,13 @@ class Factsheet_Team {
 						<?php foreach ( $available_users as $user_object ) :
 							$user     = new \WP_User( $user_object->ID );
 							$is_admin = in_array( 'administrator', $user->roles, true );
+							if ( $is_admin ) {
+								continue;
+							}
 							?>
 							<option
 								value="<?php echo absint( $user_object->ID ); ?>"
-								<?php if ( $is_admin ) : ?>selected disabled
-								<?php elseif ( in_array( (int) $user_object->ID, $selected_users, true ) ) : ?>selected<?php endif; ?>
+								<?php if ( in_array( (int) $user_object->ID, $selected_users, true ) ) : ?>selected<?php endif; ?>
 							>
 								<?php echo esc_attr( $user->user_login ); ?>
 							</option>
