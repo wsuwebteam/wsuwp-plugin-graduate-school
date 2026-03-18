@@ -270,8 +270,7 @@ class Shortcode {
 			if ( ! is_wp_error( $degree_types ) && 0 < count( $degree_types ) ) {
 				foreach ( $degree_types as $degree_type ) {
 					$degree_classification = get_term_meta( $degree_type->term_id, 'gs_degree_type_classification', true );
-					
-					if ( empty( $degree_classification ) ) {
+					if ( empty( $degree_classification) || "other" === $degree_classification )  {
 						$degree_classification = $degree_type->slug;
 					}
 					
