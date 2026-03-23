@@ -445,6 +445,8 @@
                 const link = document.createElement('a');
                 link.href = entry.url;
                 link.textContent = entry.title;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
                 row.appendChild(link);
 
                 const classifications = entry.classifications || [];
