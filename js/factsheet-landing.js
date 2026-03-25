@@ -10,6 +10,15 @@
     if (!container) {
         return;
     }
+    const pageTitle = document.querySelector('.wsu-article__header > h1');
+    const redHeader = document.querySelector('.wsu-programs-container .wsu-header');
+  
+    if (pageTitle && redHeader) {
+      const shortcodeH1 = redHeader.querySelector('h1');
+      if (shortcodeH1) shortcodeH1.remove();
+  
+      redHeader.prepend(pageTitle);
+    }
 
     const BADGE_MAP = {
         'doctorate': { text: 'D', class: 'doctorate', label: 'Doctorate' },
