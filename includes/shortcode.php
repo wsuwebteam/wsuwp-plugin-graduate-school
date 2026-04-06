@@ -280,7 +280,7 @@ class Shortcode {
 					$entry = $factsheet_data;
 					$entry['id'] = get_the_ID();
 					$entry['title'] = get_the_title();
-					$entry['degree_type'] = $degree_type->name;		
+					$entry['degree_type'] = $degree_type->name;
 					$entry['program_name'] = $program_name_value;
 					$entry['degree_classification'] = $degree_classification;
 					$entry['factsheet_key'] = $factsheet_key;
