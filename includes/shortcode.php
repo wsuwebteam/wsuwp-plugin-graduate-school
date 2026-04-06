@@ -11,8 +11,54 @@ class Shortcode {
 	public static function init() {
 
 		add_shortcode( 'gsdegrees', array( __CLASS__, 'add_gs_shortcodes' ) );
+		add_shortcode( 'wsuwp_search_form', array( __CLASS__, 'render_search_form' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'maybe_enqueue_assets' ) );
 
+	}
+
+	/**
+	 * Render a category-scoped search form.
+	 *
+	 * Usage: [wsuwp_search_form site_category_slug="gsvp"]
+	 *
+	 * Submits ?s=<query>&cat=<id> so the theme's site-search block
+	 * returns WordPress results filtered to that category.
+	 *
+	 * @since 1.2.4
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string HTML for the search form.
+	 */
+	public static function render_search_form( $atts ) {
+		$atts = shortcode_atts( array(
+			'site_category_slug' => '',
+		), $atts, 'wsuwp_search_form' );
+
+		$cat_id = '';
+		if ( ! empty( $atts['site_category_slug'] ) ) {
+			$category = get_category_by_slug( sanitize_title( $atts['site_category_slug'] ) );
+			if ( $category ) {
+				$cat_id = $category->term_id;
+			}
+		}
+
+		$search_value = isset( $_REQUEST['s'] ) ? esc_attr( wp_unslash( $_REQUEST['s'] ) ) : '';
+
+		ob_start();
+		?>
+		<div class="wsu-search wsuwp-category-search">
+			<form method="get" action="<?php echo esc_url( home_url( '/' ) ); ?>">
+				<div class="wsu-search__search-bar">
+					<input class="wsu-search__input" type="text" name="s" aria-label="Search" placeholder="Search" value="<?php echo $search_value; ?>" />
+					<?php if ( $cat_id ) : ?>
+						<input type="hidden" name="cat" value="<?php echo esc_attr( $cat_id ); ?>" />
+					<?php endif; ?>
+					<button class="wsu-search__submit" type="submit" aria-label="Submit Search"></button>
+				</div>
+			</form>
+		</div>
+		<?php
+		return ob_get_clean();
 	}
 
 	/**
@@ -270,14 +316,18 @@ class Shortcode {
 			if ( ! is_wp_error( $degree_types ) && 0 < count( $degree_types ) ) {
 				foreach ( $degree_types as $degree_type ) {
 					$degree_classification = get_term_meta( $degree_type->term_id, 'gs_degree_type_classification', true );
+					error_log( print_r( $degree_classification, true ) . ' ' . print_r( $degree_type, true ) );
 					if ( empty( $degree_classification) || "other" === $degree_classification )  {
 						$degree_classification = $degree_type->slug;
+					}
+					if ( '41-masters-entry' === $degree_classification ) {
+						$degree_classification = 'masters-4plus1';
 					}
 					
 					$entry = $factsheet_data;
 					$entry['id'] = get_the_ID();
 					$entry['title'] = get_the_title();
-					$entry['degree_type'] = $degree_type->name;
+					$entry['degree_type'] = $degree_type->name;		
 					$entry['program_name'] = $program_name_value;
 					$entry['degree_classification'] = $degree_classification;
 					$entry['factsheet_key'] = $factsheet_key;
