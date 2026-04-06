@@ -441,6 +441,9 @@ html {
     padding: 10px 20px 15px 20px;
 }
 
+.wsu-shortname-list.expanded > .wsu-shortname-group + .wsu-shortname-group {
+    margin-top: 6px;
+  }
 
 .wsu-shortname-entry {
     padding: 10px 16px;
