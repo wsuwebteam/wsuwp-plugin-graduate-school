@@ -273,6 +273,9 @@ class Shortcode {
 					if ( empty( $degree_classification) || "other" === $degree_classification )  {
 						$degree_classification = $degree_type->slug;
 					}
+					if ( '41-masters-entry' === $degree_classification ) {
+						$degree_classification = 'masters-4plus1';
+					}
 					
 					$entry = $factsheet_data;
 					$entry['id'] = get_the_ID();

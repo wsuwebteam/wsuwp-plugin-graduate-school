@@ -58,12 +58,7 @@ class WSUWP_Factsheet_Access {
 			return false;
 		}
 
-		// Check team membership (if post_id provided)
-		if ( $post_id && self::user_is_eam_user( $user_id, $post_id ) ) {
-			return true;
-		}
-
-		// Check WordPress role
+		// Check WordPress role first. Administrators are never restricted.
 		$user = new WP_User( $user_id );
 		$restricted_roles = array( 'subscriber', 'contributor' );
 		$unrestricted_roles = array( 'administrator' );
@@ -72,6 +67,11 @@ class WSUWP_Factsheet_Access {
 			if ( in_array( $role, $user->roles, true ) ) {
 				return false;
 			}
+		}
+
+		// Check team membership (if post_id provided) for non-admin users.
+		if ( $post_id && self::user_is_eam_user( $user_id, $post_id ) ) {
+			return true;
 		}
 
 		foreach ( $restricted_roles as $role ) {
