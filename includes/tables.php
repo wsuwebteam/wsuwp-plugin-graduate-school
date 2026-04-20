@@ -9,17 +9,32 @@ class Tables {
 	const CAP_EDIT = 'gs_tables_edit';
 	const CAP_DELETE = 'gs_tables_delete';
 	const CAP_ADVANCED_OPTIONS = 'gs_tables_advanced_options';
+	const META_LEGACY_SOURCE = '_gs_table_legacy_source';
+	const META_LEGACY_ID = '_gs_table_legacy_id';
+	const TOOLS_SLUG = 'gs-table-tools';
+	const PREVIEW_SLUG = 'gs-table-preview';
+	const LINK_TOKEN_PREFIX = '__GS_LINK__:';
 
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'register_post_type' ) );
 		add_action( 'init', array( __CLASS__, 'ensure_role_capabilities' ) );
+		add_action( 'init', array( __CLASS__, 'register_shortcodes' ), 20 );
 		add_action( 'add_meta_boxes', array( __CLASS__, 'register_meta_boxes' ) );
 		add_action( 'save_post_' . self::POST_TYPE, array( __CLASS__, 'save_table_meta' ) );
+		add_action( 'admin_menu', array( __CLASS__, 'register_tools_page' ) );
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'maybe_enqueue_preview_assets' ) );
+		add_action( 'admin_post_gs_tables_import_tablepress', array( __CLASS__, 'handle_import_tablepress' ) );
+		add_action( 'admin_post_gs_tables_export', array( __CLASS__, 'handle_export_tables' ) );
+		add_action( 'admin_notices', array( __CLASS__, 'maybe_render_status_notice' ) );
 		add_action( 'admin_footer-post-new.php', array( __CLASS__, 'print_admin_editor_script' ) );
 		add_action( 'admin_footer-post.php', array( __CLASS__, 'print_admin_editor_script' ) );
-
-		add_shortcode( 'gs_table', array( __CLASS__, 'render_shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'maybe_enqueue_assets' ) );
+	}
+
+	public static function register_shortcodes() {
+		remove_shortcode( 'table' );
+		add_shortcode( 'table', array( __CLASS__, 'render_shortcode' ) );
+		add_shortcode( 'gs_table', array( __CLASS__, 'render_shortcode' ) );
 	}
 
 	public static function register_post_type() {
@@ -209,12 +224,14 @@ class Tables {
 	public static function render_shortcode_metabox( $post ) {
 		$id_shortcode   = sprintf( '[gs_table id="%d"]', (int) $post->ID );
 		$slug_shortcode = sprintf( '[gs_table slug="%s"]', esc_attr( $post->post_name ) );
+		$preview_url    = self::get_preview_url( $post->ID );
 		?>
 		<p><?php esc_html_e( 'Use either shortcode in any page or post:', 'wsuwp-plugin-graduate-school' ); ?></p>
 		<p><input type="text" readonly class="widefat" value="<?php echo esc_attr( $id_shortcode ); ?>" onclick="this.select();" /></p>
 		<?php if ( ! empty( $post->post_name ) ) : ?>
 			<p><input type="text" readonly class="widefat" value="<?php echo esc_attr( $slug_shortcode ); ?>" onclick="this.select();" /></p>
 		<?php endif; ?>
+		<p><a class="button button-secondary" href="<?php echo esc_url( $preview_url ); ?>"><?php esc_html_e( 'Preview Table', 'wsuwp-plugin-graduate-school' ); ?></a></p>
 		<?php
 	}
 
@@ -279,7 +296,13 @@ class Tables {
 
 	public static function maybe_enqueue_assets() {
 		global $post;
-		if ( ! is_a( $post, 'WP_Post' ) || ! has_shortcode( $post->post_content, 'gs_table' ) ) {
+		if ( ! is_a( $post, 'WP_Post' ) ) {
+			return;
+		}
+
+		$has_gs_table = has_shortcode( $post->post_content, 'gs_table' );
+		$has_legacy_table = has_shortcode( $post->post_content, 'table' );
+		if ( ! $has_gs_table && ! $has_legacy_table ) {
 			return;
 		}
 
@@ -299,10 +322,10 @@ class Tables {
 		);
 	}
 
-	public static function render_shortcode( $atts ) {
+	public static function render_shortcode( $atts, $content = '', $shortcode_tag = 'gs_table' ) {
 		$atts = shortcode_atts(
 			array(
-				'id'            => 0,
+				'id'            => '',
 				'slug'          => '',
 				'sortable'      => '',
 				'auto_link'     => '',
@@ -310,26 +333,10 @@ class Tables {
 				'empty_message' => __( 'Table data is not available at this time.', 'wsuwp-plugin-graduate-school' ),
 			),
 			$atts,
-			'gs_table'
+			$shortcode_tag
 		);
 
-		$post = null;
-		$id   = absint( $atts['id'] );
-		$slug = sanitize_title( $atts['slug'] );
-
-		if ( $id > 0 ) {
-			$maybe_post = get_post( $id );
-			if ( $maybe_post instanceof \WP_Post && self::POST_TYPE === $maybe_post->post_type && self::can_render_post( $maybe_post ) ) {
-				$post = $maybe_post;
-			}
-		}
-
-		if ( ! $post && ! empty( $slug ) ) {
-			$maybe_post = get_page_by_path( $slug, OBJECT, self::POST_TYPE );
-			if ( $maybe_post instanceof \WP_Post && self::can_render_post( $maybe_post ) ) {
-				$post = $maybe_post;
-			}
-		}
+		$post = self::resolve_table_post( $atts['id'], $atts['slug'], $shortcode_tag );
 
 		if ( ! $post ) {
 			return self::render_fallback( $atts['empty_message'] );
@@ -412,6 +419,40 @@ class Tables {
 		return ob_get_clean();
 	}
 
+	private static function resolve_table_post( $id_attr, $slug_attr, $shortcode_tag ) {
+		$id_raw = is_scalar( $id_attr ) ? trim( (string) $id_attr ) : '';
+		$slug   = sanitize_title( $slug_attr );
+		$post   = null;
+
+		// Legacy [table id="x"] should prioritize legacy ID mapping.
+		if ( 'table' === $shortcode_tag && '' !== $id_raw ) {
+			$post = self::get_gs_table_by_legacy_id( $id_raw );
+		}
+
+		// Resolve direct gs-table post ID when numeric.
+		if ( ! $post && '' !== $id_raw && ctype_digit( $id_raw ) ) {
+			$maybe_post = get_post( (int) $id_raw );
+			if ( $maybe_post instanceof \WP_Post && self::POST_TYPE === $maybe_post->post_type && self::can_render_post( $maybe_post ) ) {
+				$post = $maybe_post;
+			}
+		}
+
+		// Resolve gs-table slug.
+		if ( ! $post && '' !== $slug ) {
+			$maybe_post = get_page_by_path( $slug, OBJECT, self::POST_TYPE );
+			if ( $maybe_post instanceof \WP_Post && self::can_render_post( $maybe_post ) ) {
+				$post = $maybe_post;
+			}
+		}
+
+		// For [gs_table], also allow legacy ID as fallback.
+		if ( ! $post && 'gs_table' === $shortcode_tag && '' !== $id_raw ) {
+			$post = self::get_gs_table_by_legacy_id( $id_raw );
+		}
+
+		return $post;
+	}
+
 	private static function render_fallback( $message ) {
 		return sprintf(
 			'<div class="gs-table-fallback" role="status">%s</div>',
@@ -442,6 +483,15 @@ class Tables {
 
 	private static function render_cell_value( $value, $auto_link ) {
 		$value = (string) $value;
+		$token_link = self::decode_link_token( $value );
+		if ( $token_link ) {
+			return sprintf(
+				'<a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
+				esc_url( $token_link['url'] ),
+				esc_html( $token_link['label'] )
+			);
+		}
+
 		if ( ! $auto_link ) {
 			return esc_html( $value );
 		}
@@ -477,6 +527,56 @@ class Tables {
 		return $validated_url;
 	}
 
+	private static function encode_link_token( $label, $url ) {
+		$payload = array(
+			'label' => (string) $label,
+			'url'   => (string) $url,
+		);
+		$json = wp_json_encode( $payload );
+		if ( ! is_string( $json ) || '' === $json ) {
+			return '';
+		}
+		return self::LINK_TOKEN_PREFIX . base64_encode( $json );
+	}
+
+	private static function decode_link_token( $value ) {
+		$value = (string) $value;
+		if ( 0 !== strpos( $value, self::LINK_TOKEN_PREFIX ) ) {
+			return null;
+		}
+
+		$encoded = substr( $value, strlen( self::LINK_TOKEN_PREFIX ) );
+		if ( '' === $encoded ) {
+			return null;
+		}
+
+		$decoded = base64_decode( $encoded, true );
+		if ( false === $decoded || '' === $decoded ) {
+			return null;
+		}
+
+		$data = json_decode( $decoded, true );
+		if ( ! is_array( $data ) || empty( $data['url'] ) ) {
+			return null;
+		}
+
+		$url = esc_url_raw( (string) $data['url'] );
+		$url = wp_http_validate_url( $url );
+		if ( false === $url ) {
+			return null;
+		}
+
+		$label = isset( $data['label'] ) ? sanitize_text_field( (string) $data['label'] ) : '';
+		if ( '' === $label ) {
+			$label = $url;
+		}
+
+		return array(
+			'label' => $label,
+			'url'   => $url,
+		);
+	}
+
 	private static function can_render_post( $post ) {
 		if ( ! $post instanceof \WP_Post ) {
 			return false;
@@ -485,6 +585,492 @@ class Tables {
 			return true;
 		}
 		return current_user_can( self::CAP_EDIT );
+	}
+
+	private static function get_gs_table_by_legacy_id( $legacy_id ) {
+		$legacy_id = trim( (string) $legacy_id );
+		if ( '' === $legacy_id ) {
+			return null;
+		}
+
+		$posts = get_posts(
+			array(
+				'post_type'      => self::POST_TYPE,
+				'post_status'    => array( 'publish', 'draft', 'pending', 'private' ),
+				'posts_per_page' => 1,
+				'meta_key'       => self::META_LEGACY_ID,
+				'meta_value'     => $legacy_id,
+			)
+		);
+
+		if ( empty( $posts ) || ! isset( $posts[0] ) || ! $posts[0] instanceof \WP_Post ) {
+			return null;
+		}
+		return self::can_render_post( $posts[0] ) ? $posts[0] : null;
+	}
+
+	public static function register_tools_page() {
+		add_submenu_page(
+			'edit.php?post_type=' . self::POST_TYPE,
+			__( 'Table Preview', 'wsuwp-plugin-graduate-school' ),
+			__( 'Table Preview', 'wsuwp-plugin-graduate-school' ),
+			self::CAP_EDIT,
+			self::PREVIEW_SLUG,
+			array( __CLASS__, 'render_preview_page' )
+		);
+
+		add_submenu_page(
+			'edit.php?post_type=' . self::POST_TYPE,
+			__( 'Table Migration & Export', 'wsuwp-plugin-graduate-school' ),
+			__( 'Migration / Export', 'wsuwp-plugin-graduate-school' ),
+			self::CAP_EDIT,
+			self::TOOLS_SLUG,
+			array( __CLASS__, 'render_tools_page' )
+		);
+	}
+
+	public static function maybe_enqueue_preview_assets() {
+		if ( ! is_admin() ) {
+			return;
+		}
+
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+		$post_type = isset( $_GET['post_type'] ) ? sanitize_key( wp_unslash( $_GET['post_type'] ) ) : '';
+		if ( self::PREVIEW_SLUG !== $page || self::POST_TYPE !== $post_type ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'gs-table',
+			Plugin::get( 'url' ) . 'css/tables.css',
+			array(),
+			Plugin::get( 'version' )
+		);
+
+		wp_enqueue_script(
+			'gs-table-sort',
+			Plugin::get( 'url' ) . 'js/tables-sort.js',
+			array(),
+			Plugin::get( 'version' ),
+			true
+		);
+	}
+
+	public static function render_preview_page() {
+		if ( ! current_user_can( self::CAP_EDIT ) ) {
+			wp_die( esc_html__( 'You do not have permission to preview tables.', 'wsuwp-plugin-graduate-school' ) );
+		}
+
+		$table_id = isset( $_GET['table_id'] ) ? absint( wp_unslash( $_GET['table_id'] ) ) : 0;
+		$nonce    = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
+		$valid_request = $table_id > 0 && wp_verify_nonce( $nonce, 'gs_table_preview_' . $table_id );
+
+		$content = '';
+		if ( ! $valid_request ) {
+			$content = '<div class="notice notice-warning inline"><p>' . esc_html__( 'Open preview from a table edit screen to generate a secure preview link.', 'wsuwp-plugin-graduate-school' ) . '</p></div>';
+		} else {
+			$post = get_post( $table_id );
+			if ( ! $post instanceof \WP_Post || self::POST_TYPE !== $post->post_type ) {
+				$content = self::render_fallback( __( 'This table could not be found.', 'wsuwp-plugin-graduate-school' ) );
+			} elseif ( ! self::can_render_post( $post ) ) {
+				$content = self::render_fallback( __( 'You do not have permission to preview this table.', 'wsuwp-plugin-graduate-school' ) );
+			} else {
+				$content = self::render_shortcode(
+					array(
+						'id' => (string) $table_id,
+					),
+					'',
+					'gs_table'
+				);
+			}
+		}
+		?>
+		<div class="wrap">
+			<h1><?php esc_html_e( 'Table Preview', 'wsuwp-plugin-graduate-school' ); ?></h1>
+			<div class="gs-table-preview-wrap">
+				<?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	public static function render_tools_page() {
+		if ( ! current_user_can( self::CAP_EDIT ) ) {
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'wsuwp-plugin-graduate-school' ) );
+		}
+		?>
+		<div class="wrap">
+			<h1><?php esc_html_e( 'Table Migration & Export', 'wsuwp-plugin-graduate-school' ); ?></h1>
+			<p><?php esc_html_e( 'Import from TablePress for seamless shortcode migration, or export gs-table records for backup and portability.', 'wsuwp-plugin-graduate-school' ); ?></p>
+
+			<h2><?php esc_html_e( 'Import TablePress Tables', 'wsuwp-plugin-graduate-school' ); ?></h2>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<?php wp_nonce_field( 'gs_tables_import_tablepress', 'gs_tables_import_nonce' ); ?>
+				<input type="hidden" name="action" value="gs_tables_import_tablepress" />
+				<p>
+					<label>
+						<input type="checkbox" name="overwrite_existing" value="1" />
+						<?php esc_html_e( 'Overwrite existing mapped tables with latest TablePress data', 'wsuwp-plugin-graduate-school' ); ?>
+					</label>
+				</p>
+				<p><button type="submit" class="button button-primary"><?php esc_html_e( 'Run Import', 'wsuwp-plugin-graduate-school' ); ?></button></p>
+			</form>
+
+			<hr />
+
+			<h2><?php esc_html_e( 'Export gs-table Data', 'wsuwp-plugin-graduate-school' ); ?></h2>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<?php wp_nonce_field( 'gs_tables_export', 'gs_tables_export_nonce' ); ?>
+				<input type="hidden" name="action" value="gs_tables_export" />
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><label for="gs-export-format"><?php esc_html_e( 'Format', 'wsuwp-plugin-graduate-school' ); ?></label></th>
+						<td>
+							<select id="gs-export-format" name="format">
+								<option value="csv"><?php esc_html_e( 'CSV', 'wsuwp-plugin-graduate-school' ); ?></option>
+								<option value="json"><?php esc_html_e( 'JSON', 'wsuwp-plugin-graduate-school' ); ?></option>
+							</select>
+						</td>
+					</tr>
+				</table>
+				<p><button type="submit" class="button"><?php esc_html_e( 'Download Export', 'wsuwp-plugin-graduate-school' ); ?></button></p>
+			</form>
+		</div>
+		<?php
+	}
+
+	public static function maybe_render_status_notice() {
+		if ( ! is_admin() || ! current_user_can( self::CAP_EDIT ) ) {
+			return;
+		}
+
+		if ( ! isset( $_GET['post_type'] ) || self::POST_TYPE !== sanitize_key( wp_unslash( $_GET['post_type'] ) ) ) {
+			return;
+		}
+
+		if ( empty( $_GET['gs_tables_notice'] ) ) {
+			return;
+		}
+
+		$notice = sanitize_key( wp_unslash( $_GET['gs_tables_notice'] ) );
+		$class  = 'notice notice-info';
+		$text   = '';
+
+		if ( 'import_success' === $notice ) {
+			$created = isset( $_GET['created'] ) ? (int) $_GET['created'] : 0;
+			$updated = isset( $_GET['updated'] ) ? (int) $_GET['updated'] : 0;
+			$skipped = isset( $_GET['skipped'] ) ? (int) $_GET['skipped'] : 0;
+			$text = sprintf(
+				/* translators: 1: created count, 2: updated count, 3: skipped count */
+				__( 'TablePress import completed. Created: %1$d, Updated: %2$d, Skipped: %3$d.', 'wsuwp-plugin-graduate-school' ),
+				$created,
+				$updated,
+				$skipped
+			);
+		} elseif ( 'import_error' === $notice ) {
+			$class = 'notice notice-error';
+			$text = __( 'TablePress import failed. Please verify TablePress is active and try again.', 'wsuwp-plugin-graduate-school' );
+		}
+
+		if ( '' === $text ) {
+			return;
+		}
+		?>
+		<div class="<?php echo esc_attr( $class ); ?> is-dismissible"><p><?php echo esc_html( $text ); ?></p></div>
+		<?php
+	}
+
+	public static function handle_import_tablepress() {
+		if ( ! current_user_can( self::CAP_EDIT ) ) {
+			wp_die( esc_html__( 'You do not have permission to import tables.', 'wsuwp-plugin-graduate-school' ) );
+		}
+
+		check_admin_referer( 'gs_tables_import_tablepress', 'gs_tables_import_nonce' );
+
+		if ( ! class_exists( 'TablePress' ) || ! isset( \TablePress::$model_table ) ) {
+			self::redirect_with_notice( 'import_error' );
+		}
+
+		$overwrite = isset( $_POST['overwrite_existing'] );
+		$created = 0;
+		$updated = 0;
+		$skipped = 0;
+
+		$table_ids = \TablePress::$model_table->load_all( false );
+		foreach ( $table_ids as $table_id ) {
+			$table = \TablePress::$model_table->load( $table_id, true, true );
+			if ( ! is_array( $table ) || empty( $table['data'] ) || ! is_array( $table['data'] ) ) {
+				$skipped++;
+				continue;
+			}
+
+			$mapped = self::map_tablepress_table_to_gs( $table, (string) $table_id );
+			if ( empty( $mapped['headers'] ) ) {
+				$skipped++;
+				continue;
+			}
+
+			$post = self::get_gs_table_by_legacy_id( (string) $table_id );
+			$is_update = $post instanceof \WP_Post;
+			if ( $is_update && ! $overwrite ) {
+				$skipped++;
+				continue;
+			}
+
+			$post_data = array(
+				'post_type'   => self::POST_TYPE,
+				'post_status' => 'publish',
+				'post_title'  => $mapped['title'],
+				'post_name'   => sanitize_title( $mapped['title'] ),
+			);
+			if ( $is_update ) {
+				$post_data['ID'] = $post->ID;
+				$post_id = wp_update_post( $post_data, true );
+			} else {
+				$post_id = wp_insert_post( $post_data, true );
+			}
+
+			if ( is_wp_error( $post_id ) || ! $post_id ) {
+				$skipped++;
+				continue;
+			}
+
+			update_post_meta( $post_id, '_gs_table_caption', $mapped['caption'] );
+			update_post_meta( $post_id, '_gs_table_headers', $mapped['headers'] );
+			update_post_meta( $post_id, '_gs_table_rows', $mapped['rows'] );
+			update_post_meta( $post_id, '_gs_table_sortable', $mapped['sortable'] ? 1 : 0 );
+			update_post_meta( $post_id, '_gs_table_striped', 0 );
+			update_post_meta( $post_id, '_gs_table_compact', 0 );
+			update_post_meta( $post_id, '_gs_table_auto_link', 1 );
+			update_post_meta( $post_id, self::META_LEGACY_SOURCE, 'tablepress' );
+			update_post_meta( $post_id, self::META_LEGACY_ID, (string) $table_id );
+
+			if ( $is_update ) {
+				$updated++;
+			} else {
+				$created++;
+			}
+		}
+
+		self::redirect_with_notice(
+			'import_success',
+			array(
+				'created' => $created,
+				'updated' => $updated,
+				'skipped' => $skipped,
+			)
+		);
+	}
+
+	private static function map_tablepress_table_to_gs( $table, $table_id ) {
+		$data = isset( $table['data'] ) && is_array( $table['data'] ) ? $table['data'] : array();
+		$options = isset( $table['options'] ) && is_array( $table['options'] ) ? $table['options'] : array();
+
+		$headers = array();
+		$rows = $data;
+		$has_head = ! empty( $options['table_head'] );
+		if ( $has_head && ! empty( $rows ) ) {
+			$headers = array_shift( $rows );
+		} elseif ( ! empty( $rows ) && is_array( $rows[0] ) ) {
+			$column_count = count( $rows[0] );
+			for ( $i = 1; $i <= $column_count; $i++ ) {
+				$headers[] = sprintf( __( 'Column %d', 'wsuwp-plugin-graduate-school' ), $i );
+			}
+		}
+
+		$headers = array_values( array_map( 'sanitize_text_field', is_array( $headers ) ? $headers : array() ) );
+		$sanitized_rows = array();
+		foreach ( $rows as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			$sanitized_row = array();
+			foreach ( $row as $cell ) {
+				$sanitized_row[] = self::sanitize_import_cell( $cell );
+			}
+			$sanitized_rows[] = $sanitized_row;
+		}
+
+		$title = ! empty( $table['name'] ) ? sanitize_text_field( $table['name'] ) : sprintf( __( 'Imported Table %s', 'wsuwp-plugin-graduate-school' ), $table_id );
+		$caption = ! empty( $table['description'] ) ? sanitize_text_field( $table['description'] ) : '';
+		$sortable = ! empty( $options['use_datatables'] );
+
+		return array(
+			'title'    => $title,
+			'caption'  => $caption,
+			'headers'  => $headers,
+			'rows'     => $sanitized_rows,
+			'sortable' => (bool) $sortable,
+		);
+	}
+
+	private static function sanitize_import_cell( $cell ) {
+		$cell = (string) $cell;
+		$parsed_link = self::extract_anchor_from_import_cell( $cell );
+		if ( $parsed_link ) {
+			return self::encode_link_token( $parsed_link['label'], $parsed_link['url'] );
+		}
+		return sanitize_text_field( wp_strip_all_tags( $cell ) );
+	}
+
+	private static function extract_anchor_from_import_cell( $cell ) {
+		$cell = trim( (string) $cell );
+		if ( '' === $cell || false === stripos( $cell, '<a' ) ) {
+			return null;
+		}
+
+		if ( ! preg_match( '/<a\b[^>]*href\s*=\s*([\'"])(.*?)\1[^>]*>(.*?)<\/a>/is', $cell, $matches ) ) {
+			return null;
+		}
+
+		$url = isset( $matches[2] ) ? (string) $matches[2] : '';
+		$url = esc_url_raw( $url );
+		$url = wp_http_validate_url( $url );
+		if ( false === $url ) {
+			return null;
+		}
+
+		$label_html = isset( $matches[3] ) ? (string) $matches[3] : '';
+		$label = sanitize_text_field( wp_strip_all_tags( $label_html ) );
+		if ( '' === $label ) {
+			$label = $url;
+		}
+
+		return array(
+			'url'   => $url,
+			'label' => $label,
+		);
+	}
+
+	public static function handle_export_tables() {
+		if ( ! current_user_can( self::CAP_EDIT ) ) {
+			wp_die( esc_html__( 'You do not have permission to export tables.', 'wsuwp-plugin-graduate-school' ) );
+		}
+		check_admin_referer( 'gs_tables_export', 'gs_tables_export_nonce' );
+
+		$format = isset( $_POST['format'] ) ? sanitize_key( wp_unslash( $_POST['format'] ) ) : 'csv';
+		$tables = self::get_all_tables_for_export();
+		if ( 'json' === $format ) {
+			self::stream_json_export( $tables );
+		}
+		self::stream_csv_export( $tables );
+	}
+
+	private static function get_all_tables_for_export() {
+		$posts = get_posts(
+			array(
+				'post_type'      => self::POST_TYPE,
+				'post_status'    => array( 'publish', 'draft', 'pending', 'private' ),
+				'posts_per_page' => -1,
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+			)
+		);
+
+		$tables = array();
+		foreach ( $posts as $post ) {
+			$tables[] = array(
+				'id'            => (int) $post->ID,
+				'slug'          => $post->post_name,
+				'title'         => $post->post_title,
+				'caption'       => (string) get_post_meta( $post->ID, '_gs_table_caption', true ),
+				'headers'       => (array) get_post_meta( $post->ID, '_gs_table_headers', true ),
+				'rows'          => (array) get_post_meta( $post->ID, '_gs_table_rows', true ),
+				'sortable'      => (bool) get_post_meta( $post->ID, '_gs_table_sortable', true ),
+				'striped'       => (bool) get_post_meta( $post->ID, '_gs_table_striped', true ),
+				'compact'       => (bool) get_post_meta( $post->ID, '_gs_table_compact', true ),
+				'auto_link'     => self::get_saved_auto_link_setting( $post->ID ),
+				'legacy_source' => (string) get_post_meta( $post->ID, self::META_LEGACY_SOURCE, true ),
+				'legacy_id'     => (string) get_post_meta( $post->ID, self::META_LEGACY_ID, true ),
+			);
+		}
+		return $tables;
+	}
+
+	private static function stream_json_export( $tables ) {
+		nocache_headers();
+		header( 'Content-Type: application/json; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename=gs-tables-export-' . gmdate( 'Ymd-His' ) . '.json' );
+		echo wp_json_encode(
+			array(
+				'generated_at' => gmdate( 'c' ),
+				'tables'       => $tables,
+			),
+			JSON_PRETTY_PRINT
+		);
+		exit;
+	}
+
+	private static function stream_csv_export( $tables ) {
+		nocache_headers();
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename=gs-tables-export-' . gmdate( 'Ymd-His' ) . '.csv' );
+
+		$output = fopen( 'php://output', 'w' );
+		fputcsv( $output, array( 'table_id', 'slug', 'title', 'caption', 'legacy_source', 'legacy_id', 'headers_json', 'row_json' ) );
+		foreach ( $tables as $table ) {
+			if ( empty( $table['rows'] ) ) {
+				fputcsv(
+					$output,
+					array(
+						$table['id'],
+						$table['slug'],
+						$table['title'],
+						$table['caption'],
+						$table['legacy_source'],
+						$table['legacy_id'],
+						wp_json_encode( $table['headers'] ),
+						wp_json_encode( array() ),
+					)
+				);
+				continue;
+			}
+			foreach ( $table['rows'] as $row ) {
+				fputcsv(
+					$output,
+					array(
+						$table['id'],
+						$table['slug'],
+						$table['title'],
+						$table['caption'],
+						$table['legacy_source'],
+						$table['legacy_id'],
+						wp_json_encode( $table['headers'] ),
+						wp_json_encode( $row ),
+					)
+				);
+			}
+		}
+
+		fclose( $output );
+		exit;
+	}
+
+	private static function redirect_with_notice( $notice, $args = array() ) {
+		$query = array_merge(
+			array(
+				'post_type'        => self::POST_TYPE,
+				'page'             => self::TOOLS_SLUG,
+				'gs_tables_notice' => $notice,
+			),
+			$args
+		);
+		wp_safe_redirect( add_query_arg( $query, admin_url( 'edit.php' ) ) );
+		exit;
+	}
+
+	private static function get_preview_url( $table_id ) {
+		$table_id = absint( $table_id );
+		$url = add_query_arg(
+			array(
+				'post_type' => self::POST_TYPE,
+				'page'      => self::PREVIEW_SLUG,
+				'table_id'  => $table_id,
+			),
+			admin_url( 'edit.php' )
+		);
+
+		return wp_nonce_url( $url, 'gs_table_preview_' . $table_id );
 	}
 
 	public static function print_admin_editor_script() {
