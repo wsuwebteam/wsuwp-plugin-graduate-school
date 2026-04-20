@@ -33,6 +33,8 @@ class Plugin {
 
 		require_once __DIR__ . '/search-form.php';
 
+		require_once __DIR__ . '/tables.php';
+
 		require_once __DIR__ . '/single.php';
 
 	}

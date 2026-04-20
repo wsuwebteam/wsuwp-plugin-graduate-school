@@ -1,0 +1,99 @@
+.gs-table-wrap {
+	margin: 1.5rem 0;
+}
+
+.gs-table-scroll {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+.gs-table {
+	width: 100%;
+	border-collapse: collapse;
+	border: 1px solid #d8d8d8;
+	background: #fff;
+}
+
+.gs-table caption {
+	text-align: left;
+	font-weight: 600;
+	margin-bottom: 0.6rem;
+	color: #262626;
+}
+
+.gs-table th,
+.gs-table td {
+	border: 1px solid #e5e5e5;
+	padding: 0.7rem 0.85rem;
+	text-align: left;
+	vertical-align: top;
+}
+
+.gs-table th {
+	background: #f6f7f8;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.gs-table-wrap--striped .gs-table tbody tr:nth-child(even) td {
+	background: #fbfbfb;
+}
+
+.gs-table-wrap--compact .gs-table th,
+.gs-table-wrap--compact .gs-table td {
+	padding: 0.45rem 0.6rem;
+}
+
+.gs-table th[data-gs-sort-col] {
+	cursor: pointer;
+	position: relative;
+	padding-right: 1.6rem;
+}
+
+.gs-table th[data-gs-sort-col]:focus {
+	outline: 2px solid #005ea2;
+	outline-offset: -2px;
+}
+
+.gs-table-sort-indicator::before {
+	content: "↕";
+	font-size: 0.75rem;
+	position: absolute;
+	right: 0.5rem;
+	top: 50%;
+	transform: translateY(-50%);
+	color: #5f6368;
+}
+
+.gs-table th[data-sort-dir="asc"] .gs-table-sort-indicator::before {
+	content: "↑";
+	color: #1f2328;
+}
+
+.gs-table th[data-sort-dir="desc"] .gs-table-sort-indicator::before {
+	content: "↓";
+	color: #1f2328;
+}
+
+.gs-table td a {
+	color: #005ea2;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.gs-table td a:hover {
+	text-decoration-thickness: 2px;
+}
+
+.gs-table td a:focus {
+	outline: 2px solid #005ea2;
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+.gs-table-fallback {
+	padding: 0.9rem 1rem;
+	border-left: 4px solid #d63638;
+	background: #fff5f5;
+	color: #3c434a;
+}
