@@ -1,0 +1,230 @@
+/* =================================================================
+   GS Search Form – [gs_search_form] shortcode
+   ================================================================= */
+
+.gs-search-form-wrap {
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	max-width: 960px;
+	margin: 0 auto;
+	padding: 24px 0;
+	color: #2c2c2c;
+	line-height: 1.5;
+}
+
+/* -----------------------------------------------------------------
+   Form layout
+   ----------------------------------------------------------------- */
+
+.gs-search-form {
+	background: #fff;
+	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 10px;
+	padding: 24px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.gs-search-form-fields {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+/* Keyword + submit on one row (matches wsuwp_search_form layout). */
+.gs-search-form-row--primary {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: stretch;
+	gap: 0;
+}
+
+.gs-search-form-row--primary .gs-search-field--keyword {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.gs-search-form-row--primary .gs-search-form-actions {
+	flex: 0 0 auto;
+	margin-top: 0;
+	align-self: stretch;
+}
+
+.gs-search-form-row--primary .gs-search-field--keyword input[type="text"] {
+	height: 100%;
+	min-height: 40px;
+	border-radius: 6px 0 0 6px;
+	border-right: 0;
+}
+
+.gs-search-form-row--primary .gs-search-submit {
+	height: 100%;
+	min-height: 40px;
+	border-radius: 0 6px 6px 0;
+	white-space: nowrap;
+	padding-left: 14px;
+	padding-right: 14px;
+}
+
+.gs-search-field label {
+	display: block;
+	margin-bottom: 4px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: #50575e;
+}
+
+.gs-search-field input[type="text"],
+.gs-search-field select {
+	width: 100%;
+	padding: 10px 12px;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	font-size: 0.95rem;
+	color: #1d2327;
+	background: #fff;
+	transition: border-color 0.2s, box-shadow 0.2s;
+	appearance: none;
+	-webkit-appearance: none;
+}
+
+.gs-search-field select {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2350575e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 12px center;
+	padding-right: 32px;
+}
+
+.gs-search-field input[type="text"]:focus,
+.gs-search-field select:focus {
+	outline: none;
+	border-color: #981e32;
+	box-shadow: 0 0 0 2px rgba(152, 30, 50, 0.15);
+}
+
+/* -----------------------------------------------------------------
+   Submit (inline with keyword field)
+   ----------------------------------------------------------------- */
+
+.gs-search-form-actions {
+	margin-top: 0;
+}
+
+.gs-search-submit {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 10px 20px;
+	background: #981e32;
+	color: #fff;
+	font-size: 0.95rem;
+	font-weight: 600;
+	border: 1px solid #981e32;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: background 0.2s, border-color 0.2s;
+	box-sizing: border-box;
+}
+
+.gs-search-submit:hover,
+.gs-search-submit:focus {
+	background: #7a1728;
+	border-color: #7a1728;
+}
+
+/* -----------------------------------------------------------------
+   Results
+   ----------------------------------------------------------------- */
+
+.gs-search-results {
+	margin-top: 32px;
+}
+
+.gs-search-results-count {
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: #50575e;
+	margin-bottom: 16px;
+}
+
+.gs-search-no-results {
+	text-align: center;
+	padding: 32px 16px;
+	color: #787c82;
+	font-size: 1rem;
+	background: #f6f7f7;
+	border-radius: 8px;
+}
+
+.gs-search-results-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.gs-search-result {
+	padding: 16px 20px;
+	background: #fff;
+	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 8px;
+	margin-bottom: 10px;
+	transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.gs-search-result:hover {
+	border-color: rgba(152, 30, 50, 0.25);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.gs-search-result-link {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	text-decoration: none;
+	color: inherit;
+}
+
+.gs-search-result-title {
+	font-size: 1.05rem;
+	font-weight: 600;
+	color: #981e32;
+	transition: color 0.2s;
+}
+
+.gs-search-result-link:hover .gs-search-result-title {
+	color: #7a1728;
+	text-decoration: underline;
+}
+
+/* -----------------------------------------------------------------
+   Badges (degree type labels)
+   ----------------------------------------------------------------- */
+
+.gs-search-result-badges {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.gs-search-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	font-size: 0.72rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	border-radius: 4px;
+	background: #f0e6e8;
+	color: #981e32;
+	white-space: nowrap;
+}
+
+/* -----------------------------------------------------------------
+   Excerpt
+   ----------------------------------------------------------------- */
+
+.gs-search-result-excerpt {
+	margin-top: 6px;
+	font-size: 0.88rem;
+	color: #50575e;
+	line-height: 1.55;
+}
