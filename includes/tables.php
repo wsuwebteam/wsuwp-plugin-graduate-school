@@ -149,70 +149,65 @@ class Tables {
 
 		$column_count = max( 1, count( $headers ) );
 		?>
-		<p>
-			<label for="gs-table-caption"><strong><?php esc_html_e( 'Caption (optional)', 'wsuwp-plugin-graduate-school' ); ?></strong></label>
+		<div class="gs-editor-section">
+			<label for="gs-table-caption" class="gs-editor-label"><?php esc_html_e( 'Caption', 'wsuwp-plugin-graduate-school' ); ?></label>
 			<input type="text" id="gs-table-caption" name="gs_table_caption" value="<?php echo esc_attr( $caption ); ?>" class="widefat" />
-		</p>
-
-		<p><strong><?php esc_html_e( 'Columns', 'wsuwp-plugin-graduate-school' ); ?></strong></p>
-		<div id="gs-table-headers">
-			<?php foreach ( $headers as $header ) : ?>
-				<div class="gs-table-inline-row">
-					<input type="text" name="gs_table_headers[]" value="<?php echo esc_attr( $header ); ?>" class="widefat" />
-					<button type="button" class="button-link-delete gs-remove-header"><?php esc_html_e( 'Remove', 'wsuwp-plugin-graduate-school' ); ?></button>
-				</div>
-			<?php endforeach; ?>
 		</div>
-		<p>
-			<button type="button" id="gs-add-header" class="button"><?php esc_html_e( 'Add Column', 'wsuwp-plugin-graduate-school' ); ?></button>
-		</p>
 
-		<hr />
-
-		<p><strong><?php esc_html_e( 'Rows', 'wsuwp-plugin-graduate-school' ); ?></strong></p>
-		<div id="gs-table-rows" data-columns="<?php echo esc_attr( (string) $column_count ); ?>">
-			<?php foreach ( $rows as $row ) : ?>
-				<?php if ( ! is_array( $row ) ) { continue; } ?>
-				<div class="gs-table-row">
-					<?php for ( $i = 0; $i < $column_count; $i++ ) : ?>
-						<?php $value = isset( $row[ $i ] ) ? $row[ $i ] : ''; ?>
-						<input type="text" name="gs_table_rows[][<?php echo esc_attr( (string) $i ); ?>]" value="<?php echo esc_attr( $value ); ?>" class="widefat gs-table-cell" />
-					<?php endfor; ?>
-					<button type="button" class="button-link-delete gs-remove-row"><?php esc_html_e( 'Remove row', 'wsuwp-plugin-graduate-school' ); ?></button>
-				</div>
-			<?php endforeach; ?>
+		<div class="gs-editor-section">
+			<div class="gs-editor-section-head">
+				<h3><?php esc_html_e( 'Columns', 'wsuwp-plugin-graduate-school' ); ?></h3>
+				<button type="button" id="gs-add-header" class="button button-small"><?php esc_html_e( 'Add Column', 'wsuwp-plugin-graduate-school' ); ?></button>
+			</div>
+			<div id="gs-table-headers">
+				<?php foreach ( $headers as $header ) : ?>
+					<div class="gs-table-inline-row">
+						<input type="text" name="gs_table_headers[]" value="<?php echo esc_attr( $header ); ?>" class="widefat" />
+						<button type="button" class="button-link-delete gs-remove-header"><?php esc_html_e( 'Remove', 'wsuwp-plugin-graduate-school' ); ?></button>
+					</div>
+				<?php endforeach; ?>
+			</div>
 		</div>
-		<p>
-			<button type="button" id="gs-add-row" class="button button-secondary"><?php esc_html_e( 'Add Row', 'wsuwp-plugin-graduate-school' ); ?></button>
-		</p>
 
-		<hr />
+		<div class="gs-editor-section">
+			<div class="gs-editor-section-head">
+				<h3><?php esc_html_e( 'Rows', 'wsuwp-plugin-graduate-school' ); ?></h3>
+				<button type="button" id="gs-add-row" class="button button-small button-secondary"><?php esc_html_e( 'Add Row', 'wsuwp-plugin-graduate-school' ); ?></button>
+			</div>
+			<div id="gs-table-rows" data-columns="<?php echo esc_attr( (string) $column_count ); ?>">
+				<?php foreach ( $rows as $row_index => $row ) : ?>
+					<?php if ( ! is_array( $row ) ) { continue; } ?>
+					<div class="gs-table-row">
+						<?php for ( $i = 0; $i < $column_count; $i++ ) : ?>
+							<?php
+							$cell      = self::normalize_editor_cell( isset( $row[ $i ] ) ? $row[ $i ] : '' );
+							$cell_text = isset( $cell['text'] ) ? (string) $cell['text'] : '';
+							$cell_url  = isset( $cell['url'] ) ? (string) $cell['url'] : '';
+							?>
+							<div class="gs-table-cell-group">
+								<input type="text" name="gs_table_rows[<?php echo esc_attr( (string) $row_index ); ?>][<?php echo esc_attr( (string) $i ); ?>][text]" value="<?php echo esc_attr( $cell_text ); ?>" class="widefat gs-table-cell" placeholder="<?php esc_attr_e( 'Cell text', 'wsuwp-plugin-graduate-school' ); ?>" />
+								<button type="button" class="button-link gs-toggle-link-fields"><?php echo '' !== $cell_url ? esc_html__( 'Hide Link', 'wsuwp-plugin-graduate-school' ) : esc_html__( 'Link', 'wsuwp-plugin-graduate-school' ); ?></button>
+								<div class="gs-table-link-fields<?php echo '' !== trim( $cell_url ) ? ' is-open' : ''; ?>">
+									<input type="text" name="gs_table_rows[<?php echo esc_attr( (string) $row_index ); ?>][<?php echo esc_attr( (string) $i ); ?>][link_text]" value="<?php echo esc_attr( $cell_text ); ?>" class="widefat gs-table-cell-link-text" placeholder="<?php esc_attr_e( 'Link text', 'wsuwp-plugin-graduate-school' ); ?>" />
+									<input type="url" name="gs_table_rows[<?php echo esc_attr( (string) $row_index ); ?>][<?php echo esc_attr( (string) $i ); ?>][url]" value="<?php echo esc_attr( $cell_url ); ?>" class="widefat gs-table-cell-link-url" placeholder="https://example.com" />
+								</div>
+							</div>
+						<?php endfor; ?>
+						<button type="button" class="button-link-delete gs-remove-row"><?php esc_html_e( 'Remove row', 'wsuwp-plugin-graduate-school' ); ?></button>
+					</div>
+				<?php endforeach; ?>
+			</div>
+		</div>
 
-		<p><strong><?php esc_html_e( 'Display Options', 'wsuwp-plugin-graduate-school' ); ?></strong></p>
-		<p>
-			<label>
-				<input type="checkbox" name="gs_table_sortable" value="1" <?php checked( $sortable ); ?> />
-				<?php esc_html_e( 'Allow column sorting', 'wsuwp-plugin-graduate-school' ); ?>
-			</label>
-		</p>
-		<p>
-			<label>
-				<input type="checkbox" name="gs_table_striped" value="1" <?php checked( $striped ); ?> />
-				<?php esc_html_e( 'Striped rows', 'wsuwp-plugin-graduate-school' ); ?>
-			</label>
-		</p>
-		<p>
-			<label>
-				<input type="checkbox" name="gs_table_compact" value="1" <?php checked( $compact ); ?> />
-				<?php esc_html_e( 'Compact spacing', 'wsuwp-plugin-graduate-school' ); ?>
-			</label>
-		</p>
-		<p>
-			<label>
-				<input type="checkbox" name="gs_table_auto_link" value="1" <?php checked( $auto_link ); ?> />
-				<?php esc_html_e( 'Auto-link valid URLs in cells', 'wsuwp-plugin-graduate-school' ); ?>
-			</label>
-		</p>
+		<details class="gs-editor-section gs-editor-options" open>
+			<summary><?php esc_html_e( 'Display Options', 'wsuwp-plugin-graduate-school' ); ?></summary>
+			<div class="gs-editor-options-grid">
+				<label><input type="checkbox" name="gs_table_sortable" value="1" <?php checked( $sortable ); ?> /> <?php esc_html_e( 'Allow column sorting', 'wsuwp-plugin-graduate-school' ); ?></label>
+				<label><input type="checkbox" name="gs_table_striped" value="1" <?php checked( $striped ); ?> /> <?php esc_html_e( 'Striped rows', 'wsuwp-plugin-graduate-school' ); ?></label>
+				<label><input type="checkbox" name="gs_table_compact" value="1" <?php checked( $compact ); ?> /> <?php esc_html_e( 'Compact spacing', 'wsuwp-plugin-graduate-school' ); ?></label>
+				<label><input type="checkbox" name="gs_table_auto_link" value="1" <?php checked( $auto_link ); ?> /> <?php esc_html_e( 'Auto-link valid URLs in cells', 'wsuwp-plugin-graduate-school' ); ?></label>
+			</div>
+		</details>
 		<?php if ( current_user_can( self::CAP_ADVANCED_OPTIONS ) ) : ?>
 			<hr />
 			<p><strong><?php esc_html_e( 'Advanced Settings', 'wsuwp-plugin-graduate-school' ); ?></strong></p>
@@ -266,12 +261,13 @@ class Tables {
 			}
 			$sanitized_row = array();
 			foreach ( $row as $cell ) {
-				$sanitized_row[] = sanitize_text_field( $cell );
+				$sanitized_row[] = self::sanitize_editor_cell( $cell );
 			}
 
 			$has_content = false;
 			foreach ( $sanitized_row as $cell ) {
-				if ( '' !== trim( $cell ) ) {
+				$normalized = self::normalize_editor_cell( $cell );
+				if ( '' !== trim( $normalized['text'] ) || '' !== trim( $normalized['url'] ) ) {
 					$has_content = true;
 					break;
 				}
@@ -575,6 +571,53 @@ class Tables {
 			'label' => $label,
 			'url'   => $url,
 		);
+	}
+
+	private static function normalize_editor_cell( $value ) {
+		if ( is_array( $value ) ) {
+			$text = isset( $value['text'] ) ? sanitize_text_field( (string) $value['text'] ) : '';
+			$link_text = isset( $value['link_text'] ) ? sanitize_text_field( (string) $value['link_text'] ) : '';
+			$url = isset( $value['url'] ) ? self::sanitize_editor_url( (string) $value['url'] ) : '';
+			if ( '' !== $link_text ) {
+				$text = $link_text;
+			}
+			return array(
+				'text' => $text,
+				'url'  => $url,
+			);
+		}
+
+		$value = (string) $value;
+		$token_link = self::decode_link_token( $value );
+		if ( $token_link ) {
+			return array(
+				'text' => $token_link['label'],
+				'url'  => $token_link['url'],
+			);
+		}
+
+		return array(
+			'text' => sanitize_text_field( $value ),
+			'url'  => '',
+		);
+	}
+
+	private static function sanitize_editor_cell( $value ) {
+		$cell = self::normalize_editor_cell( $value );
+		if ( '' !== $cell['url'] ) {
+			return self::encode_link_token( $cell['text'], $cell['url'] );
+		}
+		return $cell['text'];
+	}
+
+	private static function sanitize_editor_url( $url ) {
+		$url = trim( (string) $url );
+		if ( '' === $url ) {
+			return '';
+		}
+		$url = esc_url_raw( $url );
+		$validated = wp_http_validate_url( $url );
+		return false === $validated ? '' : $validated;
 	}
 
 	private static function can_render_post( $post ) {
@@ -1080,9 +1123,42 @@ class Tables {
 		}
 		?>
 		<style>
-			.gs-table-inline-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 8px; }
-			.gs-table-row { border: 1px solid #dcdcde; border-radius: 4px; padding: 10px; margin-bottom: 10px; }
-			.gs-table-row .gs-table-cell { margin-bottom: 8px; }
+			.gs-editor-section { margin: 0 0 16px; }
+			.gs-editor-section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+			.gs-editor-section-head h3 { margin: 0; font-size: 13px; line-height: 1.4; }
+			.gs-editor-label { display: block; margin-bottom: 4px; font-weight: 600; }
+			.gs-table-inline-row { display: grid; grid-template-columns: 1fr auto; gap: 6px; margin-bottom: 6px; align-items: center; }
+			.gs-table-row {
+				display: flex;
+				flex-wrap: nowrap;
+				align-items: flex-start;
+				gap: 6px;
+				margin-bottom: 8px;
+				overflow-x: auto;
+				padding-bottom: 4px;
+			}
+			.gs-table-cell-group {
+				border: 1px solid #e3e5e8;
+				border-radius: 4px;
+				padding: 6px;
+				background: #fff;
+				margin-bottom: 0;
+				min-width: 180px;
+				flex: 1 1 180px;
+			}
+			.gs-remove-row {
+				flex: 0 0 auto;
+				white-space: nowrap;
+				align-self: center;
+			}
+			.gs-table-cell { margin-bottom: 4px; }
+			.gs-toggle-link-fields { font-size: 12px; }
+			.gs-table-link-fields { display: none; margin-top: 4px; }
+			.gs-table-link-fields.is-open { display: block; }
+			.gs-table-link-fields input { margin-bottom: 4px; }
+			.gs-editor-options summary { cursor: pointer; font-weight: 600; }
+			.gs-editor-options-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 6px 12px; margin-top: 8px; }
+			.gs-editor-options-grid label { font-size: 12px; }
 		</style>
 		<script>
 			(function() {
@@ -1097,19 +1173,51 @@ class Tables {
 					return Math.max(inputs.length, 1);
 				}
 
+				function syncRowFieldNames(row, rowIndex) {
+					const groups = row.querySelectorAll('.gs-table-cell-group');
+					groups.forEach((group, colIndex) => {
+						const textInput = group.querySelector('.gs-table-cell');
+						const linkTextInput = group.querySelector('.gs-table-cell-link-text');
+						const urlInput = group.querySelector('.gs-table-cell-link-url');
+						if (textInput) textInput.name = 'gs_table_rows[' + rowIndex + '][' + colIndex + '][text]';
+						if (linkTextInput) linkTextInput.name = 'gs_table_rows[' + rowIndex + '][' + colIndex + '][link_text]';
+						if (urlInput) urlInput.name = 'gs_table_rows[' + rowIndex + '][' + colIndex + '][url]';
+					});
+				}
+
+				function syncAllRowFieldNames() {
+					const rows = rowsWrap.querySelectorAll('.gs-table-row');
+					rows.forEach((row, rowIndex) => syncRowFieldNames(row, rowIndex));
+				}
+
+				function createCellGroup(rowIndex, colIndex, values = {}) {
+					const text = values.text || '';
+					const url = values.url || '';
+					const group = document.createElement('div');
+					group.className = 'gs-table-cell-group';
+					group.innerHTML = ''
+						+ '<input type="text" class="widefat gs-table-cell" name="gs_table_rows[' + rowIndex + '][' + colIndex + '][text]" placeholder="Cell text" />'
+						+ '<button type="button" class="button-link gs-toggle-link-fields">' + (url ? 'Hide Link' : 'Link') + '</button>'
+						+ '<div class="gs-table-link-fields' + (url ? ' is-open' : '') + '">'
+						+ '<input type="text" class="widefat gs-table-cell-link-text" name="gs_table_rows[' + rowIndex + '][' + colIndex + '][link_text]" placeholder="Link text" />'
+						+ '<input type="url" class="widefat gs-table-cell-link-url" name="gs_table_rows[' + rowIndex + '][' + colIndex + '][url]" placeholder="https://example.com" />'
+						+ '</div>';
+					group.querySelector('.gs-table-cell').value = text;
+					group.querySelector('.gs-table-cell-link-text').value = text;
+					group.querySelector('.gs-table-cell-link-url').value = url;
+					return group;
+				}
+
 				function refreshRowsForColumnCount() {
 					const colCount = getColumnCount();
 					rowsWrap.dataset.columns = String(colCount);
 					const rows = rowsWrap.querySelectorAll('.gs-table-row');
 					rows.forEach((row) => {
-						const cells = row.querySelectorAll('input.gs-table-cell');
+						const cells = row.querySelectorAll('.gs-table-cell-group');
 						if (cells.length < colCount) {
 							for (let i = cells.length; i < colCount; i++) {
-								const input = document.createElement('input');
-								input.type = 'text';
-								input.className = 'widefat gs-table-cell';
-								input.name = 'gs_table_rows[][' + i + ']';
-								row.insertBefore(input, row.querySelector('.gs-remove-row'));
+								const rowIndex = Array.from(rowsWrap.querySelectorAll('.gs-table-row')).indexOf(row);
+								row.insertBefore(createCellGroup(rowIndex, i, {}), row.querySelector('.gs-remove-row'));
 							}
 						} else if (cells.length > colCount) {
 							for (let i = cells.length - 1; i >= colCount; i--) {
@@ -1117,6 +1225,7 @@ class Tables {
 							}
 						}
 					});
+					syncAllRowFieldNames();
 				}
 
 				function addHeader(value = '') {
@@ -1131,15 +1240,19 @@ class Tables {
 
 				function addRow(values = []) {
 					const colCount = getColumnCount();
+					const rowIndex = rowsWrap.querySelectorAll('.gs-table-row').length;
 					const row = document.createElement('div');
 					row.className = 'gs-table-row';
 					for (let i = 0; i < colCount; i++) {
-						const input = document.createElement('input');
-						input.type = 'text';
-						input.className = 'widefat gs-table-cell';
-						input.name = 'gs_table_rows[][' + i + ']';
-						input.value = values[i] || '';
-						row.appendChild(input);
+						const rawValue = values[i] || {};
+						let cellValues = { text: '', url: '' };
+						if (typeof rawValue === 'object' && rawValue !== null) {
+							cellValues.text = rawValue.text || '';
+							cellValues.url = rawValue.url || '';
+						} else {
+							cellValues.text = String(rawValue);
+						}
+						row.appendChild(createCellGroup(rowIndex, i, cellValues));
 					}
 					const remove = document.createElement('button');
 					remove.type = 'button';
@@ -1147,6 +1260,7 @@ class Tables {
 					remove.textContent = 'Remove row';
 					row.appendChild(remove);
 					rowsWrap.appendChild(row);
+					syncAllRowFieldNames();
 				}
 
 				addHeaderBtn.addEventListener('click', function() {
@@ -1174,9 +1288,23 @@ class Tables {
 					if (event.target.classList.contains('gs-remove-row')) {
 						event.preventDefault();
 						const row = event.target.closest('.gs-table-row');
-						if (row) row.remove();
+						if (row) {
+							row.remove();
+							syncAllRowFieldNames();
+						}
+					}
+					if (event.target.classList.contains('gs-toggle-link-fields')) {
+						event.preventDefault();
+						const group = event.target.closest('.gs-table-cell-group');
+						if (!group) return;
+						const linkFields = group.querySelector('.gs-table-link-fields');
+						if (!linkFields) return;
+						const isOpen = linkFields.classList.toggle('is-open');
+						event.target.textContent = isOpen ? 'Hide Link' : 'Link';
 					}
 				});
+
+				syncAllRowFieldNames();
 			})();
 		</script>
 		<?php
