@@ -31,6 +31,8 @@ class Plugin {
 
 		require_once __DIR__ . '/shortcode.php';
 
+		require_once __DIR__ . '/search-form.php';
+
 		require_once __DIR__ . '/single.php';
 
 	}
