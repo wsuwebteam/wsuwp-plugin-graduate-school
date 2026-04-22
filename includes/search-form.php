@@ -8,7 +8,7 @@ namespace WSUWP\Plugin\Graduate;
  * the site's native search results page (/?s=&category_name=&tag=),
  * mirroring the [wsuwp_search_form] pattern from WSUWP-Plugin-Embeds.
  *
- * @since 1.3.0
+ * @since 1.2.5
  */
 class Search_Form {
 
