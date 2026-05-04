@@ -61,7 +61,7 @@ class GS_Tables_List_Table extends \WP_List_Table {
 		$preview_url = Tables::get_preview_url( $item->ID );
 		$row_actions = array(
 			'edit' => '<a href="' . esc_url( $edit_url ) . '">' . esc_html__( 'Edit', 'wsuwp-plugin-graduate-school' ) . '</a>',
-			'preview' => '<a href="' . esc_url( $preview_url ) . '">' . esc_html__( 'Preview', 'wsuwp-plugin-graduate-school' ) . '</a>',
+			'gs_preview' => '<a href="' . esc_url( $preview_url ) . '">' . esc_html__( 'Preview', 'wsuwp-plugin-graduate-school' ) . '</a>',
 			'copy' => '<a href="' . esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=gs_tables_copy&table_id=' . $item->ID ), 'gs_tables_copy_' . $item->ID ) ) . '">' . esc_html__( 'Copy', 'wsuwp-plugin-graduate-school' ) . '</a>',
 			'export' => '<a href="' . esc_url( admin_url( 'admin.php?page=' . Tables_Admin::EXPORT_SLUG . '&table_ids=' . $item->ID ) ) . '">' . esc_html__( 'Export', 'wsuwp-plugin-graduate-school' ) . '</a>',
 			'delete' => '<a href="' . esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=gs_tables_delete&table_id=' . $item->ID ), 'gs_tables_delete_' . $item->ID ) ) . '">' . esc_html__( 'Delete', 'wsuwp-plugin-graduate-school' ) . '</a>',
