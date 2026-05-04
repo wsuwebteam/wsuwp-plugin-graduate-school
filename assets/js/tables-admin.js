@@ -146,9 +146,6 @@
 						selectedCell.innerHTML = html;
 					}
 				}
-				if (action === 'merge-cells') {
-					selectedCell.setAttribute('colspan', '2');
-				}
 			});
 		});
 	}

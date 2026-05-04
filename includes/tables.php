@@ -428,7 +428,6 @@ class Tables {
 		$custom_commands = (string) get_post_meta( $post->ID, self::META_CUSTOM_COMMANDS, true );
 		$hidden_rows = array_map( 'absint', (array) get_post_meta( $post->ID, self::META_HIDDEN_ROWS, true ) );
 		$hidden_cols = array_map( 'absint', (array) get_post_meta( $post->ID, self::META_HIDDEN_COLS, true ) );
-		$cell_spans = (array) get_post_meta( $post->ID, self::META_CELL_SPANS, true );
 
 		$sortable_override = self::normalize_bool( $atts['sortable'], null );
 		$sortable          = is_null( $sortable_override ) ? $saved_sortable : $sortable_override;
@@ -499,20 +498,7 @@ class Tables {
 							<tr>
 								<?php foreach ( $headers as $i => $unused_header ) : ?>
 									<?php if ( in_array( (int) $i, $hidden_cols, true ) ) { continue; } ?>
-									<?php
-									$span_key = 'r' . $row_index . 'c' . $i;
-									$span_data = isset( $cell_spans[ $span_key ] ) && is_array( $cell_spans[ $span_key ] ) ? $cell_spans[ $span_key ] : array();
-									$rowspan = isset( $span_data['rowspan'] ) ? max( 1, absint( $span_data['rowspan'] ) ) : 1;
-									$colspan = isset( $span_data['colspan'] ) ? max( 1, absint( $span_data['colspan'] ) ) : 1;
-									$span_attr = '';
-									if ( $rowspan > 1 ) {
-										$span_attr .= ' rowspan="' . esc_attr( (string) $rowspan ) . '"';
-									}
-									if ( $colspan > 1 ) {
-										$span_attr .= ' colspan="' . esc_attr( (string) $colspan ) . '"';
-									}
-									?>
-									<td<?php echo $span_attr; ?>><?php echo self::render_cell_value( isset( $row[ $i ] ) ? $row[ $i ] : '', $auto_link ); ?></td>
+									<td><?php echo self::render_cell_value( isset( $row[ $i ] ) ? $row[ $i ] : '', $auto_link ); ?></td>
 								<?php endforeach; ?>
 							</tr>
 						<?php endforeach; ?>

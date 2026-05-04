@@ -1,17 +1,23 @@
 .gs-table-wrap {
 	margin: 1.5rem 0;
+	border-radius: 6px;
+	background: #fff;
 }
 
 .gs-table-scroll {
 	overflow-x: auto;
 	-webkit-overflow-scrolling: touch;
+	border: 1px solid #d0d7de;
+	border-radius: 6px;
 }
 
 .gs-table {
-	width: 100%;
-	border-collapse: collapse;
-	border: 1px solid #d8d8d8;
+	width: max-content;
+	min-width: 100%;
+	border-collapse: separate;
+	border-spacing: 0;
 	background: #fff;
+	color: #1f2328;
 }
 
 .gs-table caption {
@@ -23,20 +29,23 @@
 
 .gs-table th,
 .gs-table td {
-	border: 1px solid #e5e5e5;
-	padding: 0.7rem 0.85rem;
+	border-right: 1px solid #d0d7de;
+	border-bottom: 1px solid #d0d7de;
+	padding: 0.65rem 0.85rem;
 	text-align: left;
 	vertical-align: top;
+	line-height: 1.35;
+	word-break: break-word;
 }
 
 .gs-table th {
-	background: #f6f7f8;
+	background: #eef4f8;
 	font-weight: 700;
 	white-space: nowrap;
 }
 
 .gs-table-wrap--striped .gs-table tbody tr:nth-child(even) td {
-	background: #fbfbfb;
+	background: #fcfdff;
 }
 
 .gs-table-wrap--compact .gs-table th,
@@ -63,6 +72,14 @@
 	top: 50%;
 	transform: translateY(-50%);
 	color: #5f6368;
+}
+
+.gs-table tr > *:last-child {
+	border-right: 0;
+}
+
+.gs-table tbody tr:last-child > * {
+	border-bottom: 0;
 }
 
 .gs-table th[data-sort-dir="asc"] .gs-table-sort-indicator::before {
