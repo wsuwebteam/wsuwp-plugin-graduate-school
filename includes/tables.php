@@ -14,20 +14,33 @@ class Tables {
 	const TOOLS_SLUG = 'gs-table-tools';
 	const PREVIEW_SLUG = 'gs-table-preview';
 	const LINK_TOKEN_PREFIX = '__GS_LINK__:';
+	const META_FOOT_ROW = '_gs_table_foot_row';
+	const META_ROW_HOVER = '_gs_table_row_hover';
+	const META_PRINT_NAME = '_gs_table_print_name';
+	const META_PRINT_NAME_POSITION = '_gs_table_print_name_position';
+	const META_PRINT_DESCRIPTION = '_gs_table_print_description';
+	const META_PRINT_DESCRIPTION_POSITION = '_gs_table_print_description_position';
+	const META_EXTRA_CSS_CLASS = '_gs_table_extra_css_class';
+	const META_VISITOR_FEATURES = '_gs_table_visitor_features';
+	const META_SEARCH = '_gs_table_search';
+	const META_PAGINATION = '_gs_table_pagination';
+	const META_PAGINATION_LENGTH = '_gs_table_pagination_length';
+	const META_PAGINATION_LENGTH_CHANGE = '_gs_table_pagination_length_change';
+	const META_INFO = '_gs_table_info';
+	const META_HORIZONTAL_SCROLLING = '_gs_table_horizontal_scrolling';
+	const META_CUSTOM_COMMANDS = '_gs_table_custom_commands';
+	const META_HIDDEN_ROWS = '_gs_table_hidden_rows';
+	const META_HIDDEN_COLS = '_gs_table_hidden_cols';
+	const META_CELL_SPANS = '_gs_table_cell_spans';
 
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'register_post_type' ) );
 		add_action( 'init', array( __CLASS__, 'ensure_role_capabilities' ) );
 		add_action( 'init', array( __CLASS__, 'register_shortcodes' ), 20 );
-		add_action( 'add_meta_boxes', array( __CLASS__, 'register_meta_boxes' ) );
-		add_action( 'save_post_' . self::POST_TYPE, array( __CLASS__, 'save_table_meta' ) );
-		add_action( 'admin_menu', array( __CLASS__, 'register_tools_page' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'maybe_enqueue_preview_assets' ) );
 		add_action( 'admin_post_gs_tables_import_tablepress', array( __CLASS__, 'handle_import_tablepress' ) );
 		add_action( 'admin_post_gs_tables_export', array( __CLASS__, 'handle_export_tables' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'maybe_render_status_notice' ) );
-		add_action( 'admin_footer-post-new.php', array( __CLASS__, 'print_admin_editor_script' ) );
-		add_action( 'admin_footer-post.php', array( __CLASS__, 'print_admin_editor_script' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'maybe_enqueue_assets' ) );
 	}
 
@@ -55,10 +68,10 @@ class Tables {
 					'not_found_in_trash' => __( 'No tables found in Trash', 'wsuwp-plugin-graduate-school' ),
 				),
 				'public'             => false,
-				'show_ui'            => true,
-				'show_in_menu'       => true,
+				'show_ui'            => false,
+				'show_in_menu'       => false,
 				'show_in_nav_menus'  => false,
-				'show_in_admin_bar'  => true,
+				'show_in_admin_bar'  => false,
 				'publicly_queryable' => false,
 				'exclude_from_search'=> true,
 				'has_archive'        => false,
@@ -283,11 +296,59 @@ class Tables {
 		$striped  = isset( $_POST['gs_table_striped'] ) ? 1 : 0;
 		$compact  = isset( $_POST['gs_table_compact'] ) ? 1 : 0;
 		$auto_link = isset( $_POST['gs_table_auto_link'] ) ? 1 : 0;
+		$foot_row = isset( $_POST['gs_table_foot_row'] ) ? 1 : 0;
+		$row_hover = isset( $_POST['gs_table_row_hover'] ) ? 1 : 0;
+		$print_name = isset( $_POST['gs_table_print_name'] ) ? 1 : 0;
+		$print_name_position = isset( $_POST['gs_table_print_name_position'] ) ? sanitize_key( wp_unslash( $_POST['gs_table_print_name_position'] ) ) : 'above';
+		$print_description = isset( $_POST['gs_table_print_description'] ) ? 1 : 0;
+		$print_description_position = isset( $_POST['gs_table_print_description_position'] ) ? sanitize_key( wp_unslash( $_POST['gs_table_print_description_position'] ) ) : 'above';
+		$extra_css_class = isset( $_POST['gs_table_extra_css_class'] ) ? sanitize_html_class( wp_unslash( $_POST['gs_table_extra_css_class'] ) ) : '';
+		$visitor_features = isset( $_POST['gs_table_visitor_features'] ) ? 1 : 0;
+		$search = isset( $_POST['gs_table_search'] ) ? 1 : 0;
+		$pagination = isset( $_POST['gs_table_pagination'] ) ? 1 : 0;
+		$pagination_length = isset( $_POST['gs_table_pagination_length'] ) ? max( 1, absint( wp_unslash( $_POST['gs_table_pagination_length'] ) ) ) : 10;
+		$pagination_length_change = isset( $_POST['gs_table_pagination_length_change'] ) ? 1 : 0;
+		$info = isset( $_POST['gs_table_info'] ) ? 1 : 0;
+		$horizontal_scrolling = isset( $_POST['gs_table_horizontal_scrolling'] ) ? 1 : 0;
+		$custom_commands = isset( $_POST['gs_table_custom_commands'] ) ? wp_kses_post( wp_unslash( $_POST['gs_table_custom_commands'] ) ) : '';
+		$hidden_rows = isset( $_POST['gs_table_hidden_rows'] ) ? array_values( array_filter( array_map( 'absint', (array) wp_unslash( $_POST['gs_table_hidden_rows'] ) ) ) ) : array();
+		$hidden_cols = isset( $_POST['gs_table_hidden_cols'] ) ? array_values( array_filter( array_map( 'absint', (array) wp_unslash( $_POST['gs_table_hidden_cols'] ) ) ) ) : array();
+		$cell_spans = isset( $_POST['gs_table_cell_spans'] ) ? (array) wp_unslash( $_POST['gs_table_cell_spans'] ) : array();
+		$normalized_spans = array();
+		foreach ( $cell_spans as $span_key => $span_value ) {
+			if ( ! is_array( $span_value ) ) {
+				continue;
+			}
+			$rowspan = isset( $span_value['rowspan'] ) ? absint( $span_value['rowspan'] ) : 1;
+			$colspan = isset( $span_value['colspan'] ) ? absint( $span_value['colspan'] ) : 1;
+			$normalized_spans[ sanitize_key( (string) $span_key ) ] = array(
+				'rowspan' => max( 1, $rowspan ),
+				'colspan' => max( 1, $colspan ),
+			);
+		}
 
 		update_post_meta( $post_id, '_gs_table_sortable', $sortable );
 		update_post_meta( $post_id, '_gs_table_striped', $striped );
 		update_post_meta( $post_id, '_gs_table_compact', $compact );
 		update_post_meta( $post_id, '_gs_table_auto_link', $auto_link );
+		update_post_meta( $post_id, self::META_FOOT_ROW, $foot_row );
+		update_post_meta( $post_id, self::META_ROW_HOVER, $row_hover );
+		update_post_meta( $post_id, self::META_PRINT_NAME, $print_name );
+		update_post_meta( $post_id, self::META_PRINT_NAME_POSITION, in_array( $print_name_position, array( 'above', 'below' ), true ) ? $print_name_position : 'above' );
+		update_post_meta( $post_id, self::META_PRINT_DESCRIPTION, $print_description );
+		update_post_meta( $post_id, self::META_PRINT_DESCRIPTION_POSITION, in_array( $print_description_position, array( 'above', 'below' ), true ) ? $print_description_position : 'above' );
+		update_post_meta( $post_id, self::META_EXTRA_CSS_CLASS, $extra_css_class );
+		update_post_meta( $post_id, self::META_VISITOR_FEATURES, $visitor_features );
+		update_post_meta( $post_id, self::META_SEARCH, $search );
+		update_post_meta( $post_id, self::META_PAGINATION, $pagination );
+		update_post_meta( $post_id, self::META_PAGINATION_LENGTH, $pagination_length );
+		update_post_meta( $post_id, self::META_PAGINATION_LENGTH_CHANGE, $pagination_length_change );
+		update_post_meta( $post_id, self::META_INFO, $info );
+		update_post_meta( $post_id, self::META_HORIZONTAL_SCROLLING, $horizontal_scrolling );
+		update_post_meta( $post_id, self::META_CUSTOM_COMMANDS, $custom_commands );
+		update_post_meta( $post_id, self::META_HIDDEN_ROWS, $hidden_rows );
+		update_post_meta( $post_id, self::META_HIDDEN_COLS, $hidden_cols );
+		update_post_meta( $post_id, self::META_CELL_SPANS, $normalized_spans );
 	}
 
 	public static function maybe_enqueue_assets() {
@@ -350,6 +411,24 @@ class Tables {
 		$saved_auto_link = self::get_saved_auto_link_setting( $post->ID );
 		$striped        = (bool) get_post_meta( $post->ID, '_gs_table_striped', true );
 		$compact        = (bool) get_post_meta( $post->ID, '_gs_table_compact', true );
+		$foot_row       = (bool) get_post_meta( $post->ID, self::META_FOOT_ROW, true );
+		$row_hover      = (bool) get_post_meta( $post->ID, self::META_ROW_HOVER, true );
+		$print_name     = (bool) get_post_meta( $post->ID, self::META_PRINT_NAME, true );
+		$print_name_position = (string) get_post_meta( $post->ID, self::META_PRINT_NAME_POSITION, true );
+		$print_description = (bool) get_post_meta( $post->ID, self::META_PRINT_DESCRIPTION, true );
+		$print_description_position = (string) get_post_meta( $post->ID, self::META_PRINT_DESCRIPTION_POSITION, true );
+		$extra_css_class = sanitize_html_class( (string) get_post_meta( $post->ID, self::META_EXTRA_CSS_CLASS, true ) );
+		$visitor_features = (bool) get_post_meta( $post->ID, self::META_VISITOR_FEATURES, true );
+		$search = (bool) get_post_meta( $post->ID, self::META_SEARCH, true );
+		$pagination = (bool) get_post_meta( $post->ID, self::META_PAGINATION, true );
+		$pagination_length = max( 1, (int) get_post_meta( $post->ID, self::META_PAGINATION_LENGTH, true ) );
+		$pagination_length_change = (bool) get_post_meta( $post->ID, self::META_PAGINATION_LENGTH_CHANGE, true );
+		$info = (bool) get_post_meta( $post->ID, self::META_INFO, true );
+		$horizontal_scrolling = (bool) get_post_meta( $post->ID, self::META_HORIZONTAL_SCROLLING, true );
+		$custom_commands = (string) get_post_meta( $post->ID, self::META_CUSTOM_COMMANDS, true );
+		$hidden_rows = array_map( 'absint', (array) get_post_meta( $post->ID, self::META_HIDDEN_ROWS, true ) );
+		$hidden_cols = array_map( 'absint', (array) get_post_meta( $post->ID, self::META_HIDDEN_COLS, true ) );
+		$cell_spans = (array) get_post_meta( $post->ID, self::META_CELL_SPANS, true );
 
 		$sortable_override = self::normalize_bool( $atts['sortable'], null );
 		$sortable          = is_null( $sortable_override ) ? $saved_sortable : $sortable_override;
@@ -362,6 +441,15 @@ class Tables {
 		}
 		if ( $compact ) {
 			$classes[] = 'gs-table-wrap--compact';
+		}
+		if ( $row_hover ) {
+			$classes[] = 'gs-table-wrap--row-hover';
+		}
+		if ( $horizontal_scrolling ) {
+			$classes[] = 'gs-table-wrap--horizontal-scroll';
+		}
+		if ( '' !== $extra_css_class ) {
+			$classes[] = $extra_css_class;
 		}
 
 		$raw_classes   = preg_split( '/\s+/', (string) $atts['class'] );
@@ -380,14 +468,21 @@ class Tables {
 		ob_start();
 		?>
 		<div class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>">
+			<?php if ( $print_name && 'above' === $print_name_position ) : ?>
+				<div class="gs-table-print-name"><?php echo esc_html( get_the_title( $post ) ); ?></div>
+			<?php endif; ?>
+			<?php if ( $print_description && 'above' === $print_description_position && ! empty( $caption ) ) : ?>
+				<div class="gs-table-print-description"><?php echo esc_html( $caption ); ?></div>
+			<?php endif; ?>
 			<div class="gs-table-scroll">
-				<table class="gs-table"<?php echo $table_attr; ?>>
+				<table class="gs-table"<?php echo $table_attr; ?> data-gs-table-id="<?php echo esc_attr( (string) $post->ID ); ?>">
 					<?php if ( ! empty( $caption ) ) : ?>
 						<caption><?php echo esc_html( $caption ); ?></caption>
 					<?php endif; ?>
 					<thead>
 						<tr>
 							<?php foreach ( $headers as $index => $header ) : ?>
+								<?php if ( in_array( (int) $index, $hidden_cols, true ) ) { continue; } ?>
 								<?php $is_sortable_col = $sortable && '' !== trim( $header ); ?>
 								<th scope="col" <?php echo $is_sortable_col ? 'data-gs-sort-col="' . esc_attr( (string) $index ) . '"' : ''; ?>>
 									<?php echo esc_html( $header ); ?>
@@ -399,18 +494,61 @@ class Tables {
 						</tr>
 					</thead>
 					<tbody>
-						<?php foreach ( $rows as $row ) : ?>
-							<?php if ( ! is_array( $row ) ) { continue; } ?>
+						<?php foreach ( $rows as $row_index => $row ) : ?>
+							<?php if ( in_array( (int) $row_index, $hidden_rows, true ) || ! is_array( $row ) ) { continue; } ?>
 							<tr>
 								<?php foreach ( $headers as $i => $unused_header ) : ?>
-									<td><?php echo self::render_cell_value( isset( $row[ $i ] ) ? $row[ $i ] : '', $auto_link ); ?></td>
+									<?php if ( in_array( (int) $i, $hidden_cols, true ) ) { continue; } ?>
+									<?php
+									$span_key = 'r' . $row_index . 'c' . $i;
+									$span_data = isset( $cell_spans[ $span_key ] ) && is_array( $cell_spans[ $span_key ] ) ? $cell_spans[ $span_key ] : array();
+									$rowspan = isset( $span_data['rowspan'] ) ? max( 1, absint( $span_data['rowspan'] ) ) : 1;
+									$colspan = isset( $span_data['colspan'] ) ? max( 1, absint( $span_data['colspan'] ) ) : 1;
+									$span_attr = '';
+									if ( $rowspan > 1 ) {
+										$span_attr .= ' rowspan="' . esc_attr( (string) $rowspan ) . '"';
+									}
+									if ( $colspan > 1 ) {
+										$span_attr .= ' colspan="' . esc_attr( (string) $colspan ) . '"';
+									}
+									?>
+									<td<?php echo $span_attr; ?>><?php echo self::render_cell_value( isset( $row[ $i ] ) ? $row[ $i ] : '', $auto_link ); ?></td>
 								<?php endforeach; ?>
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
+					<?php if ( $foot_row && ! empty( $headers ) ) : ?>
+						<tfoot>
+							<tr>
+								<?php foreach ( $headers as $index => $header ) : ?>
+									<?php if ( in_array( (int) $index, $hidden_cols, true ) ) { continue; } ?>
+									<th scope="col"><?php echo esc_html( $header ); ?></th>
+								<?php endforeach; ?>
+							</tr>
+						</tfoot>
+					<?php endif; ?>
 				</table>
 			</div>
+			<?php if ( $print_name && 'below' === $print_name_position ) : ?>
+				<div class="gs-table-print-name"><?php echo esc_html( get_the_title( $post ) ); ?></div>
+			<?php endif; ?>
+			<?php if ( $print_description && 'below' === $print_description_position && ! empty( $caption ) ) : ?>
+				<div class="gs-table-print-description"><?php echo esc_html( $caption ); ?></div>
+			<?php endif; ?>
 		</div>
+		<?php if ( $visitor_features ) : ?>
+			<script>
+				window.gsTableConfig = window.gsTableConfig || {};
+				window.gsTableConfig[<?php echo wp_json_encode( (string) $post->ID ); ?>] = {
+					search: <?php echo $search ? 'true' : 'false'; ?>,
+					paging: <?php echo $pagination ? 'true' : 'false'; ?>,
+					pageLength: <?php echo (int) $pagination_length; ?>,
+					lengthChange: <?php echo $pagination_length_change ? 'true' : 'false'; ?>,
+					info: <?php echo $info ? 'true' : 'false'; ?>,
+					customCommands: <?php echo wp_json_encode( $custom_commands ); ?>
+				};
+			</script>
+		<?php endif; ?>
 		<?php
 		return ob_get_clean();
 	}
@@ -650,6 +788,87 @@ class Tables {
 			return null;
 		}
 		return self::can_render_post( $posts[0] ) ? $posts[0] : null;
+	}
+
+	public static function get_table_record( $post_id ) {
+		$post = get_post( $post_id );
+		if ( ! $post instanceof \WP_Post || self::POST_TYPE !== $post->post_type ) {
+			return null;
+		}
+
+		return array(
+			'post' => $post,
+			'caption' => (string) get_post_meta( $post_id, '_gs_table_caption', true ),
+			'headers' => (array) get_post_meta( $post_id, '_gs_table_headers', true ),
+			'rows' => (array) get_post_meta( $post_id, '_gs_table_rows', true ),
+			'sortable' => (bool) get_post_meta( $post_id, '_gs_table_sortable', true ),
+			'striped' => (bool) get_post_meta( $post_id, '_gs_table_striped', true ),
+			'compact' => (bool) get_post_meta( $post_id, '_gs_table_compact', true ),
+			'auto_link' => self::get_saved_auto_link_setting( $post_id ),
+			'foot_row' => (bool) get_post_meta( $post_id, self::META_FOOT_ROW, true ),
+			'row_hover' => (bool) get_post_meta( $post_id, self::META_ROW_HOVER, true ),
+			'print_name' => (bool) get_post_meta( $post_id, self::META_PRINT_NAME, true ),
+			'print_name_position' => (string) get_post_meta( $post_id, self::META_PRINT_NAME_POSITION, true ),
+			'print_description' => (bool) get_post_meta( $post_id, self::META_PRINT_DESCRIPTION, true ),
+			'print_description_position' => (string) get_post_meta( $post_id, self::META_PRINT_DESCRIPTION_POSITION, true ),
+			'extra_css_class' => (string) get_post_meta( $post_id, self::META_EXTRA_CSS_CLASS, true ),
+			'visitor_features' => (bool) get_post_meta( $post_id, self::META_VISITOR_FEATURES, true ),
+			'search' => (bool) get_post_meta( $post_id, self::META_SEARCH, true ),
+			'pagination' => (bool) get_post_meta( $post_id, self::META_PAGINATION, true ),
+			'pagination_length' => max( 1, (int) get_post_meta( $post_id, self::META_PAGINATION_LENGTH, true ) ),
+			'pagination_length_change' => (bool) get_post_meta( $post_id, self::META_PAGINATION_LENGTH_CHANGE, true ),
+			'info' => (bool) get_post_meta( $post_id, self::META_INFO, true ),
+			'horizontal_scrolling' => (bool) get_post_meta( $post_id, self::META_HORIZONTAL_SCROLLING, true ),
+			'custom_commands' => (string) get_post_meta( $post_id, self::META_CUSTOM_COMMANDS, true ),
+			'hidden_rows' => (array) get_post_meta( $post_id, self::META_HIDDEN_ROWS, true ),
+			'hidden_cols' => (array) get_post_meta( $post_id, self::META_HIDDEN_COLS, true ),
+			'cell_spans' => (array) get_post_meta( $post_id, self::META_CELL_SPANS, true ),
+		);
+	}
+
+	public static function duplicate_table( $post_id ) {
+		$record = self::get_table_record( $post_id );
+		if ( ! $record ) {
+			return new \WP_Error( 'gs_table_not_found', __( 'Table not found.', 'wsuwp-plugin-graduate-school' ) );
+		}
+
+		$new_post_id = wp_insert_post(
+			array(
+				'post_type' => self::POST_TYPE,
+				'post_status' => 'draft',
+				'post_title' => $record['post']->post_title . ' (Copy)',
+				'post_content' => '',
+			),
+			true
+		);
+		if ( is_wp_error( $new_post_id ) ) {
+			return $new_post_id;
+		}
+
+		$all_meta = get_post_meta( $post_id );
+		foreach ( $all_meta as $meta_key => $meta_values ) {
+			foreach ( $meta_values as $meta_value ) {
+				add_post_meta( $new_post_id, $meta_key, maybe_unserialize( $meta_value ) );
+			}
+		}
+		return $new_post_id;
+	}
+
+	public static function delete_table( $post_id ) {
+		$post = get_post( $post_id );
+		if ( ! $post instanceof \WP_Post || self::POST_TYPE !== $post->post_type ) {
+			return false;
+		}
+		return (bool) wp_delete_post( $post_id, true );
+	}
+
+	public static function update_table_options( $post_id, $options ) {
+		if ( ! is_array( $options ) ) {
+			return;
+		}
+		foreach ( $options as $meta_key => $meta_value ) {
+			update_post_meta( $post_id, $meta_key, $meta_value );
+		}
 	}
 
 	public static function register_tools_page() {
@@ -992,22 +1211,52 @@ class Tables {
 		check_admin_referer( 'gs_tables_export', 'gs_tables_export_nonce' );
 
 		$format = isset( $_POST['format'] ) ? sanitize_key( wp_unslash( $_POST['format'] ) ) : 'csv';
-		$tables = self::get_all_tables_for_export();
+		$csv_delimiter = isset( $_POST['csv_delimiter'] ) ? sanitize_key( wp_unslash( $_POST['csv_delimiter'] ) ) : 'comma';
+		$selected_ids = isset( $_POST['table_ids'] ) ? array_values( array_filter( array_map( 'absint', (array) wp_unslash( $_POST['table_ids'] ) ) ) ) : array();
+		$zip_requested = isset( $_POST['zip'] ) ? 1 : 0;
+		$tables = self::get_all_tables_for_export( $selected_ids );
+		$delimiter = ',';
+		if ( 'semicolon' === $csv_delimiter ) {
+			$delimiter = ';';
+		} elseif ( 'tabulator' === $csv_delimiter ) {
+			$delimiter = "\t";
+		}
+
 		if ( 'json' === $format ) {
+			if ( $zip_requested || count( $tables ) > 1 ) {
+				self::stream_zip_export( $tables, 'json', $delimiter );
+			}
 			self::stream_json_export( $tables );
 		}
-		self::stream_csv_export( $tables );
+
+		if ( 'html' === $format ) {
+			if ( $zip_requested || count( $tables ) > 1 ) {
+				self::stream_zip_export( $tables, 'html', $delimiter );
+			}
+			self::stream_html_export( $tables );
+		}
+
+		if ( $zip_requested || count( $tables ) > 1 ) {
+			self::stream_zip_export( $tables, 'csv', $delimiter );
+		}
+		self::stream_csv_export( $tables, $delimiter );
 	}
 
-	private static function get_all_tables_for_export() {
+	private static function get_all_tables_for_export( $selected_ids = array() ) {
+		$query_args = array(
+			'post_type'      => self::POST_TYPE,
+			'post_status'    => array( 'publish', 'draft', 'pending', 'private' ),
+			'posts_per_page' => -1,
+			'orderby'        => 'title',
+			'order'          => 'ASC',
+		);
+		if ( ! empty( $selected_ids ) ) {
+			$query_args['post__in'] = $selected_ids;
+			$query_args['orderby'] = 'post__in';
+		}
+
 		$posts = get_posts(
-			array(
-				'post_type'      => self::POST_TYPE,
-				'post_status'    => array( 'publish', 'draft', 'pending', 'private' ),
-				'posts_per_page' => -1,
-				'orderby'        => 'title',
-				'order'          => 'ASC',
-			)
+			$query_args
 		);
 
 		$tables = array();
@@ -1044,13 +1293,38 @@ class Tables {
 		exit;
 	}
 
-	private static function stream_csv_export( $tables ) {
+	private static function stream_html_export( $tables ) {
+		nocache_headers();
+		header( 'Content-Type: text/html; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename=gs-tables-export-' . gmdate( 'Ymd-His' ) . '.html' );
+		echo '<!doctype html><html><head><meta charset="utf-8"><title>gs table export</title></head><body>';
+		foreach ( $tables as $table ) {
+			echo '<h2>' . esc_html( $table['title'] ) . '</h2>';
+			echo '<table border="1"><thead><tr>';
+			foreach ( (array) $table['headers'] as $header ) {
+				echo '<th>' . esc_html( $header ) . '</th>';
+			}
+			echo '</tr></thead><tbody>';
+			foreach ( (array) $table['rows'] as $row ) {
+				echo '<tr>';
+				foreach ( (array) $row as $cell ) {
+					echo '<td>' . esc_html( is_scalar( $cell ) ? (string) $cell : wp_json_encode( $cell ) ) . '</td>';
+				}
+				echo '</tr>';
+			}
+			echo '</tbody></table>';
+		}
+		echo '</body></html>';
+		exit;
+	}
+
+	private static function stream_csv_export( $tables, $delimiter = ',' ) {
 		nocache_headers();
 		header( 'Content-Type: text/csv; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename=gs-tables-export-' . gmdate( 'Ymd-His' ) . '.csv' );
 
 		$output = fopen( 'php://output', 'w' );
-		fputcsv( $output, array( 'table_id', 'slug', 'title', 'caption', 'legacy_source', 'legacy_id', 'headers_json', 'row_json' ) );
+		fputcsv( $output, array( 'table_id', 'slug', 'title', 'caption', 'legacy_source', 'legacy_id', 'headers_json', 'row_json' ), $delimiter );
 		foreach ( $tables as $table ) {
 			if ( empty( $table['rows'] ) ) {
 				fputcsv(
@@ -1065,6 +1339,8 @@ class Tables {
 						wp_json_encode( $table['headers'] ),
 						wp_json_encode( array() ),
 					)
+					,
+					$delimiter
 				);
 				continue;
 			}
@@ -1081,11 +1357,77 @@ class Tables {
 						wp_json_encode( $table['headers'] ),
 						wp_json_encode( $row ),
 					)
+					,
+					$delimiter
 				);
 			}
 		}
 
 		fclose( $output );
+		exit;
+	}
+
+	private static function stream_zip_export( $tables, $format, $delimiter = ',' ) {
+		if ( ! class_exists( 'ZipArchive' ) ) {
+			if ( 'json' === $format ) {
+				self::stream_json_export( $tables );
+			}
+			if ( 'html' === $format ) {
+				self::stream_html_export( $tables );
+			}
+			self::stream_csv_export( $tables, $delimiter );
+		}
+
+		$tmp_file = wp_tempnam( 'gs-tables-export.zip' );
+		$zip = new \ZipArchive();
+		if ( true !== $zip->open( $tmp_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE ) ) {
+			wp_die( esc_html__( 'Could not create ZIP export file.', 'wsuwp-plugin-graduate-school' ) );
+		}
+
+		foreach ( $tables as $table ) {
+			$safe_title = sanitize_file_name( ! empty( $table['title'] ) ? $table['title'] : 'table-' . $table['id'] );
+			if ( 'json' === $format ) {
+				$zip->addFromString(
+					$safe_title . '.json',
+					wp_json_encode( $table, JSON_PRETTY_PRINT )
+				);
+				continue;
+			}
+			if ( 'html' === $format ) {
+				$html = '<table><thead><tr>';
+				foreach ( (array) $table['headers'] as $header ) {
+					$html .= '<th>' . esc_html( $header ) . '</th>';
+				}
+				$html .= '</tr></thead><tbody>';
+				foreach ( (array) $table['rows'] as $row ) {
+					$html .= '<tr>';
+					foreach ( (array) $row as $cell ) {
+						$html .= '<td>' . esc_html( is_scalar( $cell ) ? (string) $cell : wp_json_encode( $cell ) ) . '</td>';
+					}
+					$html .= '</tr>';
+				}
+				$html .= '</tbody></table>';
+				$zip->addFromString( $safe_title . '.html', $html );
+				continue;
+			}
+
+			$handle = fopen( 'php://temp', 'w+' );
+			fputcsv( $handle, (array) $table['headers'], $delimiter );
+			foreach ( (array) $table['rows'] as $row ) {
+				fputcsv( $handle, (array) $row, $delimiter );
+			}
+			rewind( $handle );
+			$csv_content = stream_get_contents( $handle );
+			fclose( $handle );
+			$zip->addFromString( $safe_title . '.csv', (string) $csv_content );
+		}
+
+		$zip->close();
+		nocache_headers();
+		header( 'Content-Type: application/zip' );
+		header( 'Content-Disposition: attachment; filename=gs-tables-export-' . gmdate( 'Ymd-His' ) . '.zip' );
+		readfile( $tmp_file );
+		@unlink( $tmp_file );
 		exit;
 	}
 
@@ -1102,15 +1444,15 @@ class Tables {
 		exit;
 	}
 
-	private static function get_preview_url( $table_id ) {
+	public static function get_preview_url( $table_id ) {
 		$table_id = absint( $table_id );
 		$url = add_query_arg(
 			array(
-				'post_type' => self::POST_TYPE,
-				'page'      => self::PREVIEW_SLUG,
+				'page'      => Tables_Admin::MENU_SLUG,
+				'action'    => 'preview',
 				'table_id'  => $table_id,
 			),
-			admin_url( 'edit.php' )
+			admin_url( 'admin.php' )
 		);
 
 		return wp_nonce_url( $url, 'gs_table_preview_' . $table_id );

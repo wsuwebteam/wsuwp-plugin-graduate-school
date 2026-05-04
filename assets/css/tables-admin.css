@@ -1,0 +1,119 @@
+.gs-admin-tabs .nav-tab-active {
+	border-bottom: 2px solid #2f855a;
+}
+
+.gs-grid-wrap {
+	overflow: auto;
+	max-height: calc(100vh - 260px);
+	border: 1px solid #dcdcde;
+}
+
+.gs-grid-table {
+	width: 100%;
+	min-width: 900px;
+	table-layout: fixed;
+	border-collapse: separate;
+	border-spacing: 0;
+}
+
+.gs-grid-table thead th {
+	position: sticky;
+	top: 0;
+	z-index: 3;
+	background: #f0f6f8;
+}
+
+.gs-grid-table th.gs-grid-index {
+	position: sticky;
+	left: 0;
+	z-index: 2;
+	width: 48px;
+	min-width: 48px;
+	max-width: 48px;
+	text-align: center;
+	background: #f6f7f7;
+	box-shadow: 1px 0 0 #dcdcde;
+}
+
+.gs-grid-table thead th.gs-grid-index {
+	z-index: 4;
+}
+
+.gs-grid-table td[contenteditable="true"] {
+	min-width: 120px;
+	background: #fff;
+	cursor: text;
+	vertical-align: top;
+	white-space: normal;
+	word-break: break-word;
+	padding: 8px;
+	line-height: 1.35;
+}
+
+.gs-grid-table th[data-col-index] {
+	min-width: 120px;
+	text-align: center;
+	background: #f0f6f8;
+}
+
+.gs-grid-table tbody th.gs-grid-index {
+	position: sticky;
+	left: 0;
+	z-index: 2;
+	background: #f6f7f7;
+}
+
+.gs-grid-table td.is-selected {
+	outline: 2px solid #2271b1;
+	outline-offset: -2px;
+	background: #f0f6fc;
+}
+
+.gs-grid-table td[contenteditable="true"]:focus {
+	outline: 2px solid #2271b1;
+	outline-offset: -2px;
+	background: #ffffff;
+}
+
+.gs-toolbar-top {
+	display: flex;
+	gap: 8px;
+	margin: 12px 0;
+}
+
+.gs-toolbar-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 12px;
+}
+
+.gs-toolbar-grid .gs-group {
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 8px;
+	background: #fff;
+}
+
+.gs-toolbar-grid .gs-group .button {
+	margin: 4px 4px 0 0;
+}
+
+.gs-import-source {
+	display: none;
+	margin: 12px 0;
+}
+
+.gs-import-source.is-active {
+	display: block;
+}
+
+.gs-other-actions {
+	display: flex;
+	gap: 8px;
+	margin: 12px 0;
+}
+
+#gs-export-table-select {
+	width: 100%;
+	max-width: 720px;
+}
