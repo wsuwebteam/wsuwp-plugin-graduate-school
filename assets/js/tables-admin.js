@@ -148,6 +148,15 @@
 		});
 
 		function syncHiddenInputs() {
+			var headerCells = table.querySelectorAll('th[data-col-index]');
+			var headerInputs = hiddenWrap.querySelectorAll('input[name="gs_table_headers[]"]');
+			headerCells.forEach(function (headerCell, index) {
+				if (!headerInputs[index]) {
+					return;
+				}
+				headerInputs[index].value = headerCell.textContent.trim();
+			});
+
 			var cells = table.querySelectorAll('td[contenteditable="true"]');
 			cells.forEach(function (cell) {
 				var row = cell.getAttribute('data-row');
@@ -160,6 +169,13 @@
 		}
 
 		form.addEventListener('submit', syncHiddenInputs);
+
+		table.addEventListener('click', function (event) {
+			var headerCell = event.target.closest('th[data-col-index][contenteditable="true"]');
+			if (headerCell) {
+				headerCell.focus();
+			}
+		});
 
 		if (linkApplyButton) {
 			linkApplyButton.addEventListener('click', function () {

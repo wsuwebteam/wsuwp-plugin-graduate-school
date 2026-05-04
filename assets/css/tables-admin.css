@@ -75,6 +75,16 @@
 	background: #eef4f8;
 }
 
+.gs-grid-table th.gs-grid-header-cell[contenteditable="true"] {
+	cursor: text;
+}
+
+.gs-grid-table th.gs-grid-header-cell[contenteditable="true"]:focus {
+	outline: 2px solid #2f6feb;
+	outline-offset: -2px;
+	background: #ffffff;
+}
+
 .gs-grid-table tbody th.gs-grid-index {
 	position: sticky;
 	left: 0;

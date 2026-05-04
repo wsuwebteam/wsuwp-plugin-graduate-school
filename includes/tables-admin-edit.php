@@ -131,7 +131,7 @@ class Tables_Admin_Edit {
 								<tr>
 									<th class="gs-grid-index"></th>
 									<?php foreach ( $headers as $index => $header ) : ?>
-										<th data-col-index="<?php echo esc_attr( (string) $index ); ?>"><?php echo esc_html( (string) $header ); ?></th>
+										<th data-col-index="<?php echo esc_attr( (string) $index ); ?>" contenteditable="true" class="gs-grid-header-cell"><?php echo esc_html( (string) $header ); ?></th>
 									<?php endforeach; ?>
 								</tr>
 							</thead>
