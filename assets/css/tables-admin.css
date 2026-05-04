@@ -219,3 +219,10 @@
 	width: 100%;
 	max-width: 720px;
 }
+
+/* All Tables list: keep ID column compact */
+.wp-admin .wp-list-table .column-id {
+	width: 64px;
+	max-width: 64px;
+	white-space: nowrap;
+}
