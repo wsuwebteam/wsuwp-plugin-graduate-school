@@ -127,6 +127,46 @@
 	gap: 12px;
 }
 
+.gs-manipulation-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 18px 28px;
+	padding: 8px 0 2px;
+}
+
+.gs-manip-column {
+	display: grid;
+	gap: 8px;
+}
+
+.gs-manip-row {
+	display: grid;
+	grid-template-columns: 120px 1fr;
+	column-gap: 8px;
+	align-items: center;
+}
+
+.gs-manip-label {
+	font-size: 12px;
+	color: #3c434a;
+	white-space: nowrap;
+}
+
+.gs-manip-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: center;
+}
+
+.gs-manip-actions .button {
+	margin: 0;
+	min-height: 26px;
+	line-height: 24px;
+	padding: 0 8px;
+	font-size: 12px;
+}
+
 .gs-toolbar-grid .gs-group {
 	border: 1px solid #dcdcde;
 	border-radius: 4px;
@@ -136,6 +176,28 @@
 
 .gs-toolbar-grid .gs-group .button {
 	margin: 4px 4px 0 0;
+}
+
+.gs-link-editor {
+	margin-top: 12px;
+	padding: 10px 12px;
+	border: 1px solid #d0d7de;
+	border-radius: 6px;
+	background: #fbfcfe;
+}
+
+.gs-link-editor h4 {
+	margin: 0 0 6px;
+}
+
+.gs-link-editor .description {
+	margin-top: 0;
+}
+
+@media (max-width: 980px) {
+	.gs-manipulation-grid {
+		grid-template-columns: 1fr;
+	}
 }
 
 .gs-import-source {

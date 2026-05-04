@@ -386,6 +386,7 @@ class Tables {
 				'slug'          => '',
 				'sortable'      => '',
 				'auto_link'     => '',
+				'show_hidden'   => '',
 				'class'         => '',
 				'empty_message' => __( 'Table data is not available at this time.', 'wsuwp-plugin-graduate-school' ),
 			),
@@ -433,6 +434,7 @@ class Tables {
 		$sortable          = is_null( $sortable_override ) ? $saved_sortable : $sortable_override;
 		$auto_link_override = self::normalize_bool( $atts['auto_link'], null );
 		$auto_link          = is_null( $auto_link_override ) ? $saved_auto_link : $auto_link_override;
+		$show_hidden_override = self::normalize_bool( $atts['show_hidden'], false );
 
 		$classes = array( 'gs-table-wrap' );
 		if ( $striped ) {
@@ -481,7 +483,7 @@ class Tables {
 					<thead>
 						<tr>
 							<?php foreach ( $headers as $index => $header ) : ?>
-								<?php if ( in_array( (int) $index, $hidden_cols, true ) ) { continue; } ?>
+								<?php if ( ! $show_hidden_override && in_array( (int) $index, $hidden_cols, true ) ) { continue; } ?>
 								<?php $is_sortable_col = $sortable && '' !== trim( $header ); ?>
 								<th scope="col" <?php echo $is_sortable_col ? 'data-gs-sort-col="' . esc_attr( (string) $index ) . '"' : ''; ?>>
 									<?php echo esc_html( $header ); ?>
@@ -494,10 +496,10 @@ class Tables {
 					</thead>
 					<tbody>
 						<?php foreach ( $rows as $row_index => $row ) : ?>
-							<?php if ( in_array( (int) $row_index, $hidden_rows, true ) || ! is_array( $row ) ) { continue; } ?>
+							<?php if ( ( ! $show_hidden_override && in_array( (int) $row_index, $hidden_rows, true ) ) || ! is_array( $row ) ) { continue; } ?>
 							<tr>
 								<?php foreach ( $headers as $i => $unused_header ) : ?>
-									<?php if ( in_array( (int) $i, $hidden_cols, true ) ) { continue; } ?>
+									<?php if ( ! $show_hidden_override && in_array( (int) $i, $hidden_cols, true ) ) { continue; } ?>
 									<td><?php echo self::render_cell_value( isset( $row[ $i ] ) ? $row[ $i ] : '', $auto_link ); ?></td>
 								<?php endforeach; ?>
 							</tr>
@@ -507,7 +509,7 @@ class Tables {
 						<tfoot>
 							<tr>
 								<?php foreach ( $headers as $index => $header ) : ?>
-									<?php if ( in_array( (int) $index, $hidden_cols, true ) ) { continue; } ?>
+									<?php if ( ! $show_hidden_override && in_array( (int) $index, $hidden_cols, true ) ) { continue; } ?>
 									<th scope="col"><?php echo esc_html( $header ); ?></th>
 								<?php endforeach; ?>
 							</tr>
@@ -724,6 +726,10 @@ class Tables {
 			'text' => sanitize_text_field( $value ),
 			'url'  => '',
 		);
+	}
+
+	public static function get_editor_cell_data( $value ) {
+		return self::normalize_editor_cell( $value );
 	}
 
 	private static function sanitize_editor_cell( $value ) {

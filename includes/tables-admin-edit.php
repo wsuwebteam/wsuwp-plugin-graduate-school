@@ -140,8 +140,12 @@ class Tables_Admin_Edit {
 									<tr>
 										<th class="gs-grid-index" data-row-index="<?php echo esc_attr( (string) $row_index ); ?>"><?php echo esc_html( (string) ( $row_index + 1 ) ); ?></th>
 										<?php for ( $col = 0; $col < $col_count; $col++ ) : ?>
-											<?php $cell = isset( $row[ $col ] ) ? $row[ $col ] : ''; ?>
-											<td contenteditable="true" data-row="<?php echo esc_attr( (string) $row_index ); ?>" data-col="<?php echo esc_attr( (string) $col ); ?>"><?php echo esc_html( is_scalar( $cell ) ? (string) $cell : '' ); ?></td>
+											<?php
+											$cell = isset( $row[ $col ] ) ? $row[ $col ] : '';
+											$cell_data = Tables::get_editor_cell_data( $cell );
+											$cell_text = isset( $cell_data['text'] ) ? (string) $cell_data['text'] : '';
+											?>
+											<td contenteditable="true" data-row="<?php echo esc_attr( (string) $row_index ); ?>" data-col="<?php echo esc_attr( (string) $col ); ?>"><?php echo esc_html( $cell_text ); ?></td>
 										<?php endfor; ?>
 									</tr>
 								<?php endforeach; ?>
@@ -154,20 +158,116 @@ class Tables_Admin_Edit {
 						<?php endforeach; ?>
 						<?php foreach ( $rows as $row_index => $row ) : ?>
 							<?php for ( $col = 0; $col < $col_count; $col++ ) : ?>
-								<?php $cell = isset( $row[ $col ] ) ? $row[ $col ] : ''; ?>
-								<input type="hidden" name="gs_table_rows[<?php echo esc_attr( (string) $row_index ); ?>][<?php echo esc_attr( (string) $col ); ?>][text]" value="<?php echo esc_attr( is_scalar( $cell ) ? (string) $cell : '' ); ?>" />
+								<?php
+								$cell = isset( $row[ $col ] ) ? $row[ $col ] : '';
+								$cell_data = Tables::get_editor_cell_data( $cell );
+								$cell_text = isset( $cell_data['text'] ) ? (string) $cell_data['text'] : '';
+								$cell_url = isset( $cell_data['url'] ) ? (string) $cell_data['url'] : '';
+								?>
+								<input type="hidden" name="gs_table_rows[<?php echo esc_attr( (string) $row_index ); ?>][<?php echo esc_attr( (string) $col ); ?>][text]" value="<?php echo esc_attr( $cell_text ); ?>" />
+								<input type="hidden" name="gs_table_rows[<?php echo esc_attr( (string) $row_index ); ?>][<?php echo esc_attr( (string) $col ); ?>][url]" value="<?php echo esc_attr( $cell_url ); ?>" />
 							<?php endfor; ?>
 						<?php endforeach; ?>
 					</div>
 				</div></div>
 
 				<div class="postbox"><h2 class="hndle"><span><?php esc_html_e( 'Table Manipulation', 'wsuwp-plugin-graduate-school' ); ?></span></h2><div class="inside">
-					<div class="gs-toolbar-grid">
-						<div class="gs-group"><strong><?php esc_html_e( 'Selected cells', 'wsuwp-plugin-graduate-school' ); ?></strong><button type="button" class="button gs-action" data-gs-action="insert-link">Insert Link</button><button type="button" class="button gs-action" data-gs-action="insert-image">Insert Image</button><button type="button" class="button gs-action" data-gs-action="advanced-editor">Advanced Editor</button></div>
-						<div class="gs-group"><strong><?php esc_html_e( 'Selected rows', 'wsuwp-plugin-graduate-school' ); ?></strong><button type="button" class="button gs-action" data-gs-action="duplicate-row">Duplicate</button><button type="button" class="button gs-action" data-gs-action="insert-row">Insert</button><button type="button" class="button gs-action" data-gs-action="delete-row">Delete</button><button type="button" class="button gs-action" data-gs-action="move-row-up">Move up</button><button type="button" class="button gs-action" data-gs-action="move-row-down">Move down</button><button type="button" class="button gs-action" data-gs-action="hide-row">Hide</button><button type="button" class="button gs-action" data-gs-action="show-row">Show</button></div>
-						<div class="gs-group"><strong><?php esc_html_e( 'Selected columns', 'wsuwp-plugin-graduate-school' ); ?></strong><button type="button" class="button gs-action" data-gs-action="duplicate-column">Duplicate</button><button type="button" class="button gs-action" data-gs-action="insert-column">Insert</button><button type="button" class="button gs-action" data-gs-action="delete-column">Delete</button><button type="button" class="button gs-action" data-gs-action="move-col-left">Move left</button><button type="button" class="button gs-action" data-gs-action="move-col-right">Move right</button><button type="button" class="button gs-action" data-gs-action="hide-column">Hide</button><button type="button" class="button gs-action" data-gs-action="show-column">Show</button></div>
+					<div class="gs-manipulation-grid">
+						<div class="gs-manip-column">
+							<div class="gs-manip-row">
+								<span class="gs-manip-label"><?php esc_html_e( 'Selected cells:', 'wsuwp-plugin-graduate-school' ); ?></span>
+								<div class="gs-manip-actions">
+									<button type="button" class="button gs-action" data-gs-action="insert-link">Insert Link</button>
+									<button type="button" class="button gs-action" data-gs-action="insert-image">Insert Image</button>
+									<button type="button" class="button gs-action" data-gs-action="advanced-editor">Advanced Editor</button>
+								</div>
+							</div>
+							<div class="gs-manip-row">
+								<span class="gs-manip-label"><?php esc_html_e( 'Selected rows:', 'wsuwp-plugin-graduate-school' ); ?></span>
+								<div class="gs-manip-actions">
+									<button type="button" class="button gs-action" data-gs-action="duplicate-row">Duplicate</button>
+									<button type="button" class="button gs-action" data-gs-action="insert-row">Insert</button>
+									<button type="button" class="button gs-action" data-gs-action="delete-row">Delete</button>
+								</div>
+							</div>
+							<div class="gs-manip-row">
+								<span class="gs-manip-label"><?php esc_html_e( 'Selected rows:', 'wsuwp-plugin-graduate-school' ); ?></span>
+								<div class="gs-manip-actions">
+									<button type="button" class="button gs-action" data-gs-action="move-row-up">Move up</button>
+									<button type="button" class="button gs-action" data-gs-action="move-row-down">Move down</button>
+								</div>
+							</div>
+							<div class="gs-manip-row">
+								<span class="gs-manip-label"><?php esc_html_e( 'Selected rows:', 'wsuwp-plugin-graduate-school' ); ?></span>
+								<div class="gs-manip-actions">
+									<button type="button" class="button gs-action" data-gs-action="hide-row">Hide</button>
+									<button type="button" class="button gs-action" data-gs-action="show-row">Show</button>
+								</div>
+							</div>
+							<div class="gs-manip-row">
+								<span class="gs-manip-label"><?php esc_html_e( 'Add', 'wsuwp-plugin-graduate-school' ); ?></span>
+								<div class="gs-manip-actions">
+									<input type="number" value="1" min="1" class="small-text" id="gs-add-count-rows" />
+									<span><?php esc_html_e( 'row(s)', 'wsuwp-plugin-graduate-school' ); ?></span>
+									<button type="button" class="button gs-action" data-gs-action="append-rows">Add</button>
+								</div>
+							</div>
+						</div>
+						<div class="gs-manip-column">
+							<div class="gs-manip-row">
+								<span class="gs-manip-label"><?php esc_html_e( 'Selected cells:', 'wsuwp-plugin-graduate-school' ); ?></span>
+								<div class="gs-manip-actions">
+									<button type="button" class="button gs-action" disabled>Combine/Merge</button>
+								</div>
+							</div>
+							<div class="gs-manip-row">
+								<span class="gs-manip-label"><?php esc_html_e( 'Selected columns:', 'wsuwp-plugin-graduate-school' ); ?></span>
+								<div class="gs-manip-actions">
+									<button type="button" class="button gs-action" data-gs-action="duplicate-column">Duplicate</button>
+									<button type="button" class="button gs-action" data-gs-action="insert-column">Insert</button>
+									<button type="button" class="button gs-action" data-gs-action="delete-column">Delete</button>
+								</div>
+							</div>
+							<div class="gs-manip-row">
+								<span class="gs-manip-label"><?php esc_html_e( 'Selected columns:', 'wsuwp-plugin-graduate-school' ); ?></span>
+								<div class="gs-manip-actions">
+									<button type="button" class="button gs-action" data-gs-action="move-col-left">Move left</button>
+									<button type="button" class="button gs-action" data-gs-action="move-col-right">Move right</button>
+								</div>
+							</div>
+							<div class="gs-manip-row">
+								<span class="gs-manip-label"><?php esc_html_e( 'Selected columns:', 'wsuwp-plugin-graduate-school' ); ?></span>
+								<div class="gs-manip-actions">
+									<button type="button" class="button gs-action" data-gs-action="hide-column">Hide</button>
+									<button type="button" class="button gs-action" data-gs-action="show-column">Show</button>
+								</div>
+							</div>
+							<div class="gs-manip-row">
+								<span class="gs-manip-label"><?php esc_html_e( 'Add', 'wsuwp-plugin-graduate-school' ); ?></span>
+								<div class="gs-manip-actions">
+									<input type="number" value="1" min="1" class="small-text" id="gs-add-count-cols" />
+									<span><?php esc_html_e( 'column(s)', 'wsuwp-plugin-graduate-school' ); ?></span>
+									<button type="button" class="button gs-action" data-gs-action="append-columns">Add</button>
+								</div>
+							</div>
+						</div>
 					</div>
-					<p><label><?php esc_html_e( 'Add', 'wsuwp-plugin-graduate-school' ); ?> <input type="number" value="1" min="1" class="small-text" id="gs-add-count" /> <?php esc_html_e( 'rows/columns', 'wsuwp-plugin-graduate-school' ); ?></label> <button type="button" class="button gs-action" data-gs-action="append-rows">Add Rows</button> <button type="button" class="button gs-action" data-gs-action="append-columns">Add Columns</button></p>
+					<div class="gs-link-editor" id="gs-link-editor">
+						<h4><?php esc_html_e( 'Selected Cell Link', 'wsuwp-plugin-graduate-school' ); ?></h4>
+						<p class="description"><?php esc_html_e( 'Select a cell, then edit link text and URL.', 'wsuwp-plugin-graduate-school' ); ?></p>
+						<p>
+							<label for="gs-link-text"><?php esc_html_e( 'Link Text', 'wsuwp-plugin-graduate-school' ); ?></label><br />
+							<input type="text" id="gs-link-text" class="regular-text" />
+						</p>
+						<p>
+							<label for="gs-link-url"><?php esc_html_e( 'Link URL', 'wsuwp-plugin-graduate-school' ); ?></label><br />
+							<input type="url" id="gs-link-url" class="large-text" placeholder="https://example.com" />
+						</p>
+						<p>
+							<button type="button" class="button button-secondary" id="gs-link-apply"><?php esc_html_e( 'Apply Link', 'wsuwp-plugin-graduate-school' ); ?></button>
+							<button type="button" class="button" id="gs-link-clear"><?php esc_html_e( 'Clear Link', 'wsuwp-plugin-graduate-school' ); ?></button>
+						</p>
+					</div>
 					<input type="hidden" name="gs_table_hidden_rows[]" value="" />
 					<input type="hidden" name="gs_table_hidden_cols[]" value="" />
 				</div></div>
@@ -224,6 +324,7 @@ class Tables_Admin_Edit {
 				$content = Tables::render_shortcode(
 					array(
 						'id' => (string) $table_id,
+						'show_hidden' => '1',
 					),
 					'',
 					'gs_table'

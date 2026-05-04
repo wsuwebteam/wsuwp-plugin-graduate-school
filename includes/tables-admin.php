@@ -85,6 +85,23 @@ class Tables_Admin {
 			Plugin::get( 'version' ),
 			true
 		);
+
+		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
+		if ( 'preview' === $action ) {
+			wp_enqueue_style(
+				'gs-table',
+				Plugin::get( 'url' ) . 'css/tables.css',
+				array(),
+				Plugin::get( 'version' )
+			);
+			wp_enqueue_script(
+				'gs-table-sort',
+				Plugin::get( 'url' ) . 'js/tables-sort.js',
+				array(),
+				Plugin::get( 'version' ),
+				true
+			);
+		}
 		wp_enqueue_media();
 	}
 

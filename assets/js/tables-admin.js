@@ -81,11 +81,50 @@
 		var table = document.querySelector('.gs-grid-table[data-gs-grid="1"]');
 		var hiddenWrap = document.getElementById('gs-grid-hidden-inputs');
 		var form = document.getElementById('gs-table-editor-form');
+		var linkTextInput = document.getElementById('gs-link-text');
+		var linkUrlInput = document.getElementById('gs-link-url');
+		var linkApplyButton = document.getElementById('gs-link-apply');
+		var linkClearButton = document.getElementById('gs-link-clear');
 		if (!table || !hiddenWrap || !form) {
 			return;
 		}
 
 		var selectedCell = null;
+		function getCellInput(row, col, field) {
+			return hiddenWrap.querySelector('input[name="gs_table_rows[' + row + '][' + col + '][' + field + ']"]');
+		}
+
+		function syncLinkEditorFromCell(cell) {
+			if (!linkTextInput || !linkUrlInput || !cell) {
+				return;
+			}
+			var row = cell.getAttribute('data-row');
+			var col = cell.getAttribute('data-col');
+			var textInput = getCellInput(row, col, 'text');
+			var urlInput = getCellInput(row, col, 'url');
+			linkTextInput.value = textInput ? textInput.value : cell.textContent.trim();
+			linkUrlInput.value = urlInput ? urlInput.value : '';
+		}
+
+		function applyLinkEditorToCell(cell) {
+			if (!cell || !linkTextInput || !linkUrlInput) {
+				return;
+			}
+			var row = cell.getAttribute('data-row');
+			var col = cell.getAttribute('data-col');
+			var text = linkTextInput.value.trim();
+			var url = linkUrlInput.value.trim();
+			cell.textContent = text;
+			var textInput = getCellInput(row, col, 'text');
+			var urlInput = getCellInput(row, col, 'url');
+			if (textInput) {
+				textInput.value = text;
+			}
+			if (urlInput) {
+				urlInput.value = url;
+			}
+		}
+
 		table.addEventListener('click', function (event) {
 			var cell = event.target.closest('td[contenteditable="true"]');
 			if (!cell) {
@@ -96,6 +135,7 @@
 			}
 			selectedCell = cell;
 			selectedCell.classList.add('is-selected');
+			syncLinkEditorFromCell(selectedCell);
 		});
 
 		table.addEventListener('paste', function (event) {
@@ -112,8 +152,7 @@
 			cells.forEach(function (cell) {
 				var row = cell.getAttribute('data-row');
 				var col = cell.getAttribute('data-col');
-				var selector = 'input[name="gs_table_rows[' + row + '][' + col + '][text]"]';
-				var input = hiddenWrap.querySelector(selector);
+				var input = getCellInput(row, col, 'text');
 				if (input) {
 					input.value = cell.textContent.trim();
 				}
@@ -122,6 +161,23 @@
 
 		form.addEventListener('submit', syncHiddenInputs);
 
+		if (linkApplyButton) {
+			linkApplyButton.addEventListener('click', function () {
+				applyLinkEditorToCell(selectedCell);
+			});
+		}
+		if (linkClearButton) {
+			linkClearButton.addEventListener('click', function () {
+				if (!selectedCell || !linkTextInput || !linkUrlInput) {
+					return;
+				}
+				var currentText = selectedCell.textContent.trim();
+				linkTextInput.value = currentText;
+				linkUrlInput.value = '';
+				applyLinkEditorToCell(selectedCell);
+			});
+		}
+
 		document.querySelectorAll('.gs-action').forEach(function (btn) {
 			btn.addEventListener('click', function () {
 				if (!selectedCell) {
@@ -129,10 +185,12 @@
 				}
 				var action = btn.getAttribute('data-gs-action');
 				if (action === 'insert-link') {
-					var url = window.prompt('Link URL');
-					if (url) {
-						selectedCell.textContent = url;
+					if (!linkTextInput || !linkUrlInput) {
+						return;
 					}
+					syncLinkEditorFromCell(selectedCell);
+					linkTextInput.focus();
+					linkTextInput.select();
 				}
 				if (action === 'insert-image') {
 					var imgUrl = window.prompt('Image URL');
