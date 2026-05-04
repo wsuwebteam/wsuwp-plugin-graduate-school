@@ -998,7 +998,11 @@ class Tables {
 			return;
 		}
 
-		if ( ! isset( $_GET['post_type'] ) || self::POST_TYPE !== sanitize_key( wp_unslash( $_GET['post_type'] ) ) ) {
+		$post_type = isset( $_GET['post_type'] ) ? sanitize_key( wp_unslash( $_GET['post_type'] ) ) : '';
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+		$valid_new_route = class_exists( __NAMESPACE__ . '\\Tables_Admin' ) && in_array( $page, array( Tables_Admin::IMPORT_SLUG, Tables_Admin::MENU_SLUG ), true );
+		$valid_legacy_route = self::POST_TYPE === $post_type;
+		if ( ! $valid_new_route && ! $valid_legacy_route ) {
 			return;
 		}
 
