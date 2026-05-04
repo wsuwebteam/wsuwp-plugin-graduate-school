@@ -1424,15 +1424,15 @@ class Tables {
 	}
 
 	private static function redirect_with_notice( $notice, $args = array() ) {
+		$target_page = class_exists( __NAMESPACE__ . '\\Tables_Admin' ) ? Tables_Admin::IMPORT_SLUG : self::TOOLS_SLUG;
 		$query = array_merge(
 			array(
-				'post_type'        => self::POST_TYPE,
-				'page'             => self::TOOLS_SLUG,
+				'page'             => $target_page,
 				'gs_tables_notice' => $notice,
 			),
 			$args
 		);
-		wp_safe_redirect( add_query_arg( $query, admin_url( 'edit.php' ) ) );
+		wp_safe_redirect( add_query_arg( $query, admin_url( 'admin.php' ) ) );
 		exit;
 	}
 
