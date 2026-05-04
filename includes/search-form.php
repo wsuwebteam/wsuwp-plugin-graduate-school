@@ -133,6 +133,7 @@ class Search_Form {
 	 * Attributes:
 	 *   site_category_slug – lock search to a WP category (e.g. gsvp, gscd)
 	 *   tag_slug           – lock search to a WP tag
+	 *   show_tags          – optional, set "true"/"1" to show tag dropdown (hidden by default)
 	 *
 	 * When a slug is set the corresponding dropdown is replaced with a
 	 * hidden input so the search is always scoped to that term.
@@ -140,28 +141,37 @@ class Search_Form {
 	 * Usage:
 	 *   [gs_search_form]
 	 *   [gs_search_form site_category_slug="gsvp"]
+	 *   [gs_search_form show_tags="true"]
 	 *   [gs_search_form site_category_slug="gscd" tag_slug="fellowships"]
 	 */
 	public static function render_shortcode( $atts ) {
 		$atts = shortcode_atts( array(
 			'site_category_slug' => '',
 			'tag_slug'           => '',
+			'show_tags'          => 'false',
 		), $atts, 'gs_search_form' );
 
 		self::enqueue_styles();
 
 		$locked_cat = ! empty( $atts['site_category_slug'] );
 		$locked_tag = ! empty( $atts['tag_slug'] );
+		$show_tags  = filter_var( $atts['show_tags'], FILTER_VALIDATE_BOOLEAN );
 
 		$categories = \get_terms( array(
 			'taxonomy'   => 'category',
 			'hide_empty' => true,
 		) );
 
-		// $tags = \get_terms( array(
-		// 	'taxonomy'   => 'post_tag',
-		// 	'hide_empty' => true,
-		// ) );
+		$tags = array();
+		if ( $show_tags && ! $locked_tag ) {
+			$maybe_tags = \get_terms( array(
+				'taxonomy'   => 'post_tag',
+				'hide_empty' => true,
+			) );
+			if ( ! is_wp_error( $maybe_tags ) && ! empty( $maybe_tags ) ) {
+				$tags = $maybe_tags;
+			}
+		}
 
 		ob_start();
 		?>
@@ -195,8 +205,8 @@ class Search_Form {
 							</select>
 						</div>
 					<?php endif; ?>
-					<!-- List of tags for testing: -->
-					<!-- <?php if ( ! $locked_tag && ! is_wp_error( $tags ) && ! empty( $tags ) ) : ?>
+
+					<?php if ( $show_tags && ! $locked_tag && ! empty( $tags ) ) : ?>
 						<div class="gs-search-field gs-search-field--taxonomy">
 							<label for="gs-tag"><?php esc_html_e( 'Tag', 'wsuwp-plugin-graduate-school' ); ?></label>
 							<select id="gs-tag" name="tag">
@@ -208,7 +218,7 @@ class Search_Form {
 								<?php endforeach; ?>
 							</select>
 						</div>
-					<?php endif; ?>  -->
+					<?php endif; ?>
 				</div>
 
 				<?php
