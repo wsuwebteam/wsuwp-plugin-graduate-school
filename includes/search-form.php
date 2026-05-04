@@ -195,7 +195,7 @@ class Search_Form {
 							</select>
 						</div>
 					<?php endif; ?>
-
+					<!-- List of tags for testing: -->
 					<!-- <?php if ( ! $locked_tag && ! is_wp_error( $tags ) && ! empty( $tags ) ) : ?>
 						<div class="gs-search-field gs-search-field--taxonomy">
 							<label for="gs-tag"><?php esc_html_e( 'Tag', 'wsuwp-plugin-graduate-school' ); ?></label>
